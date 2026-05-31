@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react'
 import { EditableReviewBoolCell } from '@/components/review-bool-cell'
+import { EditableReviewNotesCell, EditableReviewRatingCell } from '@/components/review-edit-cell'
 export type WineReview = {
   id: string
   overall_score: number | null
@@ -374,7 +375,17 @@ export function WineTable({ wines: initialWines, userId }: { wines: WineRow[]; u
               )}
             </td>
 
-            <UserTd>{wine.review?.overall_score ?? '-'}</UserTd>
+            <UserTd>
+              <EditableReviewRatingCell
+                label="My rating"
+                wineId={String(wine.id)}
+                userId={userId}
+                review={wine.review}
+                onReviewChange={(review) =>
+                  setWines((current) => updateWineReview(current, wine.id, review))
+                }
+              />
+            </UserTd>
             <UserTd>
               <EditableReviewBoolCell
                 label="Want to try"
@@ -411,7 +422,17 @@ export function WineTable({ wines: initialWines, userId }: { wines: WineRow[]; u
                 }
               />
             </UserTd>
-            <UserTd>{wine.review?.tasting_notes?.trim() || '-'}</UserTd>
+            <UserTd>
+              <EditableReviewNotesCell
+                label="Notes"
+                wineId={String(wine.id)}
+                userId={userId}
+                review={wine.review}
+                onReviewChange={(review) =>
+                  setWines((current) => updateWineReview(current, wine.id, review))
+                }
+              />
+            </UserTd>
           </tr>
         ))}
       </tbody>

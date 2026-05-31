@@ -3,6 +3,8 @@ import type { WineReview } from '@/components/wine-table'
 
 export type ReviewBoolField = 'want_to_try' | 'tried' | 'would_buy_again'
 
+export type ReviewEditableField = ReviewBoolField | 'overall_score' | 'tasting_notes'
+
 const reviewSelect = `
   id,
   overall_score,
@@ -14,25 +16,25 @@ const reviewSelect = `
   tasted_on
 `
 
-type SaveReviewBoolFieldArgs = {
+type SaveReviewFieldArgs = {
   userId: string
   wineId: string
   reviewId?: string | null
-  field: ReviewBoolField
-  value: boolean | null
+  field: ReviewEditableField
+  value: boolean | number | string | null
 }
 
-type SaveReviewBoolFieldResult =
+type SaveReviewFieldResult =
   | { review: WineReview; error?: undefined }
   | { review?: undefined; error: string }
 
-export async function saveReviewBoolField({
+export async function saveReviewField({
   userId,
   wineId,
   reviewId,
   field,
   value,
-}: SaveReviewBoolFieldArgs): Promise<SaveReviewBoolFieldResult> {
+}: SaveReviewFieldArgs): Promise<SaveReviewFieldResult> {
   if (reviewId) {
     const { data, error } = await supabase
       .from('reviews')
@@ -62,3 +64,5 @@ export async function saveReviewBoolField({
 
   return { review: data as WineReview }
 }
+
+export const saveReviewBoolField = saveReviewField
