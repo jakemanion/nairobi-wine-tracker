@@ -177,6 +177,12 @@ const thButton: CSSProperties = {
   color: 'inherit',
 }
 
+const thButtonCentered: CSSProperties = {
+  ...thButton,
+  textAlign: 'center',
+  justifyContent: 'center',
+}
+
 const tableLinkStyle = (active = true): CSSProperties => ({
   textDecoration: 'none',
   color: active ? '#0a7' : '#999',
@@ -184,6 +190,8 @@ const tableLinkStyle = (active = true): CSSProperties => ({
 
 const userColumnStyle: CSSProperties = {
   backgroundColor: '#eef2f8',
+  borderLeft: '2px solid #fff',
+  textAlign: 'center',
 }
 
 type HeaderProps = {
@@ -193,25 +201,27 @@ type HeaderProps = {
   dir: SortDir
   onSort: (key: SortKey) => void
   userColumn?: boolean
+  centered?: boolean
 }
 
-function SortableTh({ label, sortKey, activeKey, dir, onSort, userColumn }: HeaderProps) {
+function SortableTh({ label, sortKey, activeKey, dir, onSort, userColumn, centered }: HeaderProps) {
   const isActive = activeKey === sortKey
   const ariaSort = isActive ? (dir === 'asc' ? 'ascending' : 'descending') : 'none'
   const indicator = isActive ? (dir === 'asc' ? '↑' : '↓') : ''
+  const alignCenter = centered || userColumn
 
   return (
     <th
       aria-sort={ariaSort}
       style={{
-        textAlign: 'left',
+        textAlign: alignCenter ? 'center' : 'left',
         borderBottom: '2px solid #ccc',
         ...(userColumn ? userColumnStyle : {}),
       }}
     >
       <button
         type="button"
-        style={thButton}
+        style={alignCenter ? thButtonCentered : thButton}
         onClick={() => onSort(sortKey)}
         aria-label={`Sort by ${label}`}
       >
@@ -226,7 +236,7 @@ function SortableTh({ label, sortKey, activeKey, dir, onSort, userColumn }: Head
 
 function UserTh({ label }: { label: string }) {
   return (
-    <th style={{ textAlign: 'left', borderBottom: '2px solid #ccc', ...userColumnStyle }}>
+    <th style={{ borderBottom: '2px solid #ccc', ...userColumnStyle }}>
       {label}
     </th>
   )
@@ -234,10 +244,6 @@ function UserTh({ label }: { label: string }) {
 
 function UserTd({ children }: { children: ReactNode }) {
   return <td style={userColumnStyle}>{children}</td>
-}
-
-function UserBoolTd({ children }: { children: ReactNode }) {
-  return <td style={{ ...userColumnStyle, textAlign: 'center' }}>{children}</td>
 }
 
 function updateWineReview(
@@ -298,6 +304,7 @@ export function WineTable({ wines: initialWines, userId }: { wines: WineRow[]; u
             activeKey={sortKey}
             dir={sortDir}
             onSort={onSort}
+            centered
           />
           <SortableTh
             label="Store Prices"
@@ -332,7 +339,7 @@ export function WineTable({ wines: initialWines, userId }: { wines: WineRow[]; u
             <td>{wine.region ?? '-'}</td>
             <td>{formatGrapeVarieties(wine.grape_varieties) || '-'}</td>
             <td>{wine.style ?? '-'}</td>
-            <td>
+            <td style={{ textAlign: 'center' }}>
               {wine.vivino_url && wine.vivino_rating != null && wine.vivino_rating !== '' ? (
                 <a
                   href={wine.vivino_url}
@@ -368,7 +375,7 @@ export function WineTable({ wines: initialWines, userId }: { wines: WineRow[]; u
             </td>
 
             <UserTd>{wine.review?.overall_score ?? '-'}</UserTd>
-            <UserBoolTd>
+            <UserTd>
               <EditableReviewBoolCell
                 label="Want to try"
                 field="want_to_try"
@@ -379,8 +386,8 @@ export function WineTable({ wines: initialWines, userId }: { wines: WineRow[]; u
                   setWines((current) => updateWineReview(current, wine.id, review))
                 }
               />
-            </UserBoolTd>
-            <UserBoolTd>
+            </UserTd>
+            <UserTd>
               <EditableReviewBoolCell
                 label="Tried"
                 field="tried"
@@ -391,8 +398,8 @@ export function WineTable({ wines: initialWines, userId }: { wines: WineRow[]; u
                   setWines((current) => updateWineReview(current, wine.id, review))
                 }
               />
-            </UserBoolTd>
-            <UserBoolTd>
+            </UserTd>
+            <UserTd>
               <EditableReviewBoolCell
                 label="Buy again"
                 field="would_buy_again"
@@ -403,7 +410,8 @@ export function WineTable({ wines: initialWines, userId }: { wines: WineRow[]; u
                   setWines((current) => updateWineReview(current, wine.id, review))
                 }
               />
-            </UserBoolTd>            <UserTd>{wine.review?.tasting_notes?.trim() || '-'}</UserTd>
+            </UserTd>
+            <UserTd>{wine.review?.tasting_notes?.trim() || '-'}</UserTd>
           </tr>
         ))}
       </tbody>
