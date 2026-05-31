@@ -266,6 +266,7 @@ export function WineTable({ wines: initialWines, userId }: { wines: WineRow[]; u
 
   const [sortKey, setSortKey] = useState<SortKey>('winery')
   const [sortDir, setSortDir] = useState<SortDir>('asc')
+  const [showDetails, setShowDetails] = useState(true)
 
   const onSort = (key: SortKey) => {
     if (key === sortKey) {
@@ -282,23 +283,41 @@ export function WineTable({ wines: initialWines, userId }: { wines: WineRow[]; u
   )
 
   return (
-    <table
-      style={{
-        width: '100%',
-        borderCollapse: 'collapse',
-        marginTop: 20,
-        fontSize: 14,
-      }}
-    >
+    <>
+      <button
+        type="button"
+        onClick={() => setShowDetails((visible) => !visible)}
+        aria-pressed={showDetails}
+        style={{
+          marginTop: 20,
+          padding: '6px 12px',
+          fontSize: 14,
+          cursor: 'pointer',
+        }}
+      >
+        show/hide details
+      </button>
+      <table
+        style={{
+          width: '100%',
+          borderCollapse: 'collapse',
+          marginTop: 8,
+          fontSize: 14,
+        }}
+      >
       <thead>
         <tr>
           <SortableTh label="Winery" sortKey="winery" activeKey={sortKey} dir={sortDir} onSort={onSort} />
           <SortableTh label="Wine name" sortKey="wine_name" activeKey={sortKey} dir={sortDir} onSort={onSort} />
-          <SortableTh label="Vintage" sortKey="vintage" activeKey={sortKey} dir={sortDir} onSort={onSort} />
-          <SortableTh label="Country" sortKey="country" activeKey={sortKey} dir={sortDir} onSort={onSort} />
-          <SortableTh label="Region" sortKey="region" activeKey={sortKey} dir={sortDir} onSort={onSort} />
-          <SortableTh label="Grapes" sortKey="grapes" activeKey={sortKey} dir={sortDir} onSort={onSort} />
-          <SortableTh label="Style" sortKey="style" activeKey={sortKey} dir={sortDir} onSort={onSort} />
+          {showDetails && (
+            <>
+              <SortableTh label="Vintage" sortKey="vintage" activeKey={sortKey} dir={sortDir} onSort={onSort} />
+              <SortableTh label="Country" sortKey="country" activeKey={sortKey} dir={sortDir} onSort={onSort} />
+              <SortableTh label="Region" sortKey="region" activeKey={sortKey} dir={sortDir} onSort={onSort} />
+              <SortableTh label="Grapes" sortKey="grapes" activeKey={sortKey} dir={sortDir} onSort={onSort} />
+              <SortableTh label="Style" sortKey="style" activeKey={sortKey} dir={sortDir} onSort={onSort} />
+            </>
+          )}
           <SortableTh
             label="Vivino rating"
             sortKey="vivino_rating"
@@ -335,11 +354,15 @@ export function WineTable({ wines: initialWines, userId }: { wines: WineRow[]; u
             <td>{wine.producer ?? '-'}</td>
             <td>{wine.wine_name ?? '-'}</td>
 
-            <td>{wine.vintage ?? '-'}</td>
-            <td>{wine.country ?? '-'}</td>
-            <td>{wine.region ?? '-'}</td>
-            <td>{formatGrapeVarieties(wine.grape_varieties) || '-'}</td>
-            <td>{wine.style ?? '-'}</td>
+            {showDetails && (
+              <>
+                <td>{wine.vintage ?? '-'}</td>
+                <td>{wine.country ?? '-'}</td>
+                <td>{wine.region ?? '-'}</td>
+                <td>{formatGrapeVarieties(wine.grape_varieties) || '-'}</td>
+                <td>{wine.style ?? '-'}</td>
+              </>
+            )}
             <td style={{ textAlign: 'center' }}>
               {wine.vivino_url && wine.vivino_rating != null && wine.vivino_rating !== '' ? (
                 <a
@@ -437,5 +460,6 @@ export function WineTable({ wines: initialWines, userId }: { wines: WineRow[]; u
         ))}
       </tbody>
     </table>
+    </>
   )
 }
