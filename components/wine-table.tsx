@@ -245,7 +245,7 @@ export function WineTable({ wines }: { wines: WineRow[] }) {
             </td>
 
             <td>{wine.vintage ?? '-'}</td>
-            <td>{wine.country ?? '-'}</td>
+            <td>TEST {wine.country ?? '-'}</td>
             <td>{wine.region ?? '-'}</td>
             <td>{formatGrapeVarieties(wine.grape_varieties) || '-'}</td>
             <td>{wine.style ?? '-'}</td>
