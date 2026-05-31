@@ -175,6 +175,11 @@ const thButton: CSSProperties = {
   color: 'inherit',
 }
 
+const tableLinkStyle = (active = true): CSSProperties => ({
+  textDecoration: 'none',
+  color: active ? '#0a7' : '#999',
+})
+
 type HeaderProps = {
   label: string
   sortKey: SortKey
@@ -280,7 +285,12 @@ export function WineTable({ wines }: { wines: WineRow[] }) {
             <td>{wine.style ?? '-'}</td>
             <td>
               {wine.vivino_url && wine.vivino_rating != null && wine.vivino_rating !== '' ? (
-                <a href={wine.vivino_url} target="_blank" rel="noreferrer">
+                <a
+                  href={wine.vivino_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={tableLinkStyle()}
+                >
                   {wine.vivino_rating}
                 </a>
               ) : (
@@ -307,10 +317,7 @@ export function WineTable({ wines }: { wines: WineRow[] }) {
                       href={listing.store_product_url || '#'}
                       target="_blank"
                       rel="noreferrer"
-                      style={{
-                        textDecoration: 'none',
-                        color: listing.in_stock ? '#0a7' : '#999',
-                      }}
+                      style={tableLinkStyle(listing.in_stock ?? false)}
                     >
                       {listing.stores?.name}: KES {listing.current_price_ksh ?? '-'}
                     </a>
