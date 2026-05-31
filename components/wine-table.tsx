@@ -33,7 +33,8 @@ export type WineRow = {
 }
 
 type SortKey =
-  | 'wine'
+  | 'winery'
+  | 'wine_name'
   | 'vintage'
   | 'country'
   | 'region'
@@ -99,9 +100,14 @@ function compareEmptyLast(
 
 function compareWine(a: WineRow, b: WineRow, key: SortKey): number {
   switch (key) {
-    case 'wine': {
-      const as = `${str(a.producer)}\u0000${str(a.wine_name)}`.toLowerCase()
-      const bs = `${str(b.producer)}\u0000${str(b.wine_name)}`.toLowerCase()
+    case 'winery': {
+      const as = str(a.producer).toLowerCase()
+      const bs = str(b.producer).toLowerCase()
+      return compareEmptyLast(!as, !bs, () => as.localeCompare(bs, undefined, { sensitivity: 'base' }))
+    }
+    case 'wine_name': {
+      const as = str(a.wine_name).toLowerCase()
+      const bs = str(b.wine_name).toLowerCase()
       return compareEmptyLast(!as, !bs, () => as.localeCompare(bs, undefined, { sensitivity: 'base' }))
     }
     case 'vintage': {
@@ -200,7 +206,7 @@ function SortableTh({ label, sortKey, activeKey, dir, onSort }: HeaderProps) {
 }
 
 export function WineTable({ wines }: { wines: WineRow[] }) {
-  const [sortKey, setSortKey] = useState<SortKey>('wine')
+  const [sortKey, setSortKey] = useState<SortKey>('winery')
   const [sortDir, setSortDir] = useState<SortDir>('asc')
 
   const onSort = (key: SortKey) => {
@@ -228,7 +234,8 @@ export function WineTable({ wines }: { wines: WineRow[] }) {
     >
       <thead>
         <tr>
-          <SortableTh label="Wine" sortKey="wine" activeKey={sortKey} dir={sortDir} onSort={onSort} />
+          <SortableTh label="Winery" sortKey="winery" activeKey={sortKey} dir={sortDir} onSort={onSort} />
+          <SortableTh label="Wine name" sortKey="wine_name" activeKey={sortKey} dir={sortDir} onSort={onSort} />
           <SortableTh label="Vintage" sortKey="vintage" activeKey={sortKey} dir={sortDir} onSort={onSort} />
           <SortableTh label="Country" sortKey="country" activeKey={sortKey} dir={sortDir} onSort={onSort} />
           <SortableTh label="Region" sortKey="region" activeKey={sortKey} dir={sortDir} onSort={onSort} />
@@ -263,11 +270,8 @@ export function WineTable({ wines }: { wines: WineRow[] }) {
       <tbody>
         {sorted.map((wine) => (
           <tr key={wine.id} style={{ borderBottom: '1px solid #eee' }}>
-            <td>
-              <strong>{wine.producer}</strong>
-              <br />
-              {wine.wine_name}
-            </td>
+            <td>{wine.producer ?? '-'}</td>
+            <td>{wine.wine_name ?? '-'}</td>
 
             <td>{wine.vintage ?? '-'}</td>
             <td>{wine.country ?? '-'}</td>
