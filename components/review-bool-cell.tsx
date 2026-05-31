@@ -16,7 +16,34 @@ type EditableReviewBoolCellProps = {
 const inactiveColor = '#bbb'
 const tickActiveColor = '#0a7'
 const crossActiveColor = '#c33'
-const nullOutlineColor = '#888'
+const nullActiveColor = '#888'
+const nullInactiveColor = '#ddd'
+
+function NullIcon({ active }: { active: boolean }) {
+  const color = active ? nullActiveColor : nullInactiveColor
+
+  return (
+    <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden>
+      <rect
+        x="1.5"
+        y="1.5"
+        width="11"
+        height="11"
+        fill="none"
+        stroke={color}
+        strokeWidth="1.5"
+      />
+      <line
+        x1="2.5"
+        y1="11.5"
+        x2="11.5"
+        y2="2.5"
+        stroke={color}
+        strokeWidth="1.5"
+      />
+    </svg>
+  )
+}
 
 const optionButtonStyle: CSSProperties = {
   background: 'none',
@@ -28,30 +55,6 @@ const optionButtonStyle: CSSProperties = {
   display: 'inline-flex',
   alignItems: 'center',
   justifyContent: 'center',
-}
-
-function NullIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden>
-      <rect
-        x="1.5"
-        y="1.5"
-        width="11"
-        height="11"
-        fill="none"
-        stroke={nullOutlineColor}
-        strokeWidth="1.5"
-      />
-      <line
-        x1="2.5"
-        y1="11.5"
-        x2="11.5"
-        y2="2.5"
-        stroke={nullOutlineColor}
-        strokeWidth="1.5"
-      />
-    </svg>
-  )
 }
 
 export function EditableReviewBoolCell({
@@ -158,7 +161,7 @@ export function EditableReviewBoolCell({
           aria-pressed={value == null}
           onClick={() => setValue(null)}
         >
-          <NullIcon />
+          <NullIcon active={value == null} />
         </button>
       </div>
       {error && (
