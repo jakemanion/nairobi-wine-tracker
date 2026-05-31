@@ -174,7 +174,7 @@ function SortableTh({ label, sortKey, activeKey, dir, onSort }: HeaderProps) {
         onClick={() => onSort(sortKey)}
         aria-label={`Sort by ${label}`}
       >
-        <span>!!!{label}</span>
+        <span>OOO{label}</span>
         <span style={{ display: 'inline-block', minWidth: 14, fontSize: 12 }} aria-hidden>
           {indicator}
         </span>
