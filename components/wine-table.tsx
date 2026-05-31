@@ -2,6 +2,15 @@
 
 import { useMemo, useState, type CSSProperties } from 'react'
 
+export type WineReview = {
+  id: string
+  overall_score: number | null
+  value_score: number | null
+  would_buy_again: boolean | null
+  tasting_notes: string | null
+  tasted_on: string | null
+}
+
 export type WineRow = {
   id: string | number
   producer: string | null
@@ -13,6 +22,7 @@ export type WineRow = {
   style: string | null
   vivino_url: string | null
   vivino_rating: string | number | null
+  review?: WineReview | null
   store_listings?: Array<{
     id: string | number
     current_price_ksh: string | number | null
@@ -30,6 +40,7 @@ type SortKey =
   | 'grapes'
   | 'style'
   | 'vivino_rating'
+  | 'my_rating'
   | 'store_prices'
 
 type SortDir = 'asc' | 'desc'
@@ -123,6 +134,11 @@ function compareWine(a: WineRow, b: WineRow, key: SortKey): number {
       const bn = ratingNum(b.vivino_rating)
       return compareEmptyLast(an == null, bn == null, () => (an as number) - (bn as number))
     }
+    case 'my_rating': {
+      const an = ratingNum(a.review?.overall_score)
+      const bn = ratingNum(b.review?.overall_score)
+      return compareEmptyLast(an == null, bn == null, () => (an as number) - (bn as number))
+    }
     case 'store_prices': {
       const an = minListingPrice(a)
       const bn = minListingPrice(b)
@@ -174,7 +190,7 @@ function SortableTh({ label, sortKey, activeKey, dir, onSort }: HeaderProps) {
         onClick={() => onSort(sortKey)}
         aria-label={`Sort by ${label}`}
       >
-        <span>OOO{label}</span>
+        <span>{label}</span>
         <span style={{ display: 'inline-block', minWidth: 14, fontSize: 12 }} aria-hidden>
           {indicator}
         </span>
@@ -226,6 +242,15 @@ export function WineTable({ wines }: { wines: WineRow[] }) {
             onSort={onSort}
           />
           <SortableTh
+            label="My rating"
+            sortKey="my_rating"
+            activeKey={sortKey}
+            dir={sortDir}
+            onSort={onSort}
+          />
+          <th style={{ textAlign: 'left', borderBottom: '2px solid #ccc' }}>Would buy again</th>
+          <th style={{ textAlign: 'left', borderBottom: '2px solid #ccc' }}>Tasting notes</th>
+          <SortableTh
             label="Store Prices"
             sortKey="store_prices"
             activeKey={sortKey}
@@ -245,7 +270,7 @@ export function WineTable({ wines }: { wines: WineRow[] }) {
             </td>
 
             <td>{wine.vintage ?? '-'}</td>
-            <td>TEST {wine.country ?? '-'}</td>
+            <td>{wine.country ?? '-'}</td>
             <td>{wine.region ?? '-'}</td>
             <td>{formatGrapeVarieties(wine.grape_varieties) || '-'}</td>
             <td>{wine.style ?? '-'}</td>
@@ -258,6 +283,16 @@ export function WineTable({ wines }: { wines: WineRow[] }) {
                 (wine.vivino_rating ?? '-')
               )}
             </td>
+
+            <td>{wine.review?.overall_score ?? '-'}</td>
+            <td>
+              {wine.review?.would_buy_again == null
+                ? '-'
+                : wine.review.would_buy_again
+                  ? 'Yes'
+                  : 'No'}
+            </td>
+            <td>{wine.review?.tasting_notes?.trim() || '-'}</td>
 
             <td>
               {wine.store_listings?.length ? (
