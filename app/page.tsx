@@ -110,6 +110,7 @@ export default async function Home() {
       )}
 
       <WineTable
+        userId={userId}
         wines={attachReviews((wines ?? []) as WineRow[], (reviews ?? []) as UserReview[])}
       />
     </main>

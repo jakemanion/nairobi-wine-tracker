@@ -1,7 +1,7 @@
 'use client'
 
-import { useMemo, useState, type CSSProperties, type ReactNode } from 'react'
-
+import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react'
+import { EditableReviewBoolCell } from '@/components/review-bool-cell'
 export type WineReview = {
   id: string
   overall_score: number | null
@@ -240,36 +240,23 @@ function UserBoolTd({ children }: { children: ReactNode }) {
   return <td style={{ ...userColumnStyle, textAlign: 'center' }}>{children}</td>
 }
 
-type ReviewBoolCellProps = {
-  value: boolean | null | undefined
-  label: string
-}
-
-function ReviewBoolCell({ value, label }: ReviewBoolCellProps) {
-  if (value == null) {
-    return (
-      <span style={{ color: '#000' }} aria-label={`${label}: not set`}>
-        —
-      </span>
-    )
-  }
-
-  if (value) {
-    return (
-      <span style={{ color: '#0a7', fontWeight: 600 }} aria-label={`${label}: yes`}>
-        ✓
-      </span>
-    )
-  }
-
-  return (
-    <span style={{ color: '#c33', fontWeight: 600 }} aria-label={`${label}: no`}>
-      ✗
-    </span>
+function updateWineReview(
+  wines: WineRow[],
+  wineId: string | number,
+  review: WineReview | null,
+): WineRow[] {
+  return wines.map((wine) =>
+    wine.id === wineId ? { ...wine, review: review ?? undefined } : wine,
   )
 }
 
-export function WineTable({ wines }: { wines: WineRow[] }) {
+export function WineTable({ wines: initialWines, userId }: { wines: WineRow[]; userId: string }) {
+  const [wines, setWines] = useState(initialWines)
+
+  useEffect(() => {
+    setWines(initialWines)
+  }, [initialWines])
+
   const [sortKey, setSortKey] = useState<SortKey>('winery')
   const [sortDir, setSortDir] = useState<SortDir>('asc')
 
@@ -382,15 +369,41 @@ export function WineTable({ wines }: { wines: WineRow[] }) {
 
             <UserTd>{wine.review?.overall_score ?? '-'}</UserTd>
             <UserBoolTd>
-              <ReviewBoolCell value={wine.review?.want_to_try} label="Want to try" />
+              <EditableReviewBoolCell
+                label="Want to try"
+                field="want_to_try"
+                wineId={String(wine.id)}
+                userId={userId}
+                review={wine.review}
+                onReviewChange={(review) =>
+                  setWines((current) => updateWineReview(current, wine.id, review))
+                }
+              />
             </UserBoolTd>
             <UserBoolTd>
-              <ReviewBoolCell value={wine.review?.tried} label="Tried" />
+              <EditableReviewBoolCell
+                label="Tried"
+                field="tried"
+                wineId={String(wine.id)}
+                userId={userId}
+                review={wine.review}
+                onReviewChange={(review) =>
+                  setWines((current) => updateWineReview(current, wine.id, review))
+                }
+              />
             </UserBoolTd>
             <UserBoolTd>
-              <ReviewBoolCell value={wine.review?.would_buy_again} label="Buy again" />
-            </UserBoolTd>
-            <UserTd>{wine.review?.tasting_notes?.trim() || '-'}</UserTd>
+              <EditableReviewBoolCell
+                label="Buy again"
+                field="would_buy_again"
+                wineId={String(wine.id)}
+                userId={userId}
+                review={wine.review}
+                onReviewChange={(review) =>
+                  setWines((current) => updateWineReview(current, wine.id, review))
+                }
+              />
+            </UserBoolTd>            <UserTd>{wine.review?.tasting_notes?.trim() || '-'}</UserTd>
           </tr>
         ))}
       </tbody>
