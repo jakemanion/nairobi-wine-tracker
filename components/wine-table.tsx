@@ -186,11 +186,6 @@ const userColumnStyle: CSSProperties = {
   backgroundColor: '#eef2f8',
 }
 
-function formatBool(value: boolean | null | undefined): string {
-  if (value == null) return '-'
-  return value ? 'Yes' : 'No'
-}
-
 type HeaderProps = {
   label: string
   sortKey: SortKey
@@ -239,6 +234,39 @@ function UserTh({ label }: { label: string }) {
 
 function UserTd({ children }: { children: ReactNode }) {
   return <td style={userColumnStyle}>{children}</td>
+}
+
+function UserBoolTd({ children }: { children: ReactNode }) {
+  return <td style={{ ...userColumnStyle, textAlign: 'center' }}>{children}</td>
+}
+
+type ReviewBoolCellProps = {
+  value: boolean | null | undefined
+  label: string
+}
+
+function ReviewBoolCell({ value, label }: ReviewBoolCellProps) {
+  if (value == null) {
+    return (
+      <span style={{ color: '#000' }} aria-label={`${label}: not set`}>
+        —
+      </span>
+    )
+  }
+
+  if (value) {
+    return (
+      <span style={{ color: '#0a7', fontWeight: 600 }} aria-label={`${label}: yes`}>
+        ✓
+      </span>
+    )
+  }
+
+  return (
+    <span style={{ color: '#c33', fontWeight: 600 }} aria-label={`${label}: no`}>
+      ✗
+    </span>
+  )
 }
 
 export function WineTable({ wines }: { wines: WineRow[] }) {
@@ -353,9 +381,15 @@ export function WineTable({ wines }: { wines: WineRow[] }) {
             </td>
 
             <UserTd>{wine.review?.overall_score ?? '-'}</UserTd>
-            <UserTd>{formatBool(wine.review?.want_to_try)}</UserTd>
-            <UserTd>{formatBool(wine.review?.tried)}</UserTd>
-            <UserTd>{formatBool(wine.review?.would_buy_again)}</UserTd>
+            <UserBoolTd>
+              <ReviewBoolCell value={wine.review?.want_to_try} label="Want to try" />
+            </UserBoolTd>
+            <UserBoolTd>
+              <ReviewBoolCell value={wine.review?.tried} label="Tried" />
+            </UserBoolTd>
+            <UserBoolTd>
+              <ReviewBoolCell value={wine.review?.would_buy_again} label="Buy again" />
+            </UserBoolTd>
             <UserTd>{wine.review?.tasting_notes?.trim() || '-'}</UserTd>
           </tr>
         ))}
