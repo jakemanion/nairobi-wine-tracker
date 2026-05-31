@@ -1,11 +1,13 @@
 'use client'
 
-import { useMemo, useState, type CSSProperties } from 'react'
+import { useMemo, useState, type CSSProperties, type ReactNode } from 'react'
 
 export type WineReview = {
   id: string
   overall_score: number | null
   value_score: number | null
+  want_to_try: boolean | null
+  tried: boolean | null
   would_buy_again: boolean | null
   tasting_notes: string | null
   tasted_on: string | null
@@ -180,21 +182,38 @@ const tableLinkStyle = (active = true): CSSProperties => ({
   color: active ? '#0a7' : '#999',
 })
 
+const userColumnStyle: CSSProperties = {
+  backgroundColor: '#eef2f8',
+}
+
+function formatBool(value: boolean | null | undefined): string {
+  if (value == null) return '-'
+  return value ? 'Yes' : 'No'
+}
+
 type HeaderProps = {
   label: string
   sortKey: SortKey
   activeKey: SortKey
   dir: SortDir
   onSort: (key: SortKey) => void
+  userColumn?: boolean
 }
 
-function SortableTh({ label, sortKey, activeKey, dir, onSort }: HeaderProps) {
+function SortableTh({ label, sortKey, activeKey, dir, onSort, userColumn }: HeaderProps) {
   const isActive = activeKey === sortKey
   const ariaSort = isActive ? (dir === 'asc' ? 'ascending' : 'descending') : 'none'
   const indicator = isActive ? (dir === 'asc' ? '↑' : '↓') : ''
 
   return (
-    <th aria-sort={ariaSort} style={{ textAlign: 'left', borderBottom: '2px solid #ccc' }}>
+    <th
+      aria-sort={ariaSort}
+      style={{
+        textAlign: 'left',
+        borderBottom: '2px solid #ccc',
+        ...(userColumn ? userColumnStyle : {}),
+      }}
+    >
       <button
         type="button"
         style={thButton}
@@ -208,6 +227,18 @@ function SortableTh({ label, sortKey, activeKey, dir, onSort }: HeaderProps) {
       </button>
     </th>
   )
+}
+
+function UserTh({ label }: { label: string }) {
+  return (
+    <th style={{ textAlign: 'left', borderBottom: '2px solid #ccc', ...userColumnStyle }}>
+      {label}
+    </th>
+  )
+}
+
+function UserTd({ children }: { children: ReactNode }) {
+  return <td style={userColumnStyle}>{children}</td>
 }
 
 export function WineTable({ wines }: { wines: WineRow[] }) {
@@ -254,21 +285,24 @@ export function WineTable({ wines }: { wines: WineRow[] }) {
             onSort={onSort}
           />
           <SortableTh
-            label="My rating"
-            sortKey="my_rating"
-            activeKey={sortKey}
-            dir={sortDir}
-            onSort={onSort}
-          />
-          <th style={{ textAlign: 'left', borderBottom: '2px solid #ccc' }}>Would buy again</th>
-          <th style={{ textAlign: 'left', borderBottom: '2px solid #ccc' }}>Tasting notes</th>
-          <SortableTh
             label="Store Prices"
             sortKey="store_prices"
             activeKey={sortKey}
             dir={sortDir}
             onSort={onSort}
           />
+          <SortableTh
+            label="My rating"
+            sortKey="my_rating"
+            activeKey={sortKey}
+            dir={sortDir}
+            onSort={onSort}
+            userColumn
+          />
+          <UserTh label="Want to try" />
+          <UserTh label="Tried" />
+          <UserTh label="Buy again" />
+          <UserTh label="Notes" />
         </tr>
       </thead>
 
@@ -298,16 +332,6 @@ export function WineTable({ wines }: { wines: WineRow[] }) {
               )}
             </td>
 
-            <td>{wine.review?.overall_score ?? '-'}</td>
-            <td>
-              {wine.review?.would_buy_again == null
-                ? '-'
-                : wine.review.would_buy_again
-                  ? 'Yes'
-                  : 'No'}
-            </td>
-            <td>{wine.review?.tasting_notes?.trim() || '-'}</td>
-
             <td>
               {wine.store_listings?.length ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -327,6 +351,12 @@ export function WineTable({ wines }: { wines: WineRow[] }) {
                 <span style={{ color: '#999' }}>No listings</span>
               )}
             </td>
+
+            <UserTd>{wine.review?.overall_score ?? '-'}</UserTd>
+            <UserTd>{formatBool(wine.review?.want_to_try)}</UserTd>
+            <UserTd>{formatBool(wine.review?.tried)}</UserTd>
+            <UserTd>{formatBool(wine.review?.would_buy_again)}</UserTd>
+            <UserTd>{wine.review?.tasting_notes?.trim() || '-'}</UserTd>
           </tr>
         ))}
       </tbody>

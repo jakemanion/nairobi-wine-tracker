@@ -7,6 +7,8 @@ type UserReview = {
   wine_id: string
   overall_score: number | null
   value_score: number | null
+  want_to_try: boolean | null
+  tried: boolean | null
   would_buy_again: boolean | null
   tasting_notes: string | null
   tasted_on: string | null
@@ -27,6 +29,8 @@ function attachReviews(wines: WineRow[], reviews: UserReview[]): WineRow[] {
         id: review.id,
         overall_score: review.overall_score,
         value_score: review.value_score,
+        want_to_try: review.want_to_try,
+        tried: review.tried,
         would_buy_again: review.would_buy_again,
         tasting_notes: review.tasting_notes,
         tasted_on: review.tasted_on,
@@ -80,6 +84,8 @@ export default async function Home() {
         wine_id,
         overall_score,
         value_score,
+        want_to_try,
+        tried,
         would_buy_again,
         tasting_notes,
         tasted_on
