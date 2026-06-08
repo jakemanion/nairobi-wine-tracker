@@ -1,5 +1,6 @@
+import { parseListingTitle } from '@/lib/parse-listing-title'
 import { supabase } from '@/lib/supabase'
-import type { WineRecord } from '@/lib/wines'
+import { createWine, type WineRecord } from '@/lib/wines'
 
 export type StoreListingRecord = {
   id: string
@@ -114,4 +115,33 @@ export async function clearStoreListingMatch(
   if (!data) return { error: 'Clear match failed.' }
 
   return { listing: normalizeStoreListing(data) }
+}
+
+type PromoteListingResult =
+  | { wine: WineRecord; listing: StoreListingRecord; error?: undefined }
+  | { wine?: undefined; listing?: undefined; error: string }
+
+export async function promoteListingToCanonicalWine(
+  listing: StoreListingRecord,
+): Promise<PromoteListingResult> {
+  const parsed = parseListingTitle(listing.raw_title)
+
+  const wineResult = await createWine(parsed)
+  if (wineResult.error || !wineResult.wine) {
+    return { error: wineResult.error ?? 'Failed to create wine.' }
+  }
+
+  const matchResult = await matchStoreListingToWine({
+    listingId: listing.id,
+    wineId: wineResult.wine.id,
+  })
+
+  if (matchResult.error || !matchResult.listing) {
+    return { error: matchResult.error ?? 'Wine created but linking failed.' }
+  }
+
+  return {
+    wine: wineResult.wine,
+    listing: matchResult.listing,
+  }
 }

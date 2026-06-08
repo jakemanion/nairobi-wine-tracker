@@ -1,11 +1,12 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { EditableBoolCell } from '@/components/editable-bool-cell'
 import { EditableTextCell } from '@/components/editable-text-cell'
 import {
   clearStoreListingMatch,
   matchStoreListingToWine,
+  promoteListingToCanonicalWine,
   updateStoreListingField,
   type StoreListingRecord,
 } from '@/lib/store-listings'
@@ -137,6 +138,48 @@ function Pipe() {
   )
 }
 
+function actionButtonStyle(
+  variant: 'primary' | 'default',
+  enabled: boolean,
+): CSSProperties {
+  const primary = variant === 'primary'
+
+  return {
+    padding: '5px 12px',
+    fontSize: 12,
+    fontWeight: primary ? 600 : 400,
+    border: primary ? '1px solid #067a5c' : '1px solid #bbb',
+    borderRadius: 4,
+    background: primary ? (enabled ? '#0a7' : '#d8ebe6') : enabled ? '#fff' : '#f4f4f4',
+    color: primary ? (enabled ? '#fff' : '#4a6a62') : enabled ? '#222' : '#888',
+    cursor: enabled ? 'pointer' : 'not-allowed',
+  }
+}
+
+function AddToWinesButton({
+  enabled,
+  busy,
+  onClick,
+  title,
+}: {
+  enabled: boolean
+  busy: boolean
+  onClick: () => void
+  title?: string
+}) {
+  return (
+    <button
+      type="button"
+      disabled={!enabled}
+      title={title}
+      onClick={onClick}
+      style={actionButtonStyle('primary', enabled)}
+    >
+      {busy ? 'Saving…' : 'Add to wines'}
+    </button>
+  )
+}
+
 type AdminMatcherProps = {
   initialListings: StoreListingRecord[]
   initialWines: WineRecord[]
@@ -147,7 +190,7 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
   const [wines, setWines] = useState(initialWines)
   const [selectedListingId, setSelectedListingId] = useState<string | null>(null)
   const [selectedWineId, setSelectedWineId] = useState<string | null>(null)
-  const [matching, setMatching] = useState(false)
+  const [busy, setBusy] = useState(false)
   const [matchError, setMatchError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -184,9 +227,9 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
   }
 
   async function handleMatch() {
-    if (!selectedListingId || !selectedWineId || matching) return
+    if (!selectedListingId || !selectedWineId || busy) return
 
-    setMatching(true)
+    setBusy(true)
     setMatchError(null)
 
     const result = await matchStoreListingToWine({
@@ -194,7 +237,7 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
       wineId: selectedWineId,
     })
 
-    setMatching(false)
+    setBusy(false)
 
     if (result.error || !result.listing) {
       setMatchError(result.error ?? 'Failed to match listing.')
@@ -205,14 +248,14 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
   }
 
   async function handleClearMatch() {
-    if (!selectedListingId || matching) return
+    if (!selectedListingId || busy) return
 
-    setMatching(true)
+    setBusy(true)
     setMatchError(null)
 
     const result = await clearStoreListingMatch(selectedListingId)
 
-    setMatching(false)
+    setBusy(false)
 
     if (result.error || !result.listing) {
       setMatchError(result.error ?? 'Failed to clear match.')
@@ -221,6 +264,26 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
 
     setListings((current) => updateListingInState(current, result.listing!))
     setSelectedWineId(null)
+  }
+
+  async function handleAddListingToWines() {
+    if (!selectedListing || busy) return
+
+    setBusy(true)
+    setMatchError(null)
+
+    const result = await promoteListingToCanonicalWine(selectedListing)
+
+    setBusy(false)
+
+    if (result.error || !result.wine || !result.listing) {
+      setMatchError(result.error ?? 'Failed to create wine from listing.')
+      return
+    }
+
+    setWines((current) => [...current, result.wine!])
+    setListings((current) => updateListingInState(current, result.listing!))
+    setSelectedWineId(result.wine.id)
   }
 
   async function handleAddWine() {
@@ -305,8 +368,15 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
     return { error: result.error }
   }
 
-  const canMatch = Boolean(selectedListingId && selectedWineId && !matching)
-  const canClearMatch = Boolean(selectedListing?.wine_id && !matching)
+  const canMatch = Boolean(selectedListingId && selectedWineId && !busy)
+  const canClearMatch = Boolean(selectedListing?.wine_id && !busy)
+  const canAddListingToWines = Boolean(selectedListing && !selectedListing.wine_id && !busy)
+
+  const addToWinesHint = !selectedListing
+    ? 'Select an unmatched store listing first'
+    : selectedListing.wine_id
+      ? 'Listing already matched — use Clear to unlink first'
+      : 'Create a canonical wine from the selected listing'
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8, minHeight: 'calc(100vh - 40px)' }}>
@@ -323,36 +393,32 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
           fontSize: 12,
         }}
       >
+        <AddToWinesButton
+          enabled={canAddListingToWines}
+          busy={busy}
+          title={addToWinesHint}
+          onClick={() => void handleAddListingToWines()}
+        />
         <button
           type="button"
           disabled={!canMatch}
           onClick={() => void handleMatch()}
-          style={{
-            padding: '4px 10px',
-            fontSize: 12,
-            cursor: canMatch ? 'pointer' : 'not-allowed',
-            opacity: canMatch ? 1 : 0.5,
-          }}
+          style={actionButtonStyle('default', canMatch)}
         >
-          {matching ? 'Saving…' : 'Match'}
+          Match
         </button>
         <button
           type="button"
           disabled={!canClearMatch}
           onClick={() => void handleClearMatch()}
-          style={{
-            padding: '4px 10px',
-            fontSize: 12,
-            cursor: canClearMatch ? 'pointer' : 'not-allowed',
-            opacity: canClearMatch ? 1 : 0.5,
-          }}
+          style={actionButtonStyle('default', canClearMatch)}
         >
           Clear
         </button>
         <span style={{ color: '#555' }}>
           {selectedListing && selectedWine
             ? `${selectedListing.raw_title ?? 'listing'} → ${formatWineLabel(selectedWine)}`
-            : 'Select listing + wine, then Match.'}
+            : 'Add to wines: select unmatched listing. Match: select listing + wine.'}
         </span>
         {matchError && <span style={{ color: '#c33' }}>{matchError}</span>}
       </div>
@@ -363,11 +429,20 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
             style={{
               padding: '6px 10px',
               borderBottom: '1px solid #eee',
-              fontWeight: 600,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 8,
               fontSize: 13,
             }}
           >
-            Store listings ({listings.length})
+            <span style={{ fontWeight: 600 }}>Store listings ({listings.length})</span>
+            <AddToWinesButton
+              enabled={canAddListingToWines}
+              busy={busy}
+              title={addToWinesHint}
+              onClick={() => void handleAddListingToWines()}
+            />
           </header>
           <div style={scrollStyle}>
             {groupedListings.length === 0 ? (

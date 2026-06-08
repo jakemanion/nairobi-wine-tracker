@@ -68,14 +68,16 @@ export async function updateWineField({
   return { wine: data as WineRecord }
 }
 
-export async function createWine(): Promise<WineMutationResult> {
-  const { data, error } = await supabase
+export async function createWine(
+  data: Partial<Omit<WineRecord, 'id'>> = {},
+): Promise<WineMutationResult> {
+  const { data: wine, error } = await supabase
     .from('wines')
-    .insert({})
+    .insert(data)
     .select(wineSelect)
     .single()
 
   if (error) return { error: error.message }
 
-  return { wine: data as WineRecord }
+  return { wine: wine as WineRecord }
 }
