@@ -94,7 +94,7 @@ const panelStyle = {
 const scrollStyle = {
   flex: 1,
   overflowY: 'auto' as const,
-  padding: 12,
+  padding: '6px 8px',
 }
 
 const selectedRowStyle = {
@@ -104,6 +104,37 @@ const selectedRowStyle = {
 
 const matchedRowStyle = {
   backgroundColor: '#f3faf3',
+}
+
+const rowStyle = {
+  display: 'flex' as const,
+  alignItems: 'center' as const,
+  gap: 6,
+  border: '1px solid #e8e8e8',
+  borderRadius: 4,
+  padding: '3px 6px',
+  cursor: 'pointer' as const,
+  fontSize: 12,
+  lineHeight: 1.3,
+  minHeight: 24,
+}
+
+const inlineLineStyle = {
+  flex: 1,
+  minWidth: 0,
+  display: 'flex' as const,
+  alignItems: 'center' as const,
+  flexWrap: 'wrap' as const,
+  gap: '2px 0',
+  color: '#333',
+}
+
+function Pipe() {
+  return (
+    <span aria-hidden style={{ color: '#ccc', padding: '0 5px', userSelect: 'none', flexShrink: 0 }}>
+      |
+    </span>
+  )
 }
 
 type AdminMatcherProps = {
@@ -278,17 +309,18 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
   const canClearMatch = Boolean(selectedListing?.wine_id && !matching)
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, minHeight: 'calc(100vh - 40px)' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, minHeight: 'calc(100vh - 40px)' }}>
       <div
         style={{
           display: 'flex',
           flexWrap: 'wrap',
           alignItems: 'center',
-          gap: 12,
-          padding: '12px 14px',
+          gap: 8,
+          padding: '6px 10px',
           border: '1px solid #ddd',
-          borderRadius: 8,
+          borderRadius: 6,
           background: '#fafafa',
+          fontSize: 12,
         }}
       >
         <button
@@ -296,8 +328,8 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
           disabled={!canMatch}
           onClick={() => void handleMatch()}
           style={{
-            padding: '8px 16px',
-            fontSize: 14,
+            padding: '4px 10px',
+            fontSize: 12,
             cursor: canMatch ? 'pointer' : 'not-allowed',
             opacity: canMatch ? 1 : 0.5,
           }}
@@ -309,52 +341,53 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
           disabled={!canClearMatch}
           onClick={() => void handleClearMatch()}
           style={{
-            padding: '8px 16px',
-            fontSize: 14,
+            padding: '4px 10px',
+            fontSize: 12,
             cursor: canClearMatch ? 'pointer' : 'not-allowed',
             opacity: canClearMatch ? 1 : 0.5,
           }}
         >
-          Clear match
+          Clear
         </button>
-        <span style={{ color: '#555', fontSize: 14 }}>
+        <span style={{ color: '#555' }}>
           {selectedListing && selectedWine
-            ? `Link "${selectedListing.raw_title ?? 'listing'}" → ${formatWineLabel(selectedWine)}`
-            : 'Select a store listing and a canonical wine, then click Match.'}
+            ? `${selectedListing.raw_title ?? 'listing'} → ${formatWineLabel(selectedWine)}`
+            : 'Select listing + wine, then Match.'}
         </span>
-        {matchError && <span style={{ color: '#c33', fontSize: 14 }}>{matchError}</span>}
+        {matchError && <span style={{ color: '#c33' }}>{matchError}</span>}
       </div>
 
       <div style={{ display: 'flex', gap: 12, flex: 1, minHeight: 0 }}>
         <section style={panelStyle}>
           <header
             style={{
-              padding: '12px 14px',
+              padding: '6px 10px',
               borderBottom: '1px solid #eee',
               fontWeight: 600,
-              fontSize: 15,
+              fontSize: 13,
             }}
           >
             Store listings ({listings.length})
           </header>
           <div style={scrollStyle}>
             {groupedListings.length === 0 ? (
-              <p style={{ color: '#888' }}>No store listings yet.</p>
+              <p style={{ color: '#888', fontSize: 12, margin: 0 }}>No store listings yet.</p>
             ) : (
               groupedListings.map((group) => (
-                <div key={group.storeName} style={{ marginBottom: 20 }}>
+                <div key={group.storeName} style={{ marginBottom: 10 }}>
                   <h3
                     style={{
-                      margin: '0 0 8px',
-                      fontSize: 13,
+                      margin: '0 0 3px',
+                      fontSize: 11,
                       textTransform: 'uppercase',
                       letterSpacing: '0.04em',
-                      color: '#666',
+                      color: '#888',
+                      fontWeight: 600,
                     }}
                   >
                     {group.storeName}
                   </h3>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                     {group.listings.map((listing) => {
                       const isSelected = listing.id === selectedListingId
                       const isMatched = Boolean(listing.wine_id)
@@ -375,85 +408,83 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
                             }
                           }}
                           style={{
-                            border: '1px solid #e4e4e4',
-                            borderRadius: 6,
-                            padding: 10,
-                            cursor: 'pointer',
+                            ...rowStyle,
                             ...(isSelected ? selectedRowStyle : {}),
                             ...(!isSelected && isMatched ? matchedRowStyle : {}),
                           }}
                         >
-                          <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-                            <input
-                              type="radio"
-                              checked={isSelected}
-                              readOnly
-                              aria-label={`Select ${listing.raw_title ?? 'listing'}`}
-                              style={{ marginTop: 4 }}
+                          <input
+                            type="radio"
+                            checked={isSelected}
+                            readOnly
+                            aria-label={`Select ${listing.raw_title ?? 'listing'}`}
+                            style={{ margin: 0, flexShrink: 0 }}
+                          />
+                          <div style={inlineLineStyle}>
+                            <EditableTextCell
+                              label="Raw title"
+                              inline
+                              emptyDisplay="—"
+                              value={listing.raw_title}
+                              onSave={(value) => saveListingField(listing, 'raw_title', value)}
                             />
-                            <div style={{ flex: 1, minWidth: 0, fontSize: 14 }}>
-                              <div style={{ fontWeight: 600, marginBottom: 6 }}>
-                                <EditableTextCell
-                                  label="Raw title"
-                                  value={listing.raw_title}
-                                  onSave={(value) => saveListingField(listing, 'raw_title', value)}
-                                />
-                              </div>
-                              <div style={{ display: 'grid', gap: 4, color: '#444' }}>
-                                <div>
-                                  <span style={{ color: '#888' }}>Price: </span>
-                                  <EditableTextCell
-                                    label="Price"
-                                    value={listing.current_price_ksh}
-                                    display={
-                                      listing.current_price_ksh != null
-                                        ? `KES ${listing.current_price_ksh}`
-                                        : '-'
-                                    }
-                                    onSave={(value) =>
-                                      saveListingField(listing, 'current_price_ksh', value)
-                                    }
-                                  />
-                                </div>
-                                <div>
-                                  <span style={{ color: '#888' }}>URL: </span>
-                                  {listing.store_product_url ? (
-                                    <a
-                                      href={listing.store_product_url}
-                                      target="_blank"
-                                      rel="noreferrer"
-                                      style={{ color: '#0a7', marginRight: 8 }}
-                                      onClick={(event) => event.stopPropagation()}
-                                    >
-                                      open
-                                    </a>
-                                  ) : null}
-                                  <EditableTextCell
-                                    label="Product URL"
-                                    value={listing.store_product_url}
-                                    onSave={(value) =>
-                                      saveListingField(listing, 'store_product_url', value)
-                                    }
-                                  />
-                                </div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                  <span style={{ color: '#888' }}>In stock: </span>
-                                  <EditableBoolCell
-                                    label="In stock"
-                                    value={listing.in_stock}
-                                    onSave={(value) =>
-                                      saveListingField(listing, 'in_stock', value)
-                                    }
-                                  />
-                                </div>
-                                <div>
-                                  <span style={{ color: '#888' }}>Matched wine: </span>
-                                  <strong style={{ color: isMatched ? '#060' : '#999' }}>
-                                    {matchedLabel ?? 'Not matched'}
-                                  </strong>
-                                </div>
-                              </div>
-                            </div>
+                            <Pipe />
+                            <EditableTextCell
+                              label="Price"
+                              inline
+                              emptyDisplay="—"
+                              value={listing.current_price_ksh}
+                              display={
+                                listing.current_price_ksh != null
+                                  ? `KES ${listing.current_price_ksh}`
+                                  : '—'
+                              }
+                              onSave={(value) =>
+                                saveListingField(listing, 'current_price_ksh', value)
+                              }
+                            />
+                            <Pipe />
+                            {listing.store_product_url ? (
+                              <a
+                                href={listing.store_product_url}
+                                target="_blank"
+                                rel="noreferrer"
+                                style={{ color: '#0a7', flexShrink: 0, fontSize: 11 }}
+                                onClick={(event) => event.stopPropagation()}
+                                title={listing.store_product_url}
+                              >
+                                ↗
+                              </a>
+                            ) : null}
+                            <EditableTextCell
+                              label="Product URL"
+                              inline
+                              emptyDisplay="—"
+                              value={listing.store_product_url}
+                              onSave={(value) =>
+                                saveListingField(listing, 'store_product_url', value)
+                              }
+                            />
+                            <Pipe />
+                            <EditableBoolCell
+                              label="In stock"
+                              value={listing.in_stock}
+                              onSave={(value) => saveListingField(listing, 'in_stock', value)}
+                            />
+                            <Pipe />
+                            <span
+                              style={{
+                                color: isMatched ? '#060' : '#aaa',
+                                fontWeight: isMatched ? 500 : 400,
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                maxWidth: 180,
+                              }}
+                              title={matchedLabel ?? 'Not matched'}
+                            >
+                              {matchedLabel ?? '—'}
+                            </span>
                           </div>
                         </div>
                       )
@@ -468,28 +499,29 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
         <section style={panelStyle}>
           <header
             style={{
-              padding: '12px 14px',
+              padding: '6px 10px',
               borderBottom: '1px solid #eee',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              gap: 12,
+              gap: 8,
+              fontSize: 13,
             }}
           >
-            <span style={{ fontWeight: 600, fontSize: 15 }}>Canonical wines ({wines.length})</span>
+            <span style={{ fontWeight: 600 }}>Canonical wines ({wines.length})</span>
             <button
               type="button"
               onClick={() => void handleAddWine()}
-              style={{ padding: '6px 12px', fontSize: 13, cursor: 'pointer' }}
+              style={{ padding: '3px 8px', fontSize: 12, cursor: 'pointer' }}
             >
               Add wine
             </button>
           </header>
           <div style={scrollStyle}>
             {wines.length === 0 ? (
-              <p style={{ color: '#888' }}>No wines yet. Add one to start matching.</p>
+              <p style={{ color: '#888', fontSize: 12, margin: 0 }}>No wines yet.</p>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 {wines.map((wine) => {
                   const isSelected = wine.id === selectedWineId
 
@@ -506,52 +538,40 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
                         }
                       }}
                       style={{
-                        border: '1px solid #e4e4e4',
-                        borderRadius: 6,
-                        padding: 10,
-                        cursor: 'pointer',
-                        fontSize: 14,
+                        ...rowStyle,
                         ...(isSelected ? selectedRowStyle : {}),
                       }}
                     >
-                      <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-                        <input
-                          type="radio"
-                          checked={isSelected}
-                          readOnly
-                          aria-label={`Select ${formatWineLabel(wine)}`}
-                          style={{ marginTop: 4 }}
+                      <input
+                        type="radio"
+                        checked={isSelected}
+                        readOnly
+                        aria-label={`Select ${formatWineLabel(wine)}`}
+                        style={{ margin: 0, flexShrink: 0 }}
+                      />
+                      <div style={inlineLineStyle}>
+                        <WineInlineField wine={wine} field="producer" onSave={saveWineField} />
+                        <Pipe />
+                        <WineInlineField wine={wine} field="wine_name" onSave={saveWineField} />
+                        <Pipe />
+                        <WineInlineField wine={wine} field="vintage" onSave={saveWineField} />
+                        <Pipe />
+                        <WineInlineField wine={wine} field="country" onSave={saveWineField} />
+                        <Pipe />
+                        <WineInlineField wine={wine} field="region" onSave={saveWineField} />
+                        <Pipe />
+                        <WineInlineField wine={wine} field="style" onSave={saveWineField} />
+                        <Pipe />
+                        <WineInlineField
+                          wine={wine}
+                          field="grape_varieties"
+                          display={formatGrapeVarieties(wine.grape_varieties) || '—'}
+                          onSave={saveWineField}
                         />
-                        <div
-                          style={{
-                            flex: 1,
-                            minWidth: 0,
-                            display: 'grid',
-                            gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-                            gap: '6px 12px',
-                          }}
-                        >
-                          <Field label="Producer" wine={wine} field="producer" onSave={saveWineField} />
-                          <Field label="Wine name" wine={wine} field="wine_name" onSave={saveWineField} />
-                          <Field label="Vintage" wine={wine} field="vintage" onSave={saveWineField} />
-                          <Field label="Country" wine={wine} field="country" onSave={saveWineField} />
-                          <Field label="Region" wine={wine} field="region" onSave={saveWineField} />
-                          <Field label="Style" wine={wine} field="style" onSave={saveWineField} />
-                          <Field
-                            label="Grapes"
-                            wine={wine}
-                            field="grape_varieties"
-                            display={formatGrapeVarieties(wine.grape_varieties) || '-'}
-                            onSave={saveWineField}
-                          />
-                          <Field label="Vivino URL" wine={wine} field="vivino_url" onSave={saveWineField} />
-                          <Field
-                            label="Vivino rating"
-                            wine={wine}
-                            field="vivino_rating"
-                            onSave={saveWineField}
-                          />
-                        </div>
+                        <Pipe />
+                        <WineInlineField wine={wine} field="vivino_url" onSave={saveWineField} />
+                        <Pipe />
+                        <WineInlineField wine={wine} field="vivino_rating" onSave={saveWineField} />
                       </div>
                     </div>
                   )
@@ -565,14 +585,24 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
   )
 }
 
-function Field({
-  label,
+const wineFieldLabels: Record<WineField, string> = {
+  producer: 'Producer',
+  wine_name: 'Wine name',
+  vintage: 'Vintage',
+  country: 'Country',
+  region: 'Region',
+  grape_varieties: 'Grapes',
+  style: 'Style',
+  vivino_url: 'Vivino URL',
+  vivino_rating: 'Vivino rating',
+}
+
+function WineInlineField({
   wine,
   field,
   display,
   onSave,
 }: {
-  label: string
   wine: WineRecord
   field: WineField
   display?: string
@@ -588,14 +618,13 @@ function Field({
       : (wine[field] as string | number | null)
 
   return (
-    <div>
-      <div style={{ color: '#888', fontSize: 12, marginBottom: 2 }}>{label}</div>
-      <EditableTextCell
-        label={label}
-        value={value}
-        display={display}
-        onSave={(next) => onSave(wine, field, next)}
-      />
-    </div>
+    <EditableTextCell
+      label={wineFieldLabels[field]}
+      inline
+      emptyDisplay="—"
+      value={value}
+      display={display}
+      onSave={(next) => onSave(wine, field, next)}
+    />
   )
 }

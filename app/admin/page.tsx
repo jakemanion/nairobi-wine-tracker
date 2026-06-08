@@ -49,13 +49,11 @@ export default async function AdminPage() {
   const error = listingsError ?? winesError
 
   return (
-    <main style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 12 }}>
-      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12 }}>
-        <div>
-          <h1 style={{ margin: 0 }}>Admin — Wine matching</h1>
-          <p style={{ margin: '8px 0 0', color: '#555' }}>
-            Match store listings to canonical wines and edit all fields inline.
-          </p>
+    <main style={{ padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
+          <h1 style={{ margin: 0, fontSize: 18 }}>Admin</h1>
+          <span style={{ color: '#666', fontSize: 12 }}>Match listings to wines</span>
         </div>
         <Link href="/" style={{ color: '#0a7', textDecoration: 'none', fontSize: 14 }}>
           ← Back to tracker

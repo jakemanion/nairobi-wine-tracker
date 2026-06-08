@@ -28,9 +28,9 @@ function NullIcon({ active }: { active: boolean }) {
 const optionButtonStyle: CSSProperties = {
   background: 'none',
   border: 'none',
-  padding: '2px 5px',
+  padding: '0 3px',
   cursor: 'pointer',
-  fontSize: 15,
+  fontSize: 13,
   lineHeight: 1,
   display: 'inline-flex',
   alignItems: 'center',

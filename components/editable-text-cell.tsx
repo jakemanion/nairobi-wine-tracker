@@ -8,6 +8,8 @@ type EditableTextCellProps = {
   display?: string
   align?: 'left' | 'center'
   multiline?: boolean
+  inline?: boolean
+  emptyDisplay?: string
   onSave: (value: string | null) => Promise<{ error?: string }>
 }
 
@@ -46,6 +48,8 @@ export function EditableTextCell({
   display,
   align = 'left',
   multiline = false,
+  inline = false,
+  emptyDisplay = '-',
   onSave,
 }: EditableTextCellProps) {
   const [editing, setEditing] = useState(false)
@@ -55,7 +59,7 @@ export function EditableTextCell({
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null)
 
   const normalized = normalizeValue(value)
-  const shown = display ?? (normalized || '-')
+  const shown = display ?? (normalized || emptyDisplay)
 
   useEffect(() => {
     if (editing) {
@@ -106,13 +110,27 @@ export function EditableTextCell({
     }
   }
 
+  const wrapperStyle: CSSProperties = inline
+    ? { display: 'inline-flex', alignItems: 'center', gap: 2, maxWidth: '100%' }
+    : { display: 'flex', flexDirection: 'column', gap: 2 }
+
+  const fieldStyle: CSSProperties = inline
+    ? {
+        ...inputStyle,
+        textAlign: align,
+        width: 'auto',
+        minWidth: 48,
+        maxWidth: 220,
+      }
+    : { ...inputStyle, textAlign: align }
+
   if (editing) {
     const sharedProps = {
       ref: inputRef as never,
       value: draft,
       disabled: saving,
       'aria-label': label,
-      style: { ...inputStyle, textAlign: align },
+      style: fieldStyle,
       onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
         setDraft(e.target.value),
       onKeyDown,
@@ -120,29 +138,36 @@ export function EditableTextCell({
     }
 
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <span style={wrapperStyle}>
         {multiline ? (
-          <textarea {...sharedProps} rows={2} />
+          <textarea {...sharedProps} rows={1} />
         ) : (
           <input type="text" {...sharedProps} />
         )}
         {error && <span style={{ color: '#c33', fontSize: 10 }}>{error}</span>}
-      </div>
+      </span>
     )
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+    <span style={wrapperStyle}>
       <button
         type="button"
         style={{
           ...displayButtonStyle,
           textAlign: align,
           opacity: saving ? 0.5 : 1,
-          wordBreak: 'break-word',
+          wordBreak: inline ? 'normal' : 'break-word',
+          width: inline ? 'auto' : '100%',
+          minHeight: inline ? 0 : 20,
+          whiteSpace: inline ? 'nowrap' : undefined,
+          overflow: inline ? 'hidden' : undefined,
+          textOverflow: inline ? 'ellipsis' : undefined,
+          maxWidth: inline ? 200 : undefined,
         }}
         disabled={saving}
         aria-label={`Edit ${label}`}
+        title={inline ? String(shown) : undefined}
         onClick={(event) => {
           event.stopPropagation()
           setEditing(true)
@@ -151,6 +176,6 @@ export function EditableTextCell({
         {shown}
       </button>
       {error && <span style={{ color: '#c33', fontSize: 10 }}>{error}</span>}
-    </div>
+    </span>
   )
 }
