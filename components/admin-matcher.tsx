@@ -4,16 +4,16 @@ import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { EditableBoolCell } from '@/components/editable-bool-cell'
 import { EditableTextCell } from '@/components/editable-text-cell'
 import {
-  clearStoreListingMatch,
-  matchStoreListingToWine,
-  promoteListingToCanonicalWine,
-  updateStoreListingField,
-  type StoreListingRecord,
-} from '@/lib/store-listings'
+  adminClearStoreListingMatch,
+  adminCreateWine,
+  adminMatchStoreListingToWine,
+  adminPromoteListingToCanonicalWine,
+  adminUpdateStoreListingField,
+  adminUpdateWineField,
+} from '@/app/admin/actions'
+import { type StoreListingRecord } from '@/lib/store-listings'
 import {
-  createWine,
   formatWineLabel,
-  updateWineField,
   type WineField,
   type WineRecord,
 } from '@/lib/wines'
@@ -232,7 +232,7 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
     setBusy(true)
     setMatchError(null)
 
-    const result = await matchStoreListingToWine({
+    const result = await adminMatchStoreListingToWine({
       listingId: selectedListingId,
       wineId: selectedWineId,
     })
@@ -253,7 +253,7 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
     setBusy(true)
     setMatchError(null)
 
-    const result = await clearStoreListingMatch(selectedListingId)
+    const result = await adminClearStoreListingMatch(selectedListingId)
 
     setBusy(false)
 
@@ -272,7 +272,7 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
     setBusy(true)
     setMatchError(null)
 
-    const result = await promoteListingToCanonicalWine(selectedListing)
+    const result = await adminPromoteListingToCanonicalWine(selectedListing)
 
     setBusy(false)
 
@@ -287,7 +287,7 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
   }
 
   async function handleAddWine() {
-    const result = await createWine()
+    const result = await adminCreateWine()
     if (result.error || !result.wine) return
     setWines((current) => [...current, result.wine!])
     setSelectedWineId(result.wine.id)
@@ -313,7 +313,7 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
       }
     }
 
-    const result = await updateStoreListingField({
+    const result = await adminUpdateStoreListingField({
       listingId: listing.id,
       field,
       value: parsed,
@@ -340,7 +340,7 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
       }
     }
 
-    const result = await updateWineField({
+    const result = await adminUpdateWineField({
       wineId: wine.id,
       field,
       value: parsed,
