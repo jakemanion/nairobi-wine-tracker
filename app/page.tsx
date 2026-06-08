@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { WineTable, type WineReview, type WineRow } from '@/components/wine-table'
 import { supabase } from '@/lib/supabase'
 import { getCurrentUserId } from '@/lib/user'
@@ -98,7 +99,12 @@ export default async function Home() {
 
   return (
     <main style={{ padding: 20 }}>
-      <h1>Wine Tracker (Nairobi)</h1>
+      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12 }}>
+        <h1 style={{ margin: 0 }}>Wine Tracker (Nairobi)</h1>
+        <Link href="/admin" style={{ color: '#0a7', textDecoration: 'none', fontSize: 14 }}>
+          Admin →
+        </Link>
+      </div>
       <p style={{ marginTop: 8, marginBottom: 0, color: '#444' }}>
         Signed in as <strong>{userName}</strong>
       </p>
