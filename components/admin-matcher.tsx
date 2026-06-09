@@ -170,15 +170,25 @@ function openNamedPreviewWindow(url: string, windowName: string) {
   window.open(url, windowName)
 }
 
-function ExternalLink({ href, label = '[Link]' }: { href: string; label?: string }) {
+function ExternalLink({
+  href,
+  label = '[Link]',
+  windowName,
+}: {
+  href: string
+  label?: string
+  windowName: string
+}) {
   return (
     <a
       href={href}
-      target="_blank"
-      rel="noreferrer"
       style={externalLinkStyle}
-      onClick={(event) => event.stopPropagation()}
       title={href}
+      onClick={(event) => {
+        event.preventDefault()
+        event.stopPropagation()
+        openNamedPreviewWindow(href, windowName)
+      }}
     >
       {label}
     </a>
@@ -287,21 +297,11 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
     if (listing.wine_id) {
       setSelectedWineId(listing.wine_id)
     }
-
-    const url = listing.store_product_url?.trim()
-    if (url) {
-      openNamedPreviewWindow(url, STORE_PREVIEW_WINDOW_NAME)
-    }
   }
 
   function selectWine(wine: WineRecord) {
     setSelectedWineId(wine.id)
     setMatchError(null)
-
-    const url = wine.vivino_url?.trim()
-    if (url) {
-      openNamedPreviewWindow(url, VIVINO_PREVIEW_WINDOW_NAME)
-    }
   }
 
   async function handleMatch() {
@@ -614,7 +614,9 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
                           role="button"
                           tabIndex={0}
                           onClick={() => selectListing(listing)}
-                          onKeyDown={(event) => handleRowKeyDown(event, () => selectListing(listing))}
+                          onKeyDown={(event) =>
+                            handleRowKeyDown(event, () => selectListing(listing))
+                          }
                           style={{
                             ...rowStyle,
                             ...(isSelected ? selectedRowStyle : {}),
@@ -624,13 +626,23 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
                               : {}),
                           }}
                         >
-                          <input
-                            type="radio"
-                            checked={isSelected}
-                            readOnly
-                            aria-label={`Select ${listing.raw_title ?? 'listing'}`}
-                            style={{ margin: '2px 0 0', flexShrink: 0 }}
-                          />
+                          <span
+                            onClick={(event) => {
+                              event.stopPropagation()
+                              selectListing(listing)
+                            }}
+                            onKeyDown={(event) => event.stopPropagation()}
+                            style={{ display: 'inline-flex', flexShrink: 0, marginTop: 2 }}
+                          >
+                            <input
+                              type="radio"
+                              checked={isSelected}
+                              readOnly
+                              tabIndex={-1}
+                              aria-label={`Select ${listing.raw_title ?? 'listing'}`}
+                              style={{ margin: 0, pointerEvents: 'none' }}
+                            />
+                          </span>
                           <div style={inlineLineStyle}>
                             <ListingInlineField
                               listing={listing}
@@ -751,13 +763,23 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
                         ...(isSelected ? selectedRowStyle : {}),
                       }}
                     >
-                      <input
-                        type="radio"
-                        checked={isSelected}
-                        readOnly
-                        aria-label={`Select ${formatWineLabel(wine)}`}
-                        style={{ margin: '2px 0 0', flexShrink: 0 }}
-                      />
+                      <span
+                        onClick={(event) => {
+                          event.stopPropagation()
+                          selectWine(wine)
+                        }}
+                        onKeyDown={(event) => event.stopPropagation()}
+                        style={{ display: 'inline-flex', flexShrink: 0, marginTop: 2 }}
+                      >
+                        <input
+                          type="radio"
+                          checked={isSelected}
+                          readOnly
+                          tabIndex={-1}
+                          aria-label={`Select ${formatWineLabel(wine)}`}
+                          style={{ margin: 0, pointerEvents: 'none' }}
+                        />
+                      </span>
                       <div style={inlineLineStyle}>
                         <WineInlineField wine={wine} field="producer" onSave={saveWineField} />
                         <Pipe />
@@ -859,7 +881,7 @@ function ListingUrlField({
         display={formatStoreUrlDirectory(url)}
         onSave={(next) => onSave(listing, 'store_product_url', next)}
       />
-      {url ? <ExternalLink href={url} /> : null}
+      {url ? <ExternalLink href={url} windowName={STORE_PREVIEW_WINDOW_NAME} /> : null}
     </LabeledField>
   )
 }
@@ -888,7 +910,7 @@ function VivinoUrlField({
         display={formatVivinoProductName(url)}
         onSave={(next) => onSave(wine, 'vivino_url', next)}
       />
-      {url ? <ExternalLink href={url} /> : null}
+      {url ? <ExternalLink href={url} windowName={VIVINO_PREVIEW_WINDOW_NAME} /> : null}
     </LabeledField>
   )
 }
