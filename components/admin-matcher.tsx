@@ -97,6 +97,11 @@ const matchedRowStyle = {
   backgroundColor: '#f3faf3',
 }
 
+const linkedToSelectedWineStyle = {
+  backgroundColor: '#fff8e6',
+  borderColor: '#e6a800',
+}
+
 const rowStyle = {
   display: 'flex' as const,
   alignItems: 'flex-start' as const,
@@ -597,6 +602,8 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
                     {group.listings.map((listing) => {
                       const isSelected = listing.id === selectedListingId
                       const isMatched = Boolean(listing.wine_id)
+                      const isLinkedToSelectedWine =
+                        selectedWineId != null && listing.wine_id === selectedWineId
                       const matchedLabel = listing.wines
                         ? formatWineLabel(listing.wines)
                         : null
@@ -611,7 +618,10 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
                           style={{
                             ...rowStyle,
                             ...(isSelected ? selectedRowStyle : {}),
-                            ...(!isSelected && isMatched ? matchedRowStyle : {}),
+                            ...(!isSelected && isLinkedToSelectedWine ? linkedToSelectedWineStyle : {}),
+                            ...(!isSelected && !isLinkedToSelectedWine && isMatched
+                              ? matchedRowStyle
+                              : {}),
                           }}
                         >
                           <input
