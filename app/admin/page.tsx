@@ -47,6 +47,7 @@ export default async function AdminPage() {
     ])
 
   const error = listingsError ?? winesError
+  const hasServiceRoleKey = Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY)
 
   return (
     <main style={{ padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -59,6 +60,24 @@ export default async function AdminPage() {
           ← Back to tracker
         </Link>
       </div>
+
+      {!hasServiceRoleKey && (
+        <p
+          style={{
+            margin: 0,
+            padding: '8px 10px',
+            background: '#fff3cd',
+            border: '1px solid #e6c200',
+            borderRadius: 4,
+            color: '#664d00',
+            fontSize: 13,
+          }}
+        >
+          Admin writes need <code>SUPABASE_SERVICE_ROLE_KEY</code> in <code>.env.local</code>, then a
+          full dev-server restart (<code>npm run dev</code>). On Vercel, add the same variable in
+          Project Settings → Environment Variables.
+        </p>
+      )}
 
       {error && <p style={{ color: 'red' }}>Error: {error.message}</p>}
 

@@ -6,7 +6,7 @@ export function createAdminClient() {
 
   if (!supabaseUrl || !serviceRoleKey) {
     throw new Error(
-      'Missing SUPABASE_SERVICE_ROLE_KEY. Add it to .env.local (Supabase → Project Settings → API → service_role).',
+      'Missing SUPABASE_SERVICE_ROLE_KEY. Add it to .env.local, then fully restart the dev server. On Vercel, set it in Project Settings → Environment Variables.',
     )
   }
 

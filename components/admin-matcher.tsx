@@ -192,6 +192,8 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
   const [selectedWineId, setSelectedWineId] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [matchError, setMatchError] = useState<string | null>(null)
+  const [unmatchedOnly, setUnmatchedOnly] = useState(false)
+  const [collapsedStores, setCollapsedStores] = useState<Set<string>>(() => new Set())
 
   useEffect(() => {
     setListings(initialListings)
@@ -201,7 +203,26 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
     setWines(initialWines)
   }, [initialWines])
 
-  const groupedListings = useMemo(() => groupListingsByStore(listings), [listings])
+  const unmatchedCount = useMemo(
+    () => listings.filter((listing) => !listing.wine_id).length,
+    [listings],
+  )
+
+  const visibleListings = useMemo(
+    () => (unmatchedOnly ? listings.filter((listing) => !listing.wine_id) : listings),
+    [listings, unmatchedOnly],
+  )
+
+  const groupedListings = useMemo(() => groupListingsByStore(visibleListings), [visibleListings])
+
+  function toggleStoreCollapsed(storeName: string) {
+    setCollapsedStores((current) => {
+      const next = new Set(current)
+      if (next.has(storeName)) next.delete(storeName)
+      else next.add(storeName)
+      return next
+    })
+  }
 
   const selectedListing = useMemo(
     () => listings.find((listing) => listing.id === selectedListingId) ?? null,
@@ -434,9 +455,32 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
               justifyContent: 'space-between',
               gap: 8,
               fontSize: 13,
+              flexWrap: 'wrap',
             }}
           >
-            <span style={{ fontWeight: 600 }}>Store listings ({listings.length})</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+              <span style={{ fontWeight: 600 }}>
+                Store listings ({unmatchedOnly ? `${visibleListings.length} unmatched` : listings.length})
+              </span>
+              <label
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 5,
+                  fontSize: 12,
+                  color: '#555',
+                  cursor: 'pointer',
+                  userSelect: 'none',
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={unmatchedOnly}
+                  onChange={(event) => setUnmatchedOnly(event.target.checked)}
+                />
+                Unmatched only ({unmatchedCount})
+              </label>
+            </div>
             <AddToWinesButton
               enabled={canAddListingToWines}
               busy={busy}
@@ -446,22 +490,44 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
           </header>
           <div style={scrollStyle}>
             {groupedListings.length === 0 ? (
-              <p style={{ color: '#888', fontSize: 12, margin: 0 }}>No store listings yet.</p>
+              <p style={{ color: '#888', fontSize: 12, margin: 0 }}>
+                {unmatchedOnly ? 'No unmatched listings.' : 'No store listings yet.'}
+              </p>
             ) : (
-              groupedListings.map((group) => (
-                <div key={group.storeName} style={{ marginBottom: 10 }}>
-                  <h3
+              groupedListings.map((group) => {
+                const isCollapsed = collapsedStores.has(group.storeName)
+
+                return (
+                <div key={group.storeName} style={{ marginBottom: 6 }}>
+                  <button
+                    type="button"
+                    onClick={() => toggleStoreCollapsed(group.storeName)}
+                    aria-expanded={!isCollapsed}
                     style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      width: '100%',
                       margin: '0 0 3px',
+                      padding: '2px 0',
+                      border: 'none',
+                      background: 'none',
                       fontSize: 11,
                       textTransform: 'uppercase',
                       letterSpacing: '0.04em',
-                      color: '#888',
+                      color: '#666',
                       fontWeight: 600,
+                      cursor: 'pointer',
+                      textAlign: 'left',
                     }}
                   >
-                    {group.storeName}
-                  </h3>
+                    <span aria-hidden style={{ width: 10, flexShrink: 0 }}>
+                      {isCollapsed ? '▶' : '▼'}
+                    </span>
+                    <span>{group.storeName}</span>
+                    <span style={{ color: '#999', fontWeight: 400 }}>({group.listings.length})</span>
+                  </button>
+                  {!isCollapsed && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                     {group.listings.map((listing) => {
                       const isSelected = listing.id === selectedListingId
@@ -565,8 +631,9 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
                       )
                     })}
                   </div>
+                  )}
                 </div>
-              ))
+              )})
             )}
           </div>
         </section>
