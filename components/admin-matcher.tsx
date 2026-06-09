@@ -1,6 +1,13 @@
 'use client'
 
-import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react'
+import {
+  useEffect,
+  useMemo,
+  useState,
+  type CSSProperties,
+  type KeyboardEvent,
+  type ReactNode,
+} from 'react'
 import { EditableTextCell } from '@/components/editable-text-cell'
 import {
   adminClearStoreListingMatch,
@@ -73,12 +80,6 @@ const panelStyle = {
   overflow: 'hidden' as const,
 }
 
-const previewPanelStyle = {
-  ...panelStyle,
-  flex: '1.1 1 320px',
-  maxWidth: '42%',
-}
-
 const scrollStyle = {
   flex: 1,
   minHeight: 0,
@@ -128,7 +129,29 @@ function Pipe() {
   )
 }
 
+function isEditableKeyTarget(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement)) return false
+
+  const tag = target.tagName
+  return (
+    tag === 'INPUT' ||
+    tag === 'TEXTAREA' ||
+    tag === 'SELECT' ||
+    target.isContentEditable
+  )
+}
+
+function handleRowKeyDown(event: KeyboardEvent<HTMLDivElement>, onActivate: () => void) {
+  if (isEditableKeyTarget(event.target)) return
+
+  if (event.key === 'Enter' || event.key === ' ') {
+    event.preventDefault()
+    onActivate()
+  }
+}
+
 const STORE_PREVIEW_WINDOW_NAME = 'wine-store-preview'
+const VIVINO_PREVIEW_WINDOW_NAME = 'wine-vivino-preview'
 
 const externalLinkStyle: CSSProperties = {
   color: '#0a7',
@@ -138,101 +161,8 @@ const externalLinkStyle: CSSProperties = {
   textDecoration: 'none',
 }
 
-function openStorePreviewWindow(url: string) {
-  window.open(url, STORE_PREVIEW_WINDOW_NAME)
-}
-
-function StorePreviewPanel({ listing }: { listing: StoreListingRecord | null }) {
-  const url = listing?.store_product_url?.trim() || null
-
-  return (
-    <section style={previewPanelStyle}>
-      <header
-        style={{
-          padding: '6px 10px',
-          borderBottom: '1px solid #eee',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 8,
-          fontSize: 13,
-          minHeight: 32,
-        }}
-      >
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
-          <span style={{ fontWeight: 600 }}>Store preview</span>
-          <span style={{ fontSize: 10, color: '#888' }}>
-            Window: <code>{STORE_PREVIEW_WINDOW_NAME}</code>
-          </span>
-        </div>
-        {url ? (
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-            <button
-              type="button"
-              style={{
-                padding: '2px 8px',
-                fontSize: 11,
-                cursor: 'pointer',
-                border: '1px solid #bbb',
-                borderRadius: 4,
-                background: '#fff',
-              }}
-              onClick={() => openStorePreviewWindow(url)}
-            >
-              Open window
-            </button>
-            <ExternalLink href={url} />
-          </span>
-        ) : null}
-      </header>
-      <div
-        style={{
-          flex: 1,
-          minHeight: 0,
-          display: 'flex',
-          flexDirection: 'column',
-          background: '#f8f8f8',
-        }}
-      >
-        {!listing ? (
-          <p style={{ color: '#888', fontSize: 12, margin: 16, textAlign: 'center' }}>
-            Select a store listing to preview its page.
-          </p>
-        ) : !url ? (
-          <p style={{ color: '#888', fontSize: 12, margin: 16, textAlign: 'center' }}>
-            This listing has no store URL.
-          </p>
-        ) : (
-          <>
-            <p
-              style={{
-                margin: 0,
-                padding: '6px 10px',
-                fontSize: 11,
-                color: '#666',
-                borderBottom: '1px solid #eee',
-                background: '#fff',
-                wordBreak: 'break-word',
-              }}
-            >
-              {listing.raw_title ?? 'Untitled listing'}
-            </p>
-            <iframe
-              key={listing.id}
-              src={url}
-              title={`Store preview: ${listing.raw_title ?? listing.id}`}
-              style={{
-                flex: 1,
-                width: '100%',
-                border: 'none',
-                background: '#fff',
-              }}
-            />
-          </>
-        )}
-      </div>
-    </section>
-  )
+function openNamedPreviewWindow(url: string, windowName: string) {
+  window.open(url, windowName)
 }
 
 function ExternalLink({ href, label = '[Link]' }: { href: string; label?: string }) {
@@ -355,13 +285,18 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
 
     const url = listing.store_product_url?.trim()
     if (url) {
-      openStorePreviewWindow(url)
+      openNamedPreviewWindow(url, STORE_PREVIEW_WINDOW_NAME)
     }
   }
 
   function selectWine(wine: WineRecord) {
     setSelectedWineId(wine.id)
     setMatchError(null)
+
+    const url = wine.vivino_url?.trim()
+    if (url) {
+      openNamedPreviewWindow(url, VIVINO_PREVIEW_WINDOW_NAME)
+    }
   }
 
   async function handleMatch() {
@@ -575,7 +510,6 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
       </div>
 
       <div style={{ display: 'flex', gap: 12, flex: 1, minHeight: 0, overflow: 'hidden' }}>
-        <StorePreviewPanel listing={selectedListing} />
         <section style={panelStyle}>
           <header
             style={{
@@ -673,12 +607,7 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
                           role="button"
                           tabIndex={0}
                           onClick={() => selectListing(listing)}
-                          onKeyDown={(event) => {
-                            if (event.key === 'Enter' || event.key === ' ') {
-                              event.preventDefault()
-                              selectListing(listing)
-                            }
-                          }}
+                          onKeyDown={(event) => handleRowKeyDown(event, () => selectListing(listing))}
                           style={{
                             ...rowStyle,
                             ...(isSelected ? selectedRowStyle : {}),
@@ -806,12 +735,7 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
                       role="button"
                       tabIndex={0}
                       onClick={() => selectWine(wine)}
-                      onKeyDown={(event) => {
-                        if (event.key === 'Enter' || event.key === ' ') {
-                          event.preventDefault()
-                          selectWine(wine)
-                        }
-                      }}
+                      onKeyDown={(event) => handleRowKeyDown(event, () => selectWine(wine))}
                       style={{
                         ...rowStyle,
                         ...(isSelected ? selectedRowStyle : {}),

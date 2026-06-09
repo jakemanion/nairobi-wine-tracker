@@ -103,6 +103,8 @@ export function EditableTextCell({
   }
 
   function onKeyDown(event: KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) {
+    event.stopPropagation()
+
     if (event.key === 'Enter' && !multiline) {
       event.preventDefault()
       void submit()
@@ -140,7 +142,11 @@ export function EditableTextCell({
     }
 
     return (
-      <span style={wrapperStyle}>
+      <span
+        style={wrapperStyle}
+        onClick={(event) => event.stopPropagation()}
+        onKeyDown={(event) => event.stopPropagation()}
+      >
         {multiline ? (
           <textarea {...sharedProps} rows={1} />
         ) : (
