@@ -627,6 +627,12 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
                             <Pipe />
                             <ListingInlineField
                               listing={listing}
+                              field="style"
+                              onSave={saveListingField}
+                            />
+                            <Pipe />
+                            <ListingInlineField
+                              listing={listing}
                               field="grape_varieties"
                               display={formatGrapeVarieties(listing.grape_varieties) || '—'}
                               onSave={saveListingField}
@@ -780,6 +786,7 @@ const listingFieldLabels: Record<
   vintage: 'Vintage',
   country: 'Country',
   region: 'Region',
+  style: 'Style',
   grape_varieties: 'Grapes',
 }
 

@@ -13,6 +13,7 @@ export type StoreListingRecord = {
   vintage: string | number | null
   country: string | null
   region: string | null
+  style: string | null
   grape_varieties: unknown
   stores?: { id?: string; name?: string | null } | null
   wines?: Pick<WineRecord, 'id' | 'producer' | 'wine_name' | 'vintage'> | null
@@ -27,6 +28,7 @@ export type StoreListingField =
   | 'vintage'
   | 'country'
   | 'region'
+  | 'style'
   | 'grape_varieties'
 
 const listingSelect = `
@@ -40,6 +42,7 @@ const listingSelect = `
   vintage,
   country,
   region,
+  style,
   grape_varieties,
   stores (
     id,

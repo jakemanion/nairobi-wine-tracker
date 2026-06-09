@@ -33,6 +33,7 @@ const listingSelect = `
   vintage,
   country,
   region,
+  style,
   grape_varieties,
   stores (
     id,

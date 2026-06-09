@@ -20,6 +20,7 @@ export default async function AdminPage() {
           vintage,
           country,
           region,
+          style,
           grape_varieties,
           stores (
             id,
