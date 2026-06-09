@@ -10,37 +10,17 @@ import {
   adminUpdateStoreListingField,
   adminUpdateWineField,
 } from '@/app/admin/actions'
+import {
+  formatGrapeVarieties,
+  parseGrapeVarietiesInput,
+} from '@/lib/grape-varieties'
 import { type StoreListingField, type StoreListingRecord } from '@/lib/store-listings'
+import { formatStoreUrlDirectory, formatVivinoProductName } from '@/lib/url-display'
 import {
   formatWineLabel,
   type WineField,
   type WineRecord,
 } from '@/lib/wines'
-
-function formatGrapeVarieties(value: unknown): string {
-  if (value == null || value === '') return ''
-  if (Array.isArray(value)) return value.filter(Boolean).join(', ')
-  if (typeof value === 'string') return value
-  if (typeof value === 'object') return JSON.stringify(value)
-  return String(value)
-}
-
-function parseGrapeVarieties(raw: string | null): string | string[] | null {
-  if (!raw) return null
-  const trimmed = raw.trim()
-  if (!trimmed) return null
-  if (trimmed.startsWith('[')) {
-    try {
-      return JSON.parse(trimmed) as string[]
-    } catch {
-      return trimmed
-    }
-  }
-  if (trimmed.includes(',')) {
-    return trimmed.split(',').map((part) => part.trim()).filter(Boolean)
-  }
-  return trimmed
-}
 
 function parsePrice(raw: string | null): number | null {
   if (!raw) return null
@@ -139,6 +119,29 @@ function Pipe() {
     <span aria-hidden style={{ color: '#ccc', padding: '0 5px', userSelect: 'none', flexShrink: 0 }}>
       |
     </span>
+  )
+}
+
+const externalLinkStyle: CSSProperties = {
+  color: '#0a7',
+  fontSize: 11,
+  flexShrink: 0,
+  marginTop: 2,
+  textDecoration: 'none',
+}
+
+function ExternalLink({ href, label = '[Link]' }: { href: string; label?: string }) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      style={externalLinkStyle}
+      onClick={(event) => event.stopPropagation()}
+      title={href}
+    >
+      {label}
+    </a>
   )
 }
 
@@ -323,7 +326,7 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
     field: StoreListingField,
     value: string | boolean | null,
   ) {
-    let parsed: string | number | boolean | string[] | null = value
+    let parsed: string | number | boolean | null = value
 
     if (field === 'current_price_ksh') {
       if (typeof value === 'string') {
@@ -338,7 +341,7 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
       }
     } else if (field === 'grape_varieties') {
       if (typeof value === 'string') {
-        parsed = parseGrapeVarieties(value)
+        parsed = parseGrapeVarietiesInput(value)
       }
     } else if (field === 'vintage') {
       if (typeof value === 'string') {
@@ -365,10 +368,10 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
   }
 
   async function saveWineField(wine: WineRecord, field: WineField, value: string | null) {
-    let parsed: string | number | string[] | null = value
+    let parsed: string | number | null = value
 
     if (field === 'grape_varieties') {
-      parsed = parseGrapeVarieties(value)
+      parsed = parseGrapeVarietiesInput(value)
     } else if (field === 'vintage' || field === 'vivino_rating') {
       if (!value) {
         parsed = null
@@ -596,23 +599,7 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
                               onSave={saveListingField}
                             />
                             <Pipe />
-                            {listing.store_product_url ? (
-                              <a
-                                href={listing.store_product_url}
-                                target="_blank"
-                                rel="noreferrer"
-                                style={{ color: '#0a7', flexShrink: 0, fontSize: 11, marginTop: 2 }}
-                                onClick={(event) => event.stopPropagation()}
-                                title={listing.store_product_url}
-                              >
-                                ↗
-                              </a>
-                            ) : null}
-                            <ListingInlineField
-                              listing={listing}
-                              field="store_product_url"
-                              onSave={saveListingField}
-                            />
+                            <ListingUrlField listing={listing} onSave={saveListingField} />
                             <Pipe />
                             <ListingInlineField
                               listing={listing}
@@ -732,7 +719,7 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
                           onSave={saveWineField}
                         />
                         <Pipe />
-                        <WineInlineField wine={wine} field="vivino_url" onSave={saveWineField} />
+                        <VivinoUrlField wine={wine} onSave={saveWineField} />
                         <Pipe />
                         <WineInlineField wine={wine} field="vivino_rating" onSave={saveWineField} />
                       </div>
@@ -759,6 +746,64 @@ const listingFieldLabels: Record<
   country: 'Country',
   region: 'Region',
   grape_varieties: 'Grapes',
+}
+
+function ListingUrlField({
+  listing,
+  onSave,
+}: {
+  listing: StoreListingRecord
+  onSave: (
+    listing: StoreListingRecord,
+    field: StoreListingField,
+    value: string | boolean | null,
+  ) => Promise<{ error?: string }>
+}) {
+  const url = listing.store_product_url
+
+  return (
+    <>
+      <EditableTextCell
+        label="Product URL"
+        inline
+        noTruncate
+        emptyDisplay="—"
+        value={url}
+        display={formatStoreUrlDirectory(url)}
+        onSave={(next) => onSave(listing, 'store_product_url', next)}
+      />
+      {url ? <ExternalLink href={url} /> : null}
+    </>
+  )
+}
+
+function VivinoUrlField({
+  wine,
+  onSave,
+}: {
+  wine: WineRecord
+  onSave: (
+    wine: WineRecord,
+    field: WineField,
+    value: string | null,
+  ) => Promise<{ error?: string }>
+}) {
+  const url = wine.vivino_url
+
+  return (
+    <>
+      <EditableTextCell
+        label="Vivino URL"
+        inline
+        noTruncate
+        emptyDisplay="—"
+        value={url}
+        display={formatVivinoProductName(url)}
+        onSave={(next) => onSave(wine, 'vivino_url', next)}
+      />
+      {url ? <ExternalLink href={url} /> : null}
+    </>
+  )
 }
 
 function ListingInlineField({

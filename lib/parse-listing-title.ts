@@ -239,7 +239,7 @@ export function parseListingTitle(rawTitle: string | null | undefined): ParsedLi
     vintage,
     country,
     region: null,
-    grape_varieties: grapes.length ? grapes : null,
+    grape_varieties: grapes.length ? grapes.join(', ') : null,
     style,
     vivino_url: null,
     vivino_rating: null,

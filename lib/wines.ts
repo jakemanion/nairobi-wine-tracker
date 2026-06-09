@@ -31,7 +31,7 @@ const wineSelect = `
 type UpdateWineFieldArgs = {
   wineId: string
   field: WineField
-  value: string | number | string[] | null
+  value: string | number | null
 }
 
 type WineMutationResult =

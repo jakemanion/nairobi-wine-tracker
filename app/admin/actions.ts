@@ -1,6 +1,6 @@
 'use server'
 
-import { parseListingTitle } from '@/lib/parse-listing-title'
+import { buildWineFromListing } from '@/lib/build-wine-from-listing'
 import { createAdminClient } from '@/lib/supabase-admin'
 import {
   normalizeStoreListing,
@@ -76,7 +76,7 @@ export async function adminUpdateWineField({
 }: {
   wineId: string
   field: WineField
-  value: string | number | string[] | null
+  value: string | number | null
 }): Promise<WineMutationResult> {
   const { client, configError } = getAdminClient()
   if (!client) return { error: configError! }
@@ -118,7 +118,7 @@ export async function adminUpdateStoreListingField({
 }: {
   listingId: string
   field: StoreListingField
-  value: string | number | boolean | string[] | null
+  value: string | number | boolean | null
 }): Promise<ListingMutationResult> {
   const { client, configError } = getAdminClient()
   if (!client) return { error: configError! }
@@ -184,9 +184,7 @@ export async function adminPromoteListingToCanonicalWine(
   | { wine: WineRecord; listing: StoreListingRecord; error?: undefined }
   | { wine?: undefined; listing?: undefined; error: string }
 > {
-  const parsed = parseListingTitle(listing.raw_title)
-
-  const wineResult = await adminCreateWine(parsed)
+  const wineResult = await adminCreateWine(buildWineFromListing(listing))
   if (wineResult.error || !wineResult.wine) {
     return { error: wineResult.error ?? 'Failed to create wine.' }
   }

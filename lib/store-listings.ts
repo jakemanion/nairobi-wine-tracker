@@ -1,4 +1,4 @@
-import { parseListingTitle } from '@/lib/parse-listing-title'
+import { buildWineFromListing } from '@/lib/build-wine-from-listing'
 import { supabase } from '@/lib/supabase'
 import { createWine, type WineRecord } from '@/lib/wines'
 
@@ -53,7 +53,7 @@ const listingSelect = `
 type UpdateStoreListingFieldArgs = {
   listingId: string
   field: StoreListingField
-  value: string | number | boolean | string[] | null
+  value: string | number | boolean | null
 }
 
 type ListingMutationResult =
@@ -140,15 +140,7 @@ type PromoteListingResult =
 export async function promoteListingToCanonicalWine(
   listing: StoreListingRecord,
 ): Promise<PromoteListingResult> {
-  const parsed = parseListingTitle(listing.raw_title)
-
-  const wineResult = await createWine({
-    ...parsed,
-    vintage: listing.vintage ?? parsed.vintage ?? null,
-    country: listing.country ?? parsed.country ?? null,
-    region: listing.region ?? parsed.region ?? null,
-    grape_varieties: listing.grape_varieties ?? parsed.grape_varieties ?? null,
-  })
+  const wineResult = await createWine(buildWineFromListing(listing))
   if (wineResult.error || !wineResult.wine) {
     return { error: wineResult.error ?? 'Failed to create wine.' }
   }
