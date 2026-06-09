@@ -128,12 +128,18 @@ function Pipe() {
   )
 }
 
+const STORE_PREVIEW_WINDOW_NAME = 'wine-store-preview'
+
 const externalLinkStyle: CSSProperties = {
   color: '#0a7',
   fontSize: 11,
   flexShrink: 0,
   marginTop: 2,
   textDecoration: 'none',
+}
+
+function openStorePreviewWindow(url: string) {
+  window.open(url, STORE_PREVIEW_WINDOW_NAME)
 }
 
 function StorePreviewPanel({ listing }: { listing: StoreListingRecord | null }) {
@@ -153,8 +159,31 @@ function StorePreviewPanel({ listing }: { listing: StoreListingRecord | null }) 
           minHeight: 32,
         }}
       >
-        <span style={{ fontWeight: 600 }}>Store preview</span>
-        {url ? <ExternalLink href={url} /> : null}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
+          <span style={{ fontWeight: 600 }}>Store preview</span>
+          <span style={{ fontSize: 10, color: '#888' }}>
+            Window: <code>{STORE_PREVIEW_WINDOW_NAME}</code>
+          </span>
+        </div>
+        {url ? (
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+            <button
+              type="button"
+              style={{
+                padding: '2px 8px',
+                fontSize: 11,
+                cursor: 'pointer',
+                border: '1px solid #bbb',
+                borderRadius: 4,
+                background: '#fff',
+              }}
+              onClick={() => openStorePreviewWindow(url)}
+            >
+              Open window
+            </button>
+            <ExternalLink href={url} />
+          </span>
+        ) : null}
       </header>
       <div
         style={{
@@ -322,6 +351,11 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
     setMatchError(null)
     if (listing.wine_id) {
       setSelectedWineId(listing.wine_id)
+    }
+
+    const url = listing.store_product_url?.trim()
+    if (url) {
+      openStorePreviewWindow(url)
     }
   }
 
