@@ -73,6 +73,12 @@ const panelStyle = {
   overflow: 'hidden' as const,
 }
 
+const previewPanelStyle = {
+  ...panelStyle,
+  flex: '1.1 1 320px',
+  maxWidth: '42%',
+}
+
 const scrollStyle = {
   flex: 1,
   minHeight: 0,
@@ -128,6 +134,76 @@ const externalLinkStyle: CSSProperties = {
   flexShrink: 0,
   marginTop: 2,
   textDecoration: 'none',
+}
+
+function StorePreviewPanel({ listing }: { listing: StoreListingRecord | null }) {
+  const url = listing?.store_product_url?.trim() || null
+
+  return (
+    <section style={previewPanelStyle}>
+      <header
+        style={{
+          padding: '6px 10px',
+          borderBottom: '1px solid #eee',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 8,
+          fontSize: 13,
+          minHeight: 32,
+        }}
+      >
+        <span style={{ fontWeight: 600 }}>Store preview</span>
+        {url ? <ExternalLink href={url} /> : null}
+      </header>
+      <div
+        style={{
+          flex: 1,
+          minHeight: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          background: '#f8f8f8',
+        }}
+      >
+        {!listing ? (
+          <p style={{ color: '#888', fontSize: 12, margin: 16, textAlign: 'center' }}>
+            Select a store listing to preview its page.
+          </p>
+        ) : !url ? (
+          <p style={{ color: '#888', fontSize: 12, margin: 16, textAlign: 'center' }}>
+            This listing has no store URL.
+          </p>
+        ) : (
+          <>
+            <p
+              style={{
+                margin: 0,
+                padding: '6px 10px',
+                fontSize: 11,
+                color: '#666',
+                borderBottom: '1px solid #eee',
+                background: '#fff',
+                wordBreak: 'break-word',
+              }}
+            >
+              {listing.raw_title ?? 'Untitled listing'}
+            </p>
+            <iframe
+              key={listing.id}
+              src={url}
+              title={`Store preview: ${listing.raw_title ?? listing.id}`}
+              style={{
+                flex: 1,
+                width: '100%',
+                border: 'none',
+                background: '#fff',
+              }}
+            />
+          </>
+        )}
+      </div>
+    </section>
+  )
 }
 
 function ExternalLink({ href, label = '[Link]' }: { href: string; label?: string }) {
@@ -465,6 +541,7 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
       </div>
 
       <div style={{ display: 'flex', gap: 12, flex: 1, minHeight: 0, overflow: 'hidden' }}>
+        <StorePreviewPanel listing={selectedListing} />
         <section style={panelStyle}>
           <header
             style={{
