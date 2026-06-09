@@ -1,7 +1,9 @@
 import Link from 'next/link'
 import { WineTable, type WineReview, type WineRow } from '@/components/wine-table'
-import { supabase } from '@/lib/supabase'
+import { createServerReadClient } from '@/lib/supabase-server'
 import { getCurrentUserId } from '@/lib/user'
+
+export const dynamic = 'force-dynamic'
 
 type UserReview = {
   id: string
@@ -42,6 +44,7 @@ function attachReviews(wines: WineRow[], reviews: UserReview[]): WineRow[] {
 
 export default async function Home() {
   const userId = getCurrentUserId()
+  const supabase = createServerReadClient()
 
   const [
     { data: profile, error: profileError },

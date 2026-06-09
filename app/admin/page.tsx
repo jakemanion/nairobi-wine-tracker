@@ -1,10 +1,14 @@
 import Link from 'next/link'
 import { AdminMatcher } from '@/components/admin-matcher'
-import { supabase } from '@/lib/supabase'
+import { createServerReadClient } from '@/lib/supabase-server'
 import { normalizeStoreListing } from '@/lib/store-listings'
 import type { WineRecord } from '@/lib/wines'
 
+export const dynamic = 'force-dynamic'
+
 export default async function AdminPage() {
+  const supabase = createServerReadClient()
+
   const [{ data: listings, error: listingsError }, { data: wines, error: winesError }] =
     await Promise.all([
       supabase

@@ -1,5 +1,6 @@
 'use server'
 
+import { revalidatePath } from 'next/cache'
 import { buildWineFromListing } from '@/lib/build-wine-from-listing'
 import { createAdminClient } from '@/lib/supabase-admin'
 import {
@@ -71,6 +72,11 @@ function getAdminClient() {
   }
 }
 
+function revalidateWinePages() {
+  revalidatePath('/admin')
+  revalidatePath('/')
+}
+
 export async function adminUpdateWineField({
   wineId,
   field,
@@ -93,6 +99,7 @@ export async function adminUpdateWineField({
   if (error) return { error: error.message }
   if (!data) return { error: 'Update failed — no row returned.' }
 
+  revalidateWinePages()
   return { wine: data as WineRecord }
 }
 
@@ -110,6 +117,7 @@ export async function adminCreateWine(
 
   if (error) return { error: error.message }
 
+  revalidateWinePages()
   return { wine: wine as WineRecord }
 }
 
@@ -135,6 +143,7 @@ export async function adminUpdateStoreListingField({
   if (error) return { error: error.message }
   if (!data) return { error: 'Update failed — no row returned.' }
 
+  revalidateWinePages()
   return { listing: normalizeStoreListing(data) }
 }
 
@@ -158,6 +167,7 @@ export async function adminMatchStoreListingToWine({
   if (error) return { error: error.message }
   if (!data) return { error: 'Match failed — no row returned.' }
 
+  revalidateWinePages()
   return { listing: normalizeStoreListing(data) }
 }
 
@@ -177,6 +187,7 @@ export async function adminClearStoreListingMatch(
   if (error) return { error: error.message }
   if (!data) return { error: 'Clear match failed — no row returned.' }
 
+  revalidateWinePages()
   return { listing: normalizeStoreListing(data) }
 }
 
@@ -200,6 +211,7 @@ export async function adminPromoteListingToCanonicalWine(
     return { error: matchResult.error ?? 'Wine created but linking failed.' }
   }
 
+  revalidateWinePages()
   return {
     wine: wineResult.wine,
     listing: matchResult.listing,
