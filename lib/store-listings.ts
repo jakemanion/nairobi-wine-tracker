@@ -9,6 +9,7 @@ export type StoreListingRecord = {
   current_price_ksh: string | number | null
   wine_id: string | null
   in_stock: boolean | null
+  producer: string | null
   vintage: string | number | null
   country: string | null
   region: string | null
@@ -18,6 +19,7 @@ export type StoreListingRecord = {
 }
 
 export type StoreListingField =
+  | 'producer'
   | 'raw_title'
   | 'store_product_url'
   | 'current_price_ksh'
@@ -34,6 +36,7 @@ const listingSelect = `
   current_price_ksh,
   wine_id,
   in_stock,
+  producer,
   vintage,
   country,
   region,

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState, type CSSProperties } from 'react'
+import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react'
 import { EditableTextCell } from '@/components/editable-text-cell'
 import {
   adminClearStoreListingMatch,
@@ -584,6 +584,12 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
                           <div style={inlineLineStyle}>
                             <ListingInlineField
                               listing={listing}
+                              field="producer"
+                              onSave={saveListingField}
+                            />
+                            <Pipe />
+                            <ListingInlineField
+                              listing={listing}
                               field="raw_title"
                               onSave={saveListingField}
                             />
@@ -626,14 +632,16 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
                               onSave={saveListingField}
                             />
                             <Pipe />
-                            <span
-                              style={{
-                                color: isMatched ? '#060' : '#aaa',
-                                fontWeight: isMatched ? 500 : 400,
-                              }}
-                            >
-                              {matchedLabel ?? '—'}
-                            </span>
+                            <LabeledField label="Matched">
+                              <span
+                                style={{
+                                  color: isMatched ? '#060' : '#aaa',
+                                  fontWeight: isMatched ? 500 : 400,
+                                }}
+                              >
+                                {matchedLabel ?? '—'}
+                              </span>
+                            </LabeledField>
                           </div>
                         </div>
                       )
@@ -735,12 +743,39 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
   )
 }
 
+const fieldLabelStyle: CSSProperties = {
+  color: '#888',
+  fontSize: 10,
+  flexShrink: 0,
+  fontWeight: 600,
+  textTransform: 'uppercase',
+  letterSpacing: '0.03em',
+}
+
+function LabeledField({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <span
+      style={{
+        display: 'inline-flex',
+        alignItems: 'baseline',
+        gap: 4,
+        flexWrap: 'wrap',
+        maxWidth: '100%',
+      }}
+    >
+      <span style={fieldLabelStyle}>{label}</span>
+      {children}
+    </span>
+  )
+}
+
 const listingFieldLabels: Record<
   Exclude<StoreListingField, 'in_stock'>,
   string
 > = {
+  producer: 'Producer',
   raw_title: 'Raw title',
-  store_product_url: 'Product URL',
+  store_product_url: 'URL',
   current_price_ksh: 'Price',
   vintage: 'Vintage',
   country: 'Country',
@@ -762,7 +797,7 @@ function ListingUrlField({
   const url = listing.store_product_url
 
   return (
-    <>
+    <LabeledField label={listingFieldLabels.store_product_url}>
       <EditableTextCell
         label="Product URL"
         inline
@@ -773,7 +808,7 @@ function ListingUrlField({
         onSave={(next) => onSave(listing, 'store_product_url', next)}
       />
       {url ? <ExternalLink href={url} /> : null}
-    </>
+    </LabeledField>
   )
 }
 
@@ -791,7 +826,7 @@ function VivinoUrlField({
   const url = wine.vivino_url
 
   return (
-    <>
+    <LabeledField label={wineFieldLabels.vivino_url}>
       <EditableTextCell
         label="Vivino URL"
         inline
@@ -802,7 +837,7 @@ function VivinoUrlField({
         onSave={(next) => onSave(wine, 'vivino_url', next)}
       />
       {url ? <ExternalLink href={url} /> : null}
-    </>
+    </LabeledField>
   )
 }
 
@@ -827,15 +862,17 @@ function ListingInlineField({
       : (listing[field] as string | number | null)
 
   return (
-    <EditableTextCell
-      label={listingFieldLabels[field]}
-      inline
-      noTruncate
-      emptyDisplay="—"
-      value={value}
-      display={display}
-      onSave={(next) => onSave(listing, field, next)}
-    />
+    <LabeledField label={listingFieldLabels[field]}>
+      <EditableTextCell
+        label={listingFieldLabels[field]}
+        inline
+        noTruncate
+        emptyDisplay="—"
+        value={value}
+        display={display}
+        onSave={(next) => onSave(listing, field, next)}
+      />
+    </LabeledField>
   )
 }
 
@@ -872,14 +909,16 @@ function WineInlineField({
       : (wine[field] as string | number | null)
 
   return (
-    <EditableTextCell
-      label={wineFieldLabels[field]}
-      inline
-      noTruncate
-      emptyDisplay="—"
-      value={value}
-      display={display}
-      onSave={(next) => onSave(wine, field, next)}
-    />
+    <LabeledField label={wineFieldLabels[field]}>
+      <EditableTextCell
+        label={wineFieldLabels[field]}
+        inline
+        noTruncate
+        emptyDisplay="—"
+        value={value}
+        display={display}
+        onSave={(next) => onSave(wine, field, next)}
+      />
+    </LabeledField>
   )
 }

@@ -10,6 +10,7 @@ export function buildWineFromListing(
 
   return {
     ...parsed,
+    producer: listing.producer ?? parsed.producer ?? null,
     vintage: listing.vintage ?? parsed.vintage ?? null,
     country: listing.country ?? parsed.country ?? null,
     region: listing.region ?? parsed.region ?? null,

@@ -29,6 +29,7 @@ const listingSelect = `
   current_price_ksh,
   wine_id,
   in_stock,
+  producer,
   vintage,
   country,
   region,
