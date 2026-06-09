@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useMemo, useState, type CSSProperties } from 'react'
-import { EditableBoolCell } from '@/components/editable-bool-cell'
 import { EditableTextCell } from '@/components/editable-text-cell'
 import {
   adminClearStoreListingMatch,
@@ -11,7 +10,7 @@ import {
   adminUpdateStoreListingField,
   adminUpdateWineField,
 } from '@/app/admin/actions'
-import { type StoreListingRecord } from '@/lib/store-listings'
+import { type StoreListingField, type StoreListingRecord } from '@/lib/store-listings'
 import {
   formatWineLabel,
   type WineField,
@@ -85,16 +84,20 @@ function updateWineInState(wines: WineRecord[], wine: WineRecord): WineRecord[] 
 const panelStyle = {
   flex: 1,
   minWidth: 0,
+  minHeight: 0,
   display: 'flex',
   flexDirection: 'column' as const,
   border: '1px solid #ddd',
   borderRadius: 8,
   background: '#fff',
+  overflow: 'hidden' as const,
 }
 
 const scrollStyle = {
   flex: 1,
+  minHeight: 0,
   overflowY: 'auto' as const,
+  overflowX: 'hidden' as const,
   padding: '6px 8px',
 }
 
@@ -109,7 +112,7 @@ const matchedRowStyle = {
 
 const rowStyle = {
   display: 'flex' as const,
-  alignItems: 'center' as const,
+  alignItems: 'flex-start' as const,
   gap: 6,
   border: '1px solid #e8e8e8',
   borderRadius: 4,
@@ -124,10 +127,11 @@ const inlineLineStyle = {
   flex: 1,
   minWidth: 0,
   display: 'flex' as const,
-  alignItems: 'center' as const,
+  alignItems: 'flex-start' as const,
   flexWrap: 'wrap' as const,
   gap: '2px 0',
   color: '#333',
+  wordBreak: 'break-word' as const,
 }
 
 function Pipe() {
@@ -316,10 +320,10 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
 
   async function saveListingField(
     listing: StoreListingRecord,
-    field: 'raw_title' | 'store_product_url' | 'current_price_ksh' | 'in_stock',
+    field: StoreListingField,
     value: string | boolean | null,
   ) {
-    let parsed: string | number | boolean | null = value
+    let parsed: string | number | boolean | string[] | null = value
 
     if (field === 'current_price_ksh') {
       if (typeof value === 'string') {
@@ -330,6 +334,19 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
         }
         if (value.trim() && parsed == null) {
           return { error: 'Enter a valid price' }
+        }
+      }
+    } else if (field === 'grape_varieties') {
+      if (typeof value === 'string') {
+        parsed = parseGrapeVarieties(value)
+      }
+    } else if (field === 'vintage') {
+      if (typeof value === 'string') {
+        if (!value.trim()) {
+          parsed = null
+        } else {
+          const n = Number(value)
+          parsed = Number.isFinite(n) ? n : value
         }
       }
     }
@@ -400,7 +417,7 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
       : 'Create a canonical wine from the selected listing'
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, minHeight: 'calc(100vh - 40px)' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 1, minHeight: 0, width: '100%' }}>
       <div
         style={{
           display: 'flex',
@@ -444,7 +461,7 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
         {matchError && <span style={{ color: '#c33' }}>{matchError}</span>}
       </div>
 
-      <div style={{ display: 'flex', gap: 12, flex: 1, minHeight: 0 }}>
+      <div style={{ display: 'flex', gap: 12, flex: 1, minHeight: 0, overflow: 'hidden' }}>
         <section style={panelStyle}>
           <header
             style={{
@@ -559,30 +576,24 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
                             checked={isSelected}
                             readOnly
                             aria-label={`Select ${listing.raw_title ?? 'listing'}`}
-                            style={{ margin: 0, flexShrink: 0 }}
+                            style={{ margin: '2px 0 0', flexShrink: 0 }}
                           />
                           <div style={inlineLineStyle}>
-                            <EditableTextCell
-                              label="Raw title"
-                              inline
-                              emptyDisplay="—"
-                              value={listing.raw_title}
-                              onSave={(value) => saveListingField(listing, 'raw_title', value)}
+                            <ListingInlineField
+                              listing={listing}
+                              field="raw_title"
+                              onSave={saveListingField}
                             />
                             <Pipe />
-                            <EditableTextCell
-                              label="Price"
-                              inline
-                              emptyDisplay="—"
-                              value={listing.current_price_ksh}
+                            <ListingInlineField
+                              listing={listing}
+                              field="current_price_ksh"
                               display={
                                 listing.current_price_ksh != null
                                   ? `KES ${listing.current_price_ksh}`
                                   : '—'
                               }
-                              onSave={(value) =>
-                                saveListingField(listing, 'current_price_ksh', value)
-                              }
+                              onSave={saveListingField}
                             />
                             <Pipe />
                             {listing.store_product_url ? (
@@ -590,39 +601,49 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
                                 href={listing.store_product_url}
                                 target="_blank"
                                 rel="noreferrer"
-                                style={{ color: '#0a7', flexShrink: 0, fontSize: 11 }}
+                                style={{ color: '#0a7', flexShrink: 0, fontSize: 11, marginTop: 2 }}
                                 onClick={(event) => event.stopPropagation()}
                                 title={listing.store_product_url}
                               >
                                 ↗
                               </a>
                             ) : null}
-                            <EditableTextCell
-                              label="Product URL"
-                              inline
-                              emptyDisplay="—"
-                              value={listing.store_product_url}
-                              onSave={(value) =>
-                                saveListingField(listing, 'store_product_url', value)
-                              }
+                            <ListingInlineField
+                              listing={listing}
+                              field="store_product_url"
+                              onSave={saveListingField}
                             />
                             <Pipe />
-                            <EditableBoolCell
-                              label="In stock"
-                              value={listing.in_stock}
-                              onSave={(value) => saveListingField(listing, 'in_stock', value)}
+                            <ListingInlineField
+                              listing={listing}
+                              field="vintage"
+                              onSave={saveListingField}
+                            />
+                            <Pipe />
+                            <ListingInlineField
+                              listing={listing}
+                              field="country"
+                              onSave={saveListingField}
+                            />
+                            <Pipe />
+                            <ListingInlineField
+                              listing={listing}
+                              field="region"
+                              onSave={saveListingField}
+                            />
+                            <Pipe />
+                            <ListingInlineField
+                              listing={listing}
+                              field="grape_varieties"
+                              display={formatGrapeVarieties(listing.grape_varieties) || '—'}
+                              onSave={saveListingField}
                             />
                             <Pipe />
                             <span
                               style={{
                                 color: isMatched ? '#060' : '#aaa',
                                 fontWeight: isMatched ? 500 : 400,
-                                whiteSpace: 'nowrap',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                maxWidth: 180,
                               }}
-                              title={matchedLabel ?? 'Not matched'}
                             >
                               {matchedLabel ?? '—'}
                             </span>
@@ -689,7 +710,7 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
                         checked={isSelected}
                         readOnly
                         aria-label={`Select ${formatWineLabel(wine)}`}
-                        style={{ margin: 0, flexShrink: 0 }}
+                        style={{ margin: '2px 0 0', flexShrink: 0 }}
                       />
                       <div style={inlineLineStyle}>
                         <WineInlineField wine={wine} field="producer" onSave={saveWineField} />
@@ -724,6 +745,52 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
         </section>
       </div>
     </div>
+  )
+}
+
+const listingFieldLabels: Record<
+  Exclude<StoreListingField, 'in_stock'>,
+  string
+> = {
+  raw_title: 'Raw title',
+  store_product_url: 'Product URL',
+  current_price_ksh: 'Price',
+  vintage: 'Vintage',
+  country: 'Country',
+  region: 'Region',
+  grape_varieties: 'Grapes',
+}
+
+function ListingInlineField({
+  listing,
+  field,
+  display,
+  onSave,
+}: {
+  listing: StoreListingRecord
+  field: Exclude<StoreListingField, 'in_stock'>
+  display?: string
+  onSave: (
+    listing: StoreListingRecord,
+    field: StoreListingField,
+    value: string | boolean | null,
+  ) => Promise<{ error?: string }>
+}) {
+  const value =
+    field === 'grape_varieties'
+      ? formatGrapeVarieties(listing.grape_varieties)
+      : (listing[field] as string | number | null)
+
+  return (
+    <EditableTextCell
+      label={listingFieldLabels[field]}
+      inline
+      noTruncate
+      emptyDisplay="—"
+      value={value}
+      display={display}
+      onSave={(next) => onSave(listing, field, next)}
+    />
   )
 }
 
@@ -763,6 +830,7 @@ function WineInlineField({
     <EditableTextCell
       label={wineFieldLabels[field]}
       inline
+      noTruncate
       emptyDisplay="—"
       value={value}
       display={display}

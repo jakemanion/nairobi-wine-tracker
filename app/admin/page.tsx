@@ -16,6 +16,10 @@ export default async function AdminPage() {
           current_price_ksh,
           wine_id,
           in_stock,
+          vintage,
+          country,
+          region,
+          grape_varieties,
           stores (
             id,
             name
@@ -50,7 +54,17 @@ export default async function AdminPage() {
   const hasServiceRoleKey = Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY)
 
   return (
-    <main style={{ padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+    <main
+      style={{
+        padding: '10px 12px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 8,
+        height: '100vh',
+        boxSizing: 'border-box',
+        overflow: 'hidden',
+      }}
+    >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
           <h1 style={{ margin: 0, fontSize: 18 }}>Admin</h1>
@@ -81,10 +95,12 @@ export default async function AdminPage() {
 
       {error && <p style={{ color: 'red' }}>Error: {error.message}</p>}
 
-      <AdminMatcher
-        initialListings={(listings ?? []).map(normalizeStoreListing)}
-        initialWines={(wines ?? []) as WineRecord[]}
-      />
+      <div style={{ flex: 1, minHeight: 0, display: 'flex' }}>
+        <AdminMatcher
+          initialListings={(listings ?? []).map(normalizeStoreListing)}
+          initialWines={(wines ?? []) as WineRecord[]}
+        />
+      </div>
     </main>
   )
 }

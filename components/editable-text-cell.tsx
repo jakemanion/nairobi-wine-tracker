@@ -9,6 +9,7 @@ type EditableTextCellProps = {
   align?: 'left' | 'center'
   multiline?: boolean
   inline?: boolean
+  noTruncate?: boolean
   emptyDisplay?: string
   onSave: (value: string | null) => Promise<{ error?: string }>
 }
@@ -49,6 +50,7 @@ export function EditableTextCell({
   align = 'left',
   multiline = false,
   inline = false,
+  noTruncate = false,
   emptyDisplay = '-',
   onSave,
 }: EditableTextCellProps) {
@@ -118,9 +120,9 @@ export function EditableTextCell({
     ? {
         ...inputStyle,
         textAlign: align,
-        width: 'auto',
+        width: noTruncate ? '100%' : 'auto',
         minWidth: 48,
-        maxWidth: 220,
+        maxWidth: noTruncate ? 'none' : 220,
       }
     : { ...inputStyle, textAlign: align }
 
@@ -157,17 +159,17 @@ export function EditableTextCell({
           ...displayButtonStyle,
           textAlign: align,
           opacity: saving ? 0.5 : 1,
-          wordBreak: inline ? 'normal' : 'break-word',
-          width: inline ? 'auto' : '100%',
+          wordBreak: inline && noTruncate ? 'break-word' : inline ? 'normal' : 'break-word',
+          width: inline && !noTruncate ? 'auto' : '100%',
           minHeight: inline ? 0 : 20,
-          whiteSpace: inline ? 'nowrap' : undefined,
-          overflow: inline ? 'hidden' : undefined,
-          textOverflow: inline ? 'ellipsis' : undefined,
-          maxWidth: inline ? 200 : undefined,
+          whiteSpace: inline && !noTruncate ? 'nowrap' : 'normal',
+          overflow: inline && !noTruncate ? 'hidden' : undefined,
+          textOverflow: inline && !noTruncate ? 'ellipsis' : undefined,
+          maxWidth: inline && !noTruncate ? 200 : undefined,
         }}
         disabled={saving}
         aria-label={`Edit ${label}`}
-        title={inline ? String(shown) : undefined}
+        title={inline && !noTruncate ? String(shown) : undefined}
         onClick={(event) => {
           event.stopPropagation()
           setEditing(true)

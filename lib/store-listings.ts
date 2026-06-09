@@ -9,11 +9,23 @@ export type StoreListingRecord = {
   current_price_ksh: string | number | null
   wine_id: string | null
   in_stock: boolean | null
+  vintage: string | number | null
+  country: string | null
+  region: string | null
+  grape_varieties: unknown
   stores?: { id?: string; name?: string | null } | null
   wines?: Pick<WineRecord, 'id' | 'producer' | 'wine_name' | 'vintage'> | null
 }
 
-export type StoreListingField = 'raw_title' | 'store_product_url' | 'current_price_ksh' | 'in_stock'
+export type StoreListingField =
+  | 'raw_title'
+  | 'store_product_url'
+  | 'current_price_ksh'
+  | 'in_stock'
+  | 'vintage'
+  | 'country'
+  | 'region'
+  | 'grape_varieties'
 
 const listingSelect = `
   id,
@@ -22,6 +34,10 @@ const listingSelect = `
   current_price_ksh,
   wine_id,
   in_stock,
+  vintage,
+  country,
+  region,
+  grape_varieties,
   stores (
     id,
     name
@@ -37,7 +53,7 @@ const listingSelect = `
 type UpdateStoreListingFieldArgs = {
   listingId: string
   field: StoreListingField
-  value: string | number | boolean | null
+  value: string | number | boolean | string[] | null
 }
 
 type ListingMutationResult =
@@ -126,7 +142,13 @@ export async function promoteListingToCanonicalWine(
 ): Promise<PromoteListingResult> {
   const parsed = parseListingTitle(listing.raw_title)
 
-  const wineResult = await createWine(parsed)
+  const wineResult = await createWine({
+    ...parsed,
+    vintage: listing.vintage ?? parsed.vintage ?? null,
+    country: listing.country ?? parsed.country ?? null,
+    region: listing.region ?? parsed.region ?? null,
+    grape_varieties: listing.grape_varieties ?? parsed.grape_varieties ?? null,
+  })
   if (wineResult.error || !wineResult.wine) {
     return { error: wineResult.error ?? 'Failed to create wine.' }
   }

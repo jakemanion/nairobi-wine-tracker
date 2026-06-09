@@ -29,6 +29,10 @@ const listingSelect = `
   current_price_ksh,
   wine_id,
   in_stock,
+  vintage,
+  country,
+  region,
+  grape_varieties,
   stores (
     id,
     name
@@ -114,7 +118,7 @@ export async function adminUpdateStoreListingField({
 }: {
   listingId: string
   field: StoreListingField
-  value: string | number | boolean | null
+  value: string | number | boolean | string[] | null
 }): Promise<ListingMutationResult> {
   const { client, configError } = getAdminClient()
   if (!client) return { error: configError! }
