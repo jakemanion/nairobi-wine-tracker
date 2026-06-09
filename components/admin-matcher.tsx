@@ -299,9 +299,30 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
     }
   }
 
+  function toggleListingSelection(listing: StoreListingRecord) {
+    if (selectedListingId === listing.id) {
+      setSelectedListingId(null)
+      setMatchError(null)
+      if (listing.wine_id && selectedWineId === listing.wine_id) {
+        setSelectedWineId(null)
+      }
+      return
+    }
+    selectListing(listing)
+  }
+
   function selectWine(wine: WineRecord) {
     setSelectedWineId(wine.id)
     setMatchError(null)
+  }
+
+  function toggleWineSelection(wine: WineRecord) {
+    if (selectedWineId === wine.id) {
+      setSelectedWineId(null)
+      setMatchError(null)
+      return
+    }
+    selectWine(wine)
   }
 
   async function handleMatch() {
@@ -629,7 +650,7 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
                           <span
                             onClick={(event) => {
                               event.stopPropagation()
-                              selectListing(listing)
+                              toggleListingSelection(listing)
                             }}
                             onKeyDown={(event) => event.stopPropagation()}
                             style={{ display: 'inline-flex', flexShrink: 0, marginTop: 2 }}
@@ -766,7 +787,7 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
                       <span
                         onClick={(event) => {
                           event.stopPropagation()
-                          selectWine(wine)
+                          toggleWineSelection(wine)
                         }}
                         onKeyDown={(event) => event.stopPropagation()}
                         style={{ display: 'inline-flex', flexShrink: 0, marginTop: 2 }}
