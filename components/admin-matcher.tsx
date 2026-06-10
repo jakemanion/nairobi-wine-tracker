@@ -3,6 +3,7 @@
 import {
   useEffect,
   useMemo,
+  useRef,
   useState,
   type CSSProperties,
   type KeyboardEvent,
@@ -23,6 +24,7 @@ import {
 } from '@/lib/grape-varieties'
 import { type StoreListingField, type StoreListingRecord } from '@/lib/store-listings'
 import { formatStoreUrlDirectory, formatVivinoProductName } from '@/lib/url-display'
+import { suggestWineMatches } from '@/lib/wine-match-suggestions'
 import {
   formatWineLabel,
   type WineField,
@@ -290,6 +292,27 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
     () => wines.find((wine) => wine.id === selectedWineId) ?? null,
     [wines, selectedWineId],
   )
+
+  const wineRowRefs = useRef(new Map<string, HTMLDivElement>())
+
+  const showMatchSuggestions = Boolean(selectedListing && !selectedListing.wine_id)
+
+  const suggestedWines = useMemo(
+    () => (selectedListing && showMatchSuggestions ? suggestWineMatches(selectedListing, wines) : []),
+    [selectedListing, showMatchSuggestions, wines],
+  )
+
+  useEffect(() => {
+    if (!selectedListing?.wine_id || selectedWineId !== selectedListing.wine_id) return
+
+    const row = wineRowRefs.current.get(selectedListing.wine_id)
+    row?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+  }, [selectedListing, selectedListingId, selectedWineId])
+
+  function setWineRowRef(wineId: string, element: HTMLDivElement | null) {
+    if (element) wineRowRefs.current.set(wineId, element)
+    else wineRowRefs.current.delete(wineId)
+  }
 
   function selectListing(listing: StoreListingRecord) {
     setSelectedListingId(listing.id)
@@ -764,6 +787,61 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
               Add wine
             </button>
           </header>
+          {showMatchSuggestions && (
+            <div
+              style={{
+                padding: '8px 10px',
+                borderBottom: '1px solid #eee',
+                background: '#fafafa',
+                flexShrink: 0,
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 11,
+                  fontWeight: 600,
+                  color: '#666',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.03em',
+                  marginBottom: 6,
+                }}
+              >
+                Suggested matches
+              </div>
+              {suggestedWines.length === 0 ? (
+                <p style={{ margin: 0, fontSize: 12, color: '#888' }}>
+                  No close matches on producer or wine name.
+                </p>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  {suggestedWines.map((wine) => {
+                    const isSuggestedSelected = wine.id === selectedWineId
+
+                    return (
+                      <button
+                        key={wine.id}
+                        type="button"
+                        onClick={() => selectWine(wine)}
+                        style={{
+                          display: 'block',
+                          width: '100%',
+                          textAlign: 'left',
+                          padding: '5px 8px',
+                          fontSize: 12,
+                          border: `1px solid ${isSuggestedSelected ? '#6af' : '#ddd'}`,
+                          borderRadius: 4,
+                          background: isSuggestedSelected ? '#e8f4ff' : '#fff',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        {[wine.producer, wine.wine_name].filter(Boolean).join(' · ') || '(unnamed wine)'}
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          )}
           <div style={scrollStyle}>
             {wines.length === 0 ? (
               <p style={{ color: '#888', fontSize: 12, margin: 0 }}>No wines yet.</p>
@@ -775,6 +853,7 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
                   return (
                     <div
                       key={wine.id}
+                      ref={(element) => setWineRowRef(wine.id, element)}
                       role="button"
                       tabIndex={0}
                       onClick={() => selectWine(wine)}
