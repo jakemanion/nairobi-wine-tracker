@@ -37,6 +37,47 @@ function parsePrice(raw: string | null): number | null {
   return Number.isFinite(n) ? n : null
 }
 
+const MATCHED_WINE_SCROLL_MS = 500 / 3
+
+function scrollContainerToElement(
+  container: HTMLElement,
+  element: HTMLElement,
+  durationMs: number,
+) {
+  const containerRect = container.getBoundingClientRect()
+  const elementRect = element.getBoundingClientRect()
+  const elementTop = elementRect.top - containerRect.top + container.scrollTop
+  const elementBottom = elementTop + element.offsetHeight
+  const viewTop = container.scrollTop
+  const viewBottom = viewTop + container.clientHeight
+
+  let targetScroll = viewTop
+  if (elementTop < viewTop) {
+    targetScroll = elementTop
+  } else if (elementBottom > viewBottom) {
+    targetScroll = elementBottom - container.clientHeight
+  } else {
+    return
+  }
+
+  targetScroll = Math.max(0, Math.min(targetScroll, container.scrollHeight - container.clientHeight))
+
+  const start = container.scrollTop
+  const distance = targetScroll - start
+  if (Math.abs(distance) < 1) return
+
+  const startTime = performance.now()
+
+  function step(now: number) {
+    const progress = Math.min((now - startTime) / durationMs, 1)
+    const eased = 1 - (1 - progress) ** 3
+    container.scrollTop = start + distance * eased
+    if (progress < 1) requestAnimationFrame(step)
+  }
+
+  requestAnimationFrame(step)
+}
+
 function groupListingsByStore(
   listings: StoreListingRecord[],
 ): Array<{ storeName: string; listings: StoreListingRecord[] }> {
@@ -294,6 +335,7 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
   )
 
   const wineRowRefs = useRef(new Map<string, HTMLDivElement>())
+  const canonicalScrollRef = useRef<HTMLDivElement>(null)
 
   const showMatchSuggestions = Boolean(selectedListing && !selectedListing.wine_id)
 
@@ -305,8 +347,11 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
   useEffect(() => {
     if (!selectedListing?.wine_id || selectedWineId !== selectedListing.wine_id) return
 
+    const container = canonicalScrollRef.current
     const row = wineRowRefs.current.get(selectedListing.wine_id)
-    row?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+    if (!container || !row) return
+
+    scrollContainerToElement(container, row, MATCHED_WINE_SCROLL_MS)
   }, [selectedListing, selectedListingId, selectedWineId])
 
   function setWineRowRef(wineId: string, element: HTMLDivElement | null) {
@@ -813,100 +858,45 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
                   No close matches on producer or wine name.
                 </p>
               ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                  {suggestedWines.map((wine) => {
-                    const isSuggestedSelected = wine.id === selectedWineId
-
-                    return (
-                      <button
-                        key={wine.id}
-                        type="button"
-                        onClick={() => selectWine(wine)}
-                        style={{
-                          display: 'block',
-                          width: '100%',
-                          textAlign: 'left',
-                          padding: '5px 8px',
-                          fontSize: 12,
-                          border: `1px solid ${isSuggestedSelected ? '#6af' : '#ddd'}`,
-                          borderRadius: 4,
-                          background: isSuggestedSelected ? '#e8f4ff' : '#fff',
-                          cursor: 'pointer',
-                        }}
-                      >
-                        {[wine.producer, wine.wine_name].filter(Boolean).join(' · ') || '(unnamed wine)'}
-                      </button>
-                    )
-                  })}
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 2,
+                    maxHeight: 240,
+                    overflowY: 'auto',
+                  }}
+                >
+                  {suggestedWines.map((wine) => (
+                    <CanonicalWineRow
+                      key={wine.id}
+                      wine={wine}
+                      isSelected={wine.id === selectedWineId}
+                      onSelect={() => selectWine(wine)}
+                      onToggleRadio={() => toggleWineSelection(wine)}
+                      onSave={saveWineField}
+                    />
+                  ))}
                 </div>
               )}
             </div>
           )}
-          <div style={scrollStyle}>
+          <div ref={canonicalScrollRef} style={scrollStyle}>
             {wines.length === 0 ? (
               <p style={{ color: '#888', fontSize: 12, margin: 0 }}>No wines yet.</p>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                {wines.map((wine) => {
-                  const isSelected = wine.id === selectedWineId
-
-                  return (
-                    <div
-                      key={wine.id}
-                      ref={(element) => setWineRowRef(wine.id, element)}
-                      role="button"
-                      tabIndex={0}
-                      onClick={() => selectWine(wine)}
-                      onKeyDown={(event) => handleRowKeyDown(event, () => selectWine(wine))}
-                      style={{
-                        ...rowStyle,
-                        ...(isSelected ? selectedRowStyle : {}),
-                      }}
-                    >
-                      <span
-                        onClick={(event) => {
-                          event.stopPropagation()
-                          toggleWineSelection(wine)
-                        }}
-                        onKeyDown={(event) => event.stopPropagation()}
-                        style={{ display: 'inline-flex', flexShrink: 0, marginTop: 2 }}
-                      >
-                        <input
-                          type="radio"
-                          checked={isSelected}
-                          readOnly
-                          tabIndex={-1}
-                          aria-label={`Select ${formatWineLabel(wine)}`}
-                          style={{ margin: 0, pointerEvents: 'none' }}
-                        />
-                      </span>
-                      <div style={inlineLineStyle}>
-                        <WineInlineField wine={wine} field="producer" onSave={saveWineField} />
-                        <Pipe />
-                        <WineInlineField wine={wine} field="wine_name" onSave={saveWineField} />
-                        <Pipe />
-                        <WineInlineField wine={wine} field="vintage" onSave={saveWineField} />
-                        <Pipe />
-                        <WineInlineField wine={wine} field="country" onSave={saveWineField} />
-                        <Pipe />
-                        <WineInlineField wine={wine} field="region" onSave={saveWineField} />
-                        <Pipe />
-                        <WineInlineField wine={wine} field="style" onSave={saveWineField} />
-                        <Pipe />
-                        <WineInlineField
-                          wine={wine}
-                          field="grape_varieties"
-                          display={formatGrapeVarieties(wine.grape_varieties) || '—'}
-                          onSave={saveWineField}
-                        />
-                        <Pipe />
-                        <VivinoUrlField wine={wine} onSave={saveWineField} />
-                        <Pipe />
-                        <WineInlineField wine={wine} field="vivino_rating" onSave={saveWineField} />
-                      </div>
-                    </div>
-                  )
-                })}
+                {wines.map((wine) => (
+                  <CanonicalWineRow
+                    key={wine.id}
+                    wine={wine}
+                    isSelected={wine.id === selectedWineId}
+                    rowRef={(element) => setWineRowRef(wine.id, element)}
+                    onSelect={() => selectWine(wine)}
+                    onToggleRadio={() => toggleWineSelection(wine)}
+                    onSave={saveWineField}
+                  />
+                ))}
               </div>
             )}
           </div>
@@ -1094,5 +1084,81 @@ function WineInlineField({
         onSave={(next) => onSave(wine, field, next)}
       />
     </LabeledField>
+  )
+}
+
+function CanonicalWineRow({
+  wine,
+  isSelected,
+  rowRef,
+  onSelect,
+  onToggleRadio,
+  onSave,
+}: {
+  wine: WineRecord
+  isSelected: boolean
+  rowRef?: (element: HTMLDivElement | null) => void
+  onSelect: () => void
+  onToggleRadio: () => void
+  onSave: (
+    wine: WineRecord,
+    field: WineField,
+    value: string | null,
+  ) => Promise<{ error?: string }>
+}) {
+  return (
+    <div
+      ref={rowRef}
+      role="button"
+      tabIndex={0}
+      onClick={onSelect}
+      onKeyDown={(event) => handleRowKeyDown(event, onSelect)}
+      style={{
+        ...rowStyle,
+        ...(isSelected ? selectedRowStyle : {}),
+      }}
+    >
+      <span
+        onClick={(event) => {
+          event.stopPropagation()
+          onToggleRadio()
+        }}
+        onKeyDown={(event) => event.stopPropagation()}
+        style={{ display: 'inline-flex', flexShrink: 0, marginTop: 2 }}
+      >
+        <input
+          type="radio"
+          checked={isSelected}
+          readOnly
+          tabIndex={-1}
+          aria-label={`Select ${formatWineLabel(wine)}`}
+          style={{ margin: 0, pointerEvents: 'none' }}
+        />
+      </span>
+      <div style={inlineLineStyle}>
+        <WineInlineField wine={wine} field="producer" onSave={onSave} />
+        <Pipe />
+        <WineInlineField wine={wine} field="wine_name" onSave={onSave} />
+        <Pipe />
+        <WineInlineField wine={wine} field="vintage" onSave={onSave} />
+        <Pipe />
+        <WineInlineField wine={wine} field="country" onSave={onSave} />
+        <Pipe />
+        <WineInlineField wine={wine} field="region" onSave={onSave} />
+        <Pipe />
+        <WineInlineField wine={wine} field="style" onSave={onSave} />
+        <Pipe />
+        <WineInlineField
+          wine={wine}
+          field="grape_varieties"
+          display={formatGrapeVarieties(wine.grape_varieties) || '—'}
+          onSave={onSave}
+        />
+        <Pipe />
+        <VivinoUrlField wine={wine} onSave={onSave} />
+        <Pipe />
+        <WineInlineField wine={wine} field="vivino_rating" onSave={onSave} />
+      </div>
+    </div>
   )
 }
