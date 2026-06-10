@@ -78,6 +78,36 @@ function scrollContainerToElement(
   requestAnimationFrame(step)
 }
 
+function groupListingsByWineId(
+  listings: StoreListingRecord[],
+): Map<string, StoreListingRecord[]> {
+  const groups = new Map<string, StoreListingRecord[]>()
+
+  for (const listing of listings) {
+    if (!listing.wine_id) continue
+    const group = groups.get(listing.wine_id) ?? []
+    group.push(listing)
+    groups.set(listing.wine_id, group)
+  }
+
+  for (const group of groups.values()) {
+    group.sort((a, b) =>
+      (a.stores?.name ?? '').localeCompare(b.stores?.name ?? '', undefined, {
+        sensitivity: 'base',
+      }),
+    )
+  }
+
+  return groups
+}
+
+function formatListingPriceLabel(listing: StoreListingRecord): string {
+  const store = listing.stores?.name?.trim() || 'Store'
+  const price =
+    listing.current_price_ksh != null ? `KES ${listing.current_price_ksh}` : '—'
+  return `${store}: ${price}`
+}
+
 function groupListingsByStore(
   listings: StoreListingRecord[],
 ): Array<{ storeName: string; listings: StoreListingRecord[] }> {
@@ -314,6 +344,8 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
   )
 
   const groupedListings = useMemo(() => groupListingsByStore(visibleListings), [visibleListings])
+
+  const listingsByWineId = useMemo(() => groupListingsByWineId(listings), [listings])
 
   function toggleStoreCollapsed(storeName: string) {
     setCollapsedStores((current) => {
@@ -871,6 +903,7 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
                     <CanonicalWineRow
                       key={wine.id}
                       wine={wine}
+                      matchedListings={listingsByWineId.get(wine.id) ?? []}
                       isSelected={wine.id === selectedWineId}
                       onSelect={() => selectWine(wine)}
                       onToggleRadio={() => toggleWineSelection(wine)}
@@ -890,6 +923,7 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
                   <CanonicalWineRow
                     key={wine.id}
                     wine={wine}
+                    matchedListings={listingsByWineId.get(wine.id) ?? []}
                     isSelected={wine.id === selectedWineId}
                     rowRef={(element) => setWineRowRef(wine.id, element)}
                     onSelect={() => selectWine(wine)}
@@ -1087,8 +1121,47 @@ function WineInlineField({
   )
 }
 
+function MatchedListingPrices({ listings }: { listings: StoreListingRecord[] }) {
+  if (listings.length === 0) return null
+
+  return (
+    <LabeledField label="Prices">
+      <span
+        style={{
+          display: 'inline-flex',
+          flexWrap: 'wrap',
+          alignItems: 'baseline',
+          gap: '0 6px',
+        }}
+      >
+        {listings.map((listing, index) => (
+          <span key={listing.id} style={{ display: 'inline-flex', alignItems: 'baseline', gap: 6 }}>
+            {index > 0 ? (
+              <span aria-hidden style={{ color: '#ccc', userSelect: 'none' }}>
+                |
+              </span>
+            ) : null}
+            {listing.store_product_url ? (
+              <ExternalLink
+                href={listing.store_product_url}
+                label={formatListingPriceLabel(listing)}
+                windowName={STORE_PREVIEW_WINDOW_NAME}
+              />
+            ) : (
+              <span style={{ fontSize: 11, color: '#333' }}>
+                {formatListingPriceLabel(listing)}
+              </span>
+            )}
+          </span>
+        ))}
+      </span>
+    </LabeledField>
+  )
+}
+
 function CanonicalWineRow({
   wine,
+  matchedListings,
   isSelected,
   rowRef,
   onSelect,
@@ -1096,6 +1169,7 @@ function CanonicalWineRow({
   onSave,
 }: {
   wine: WineRecord
+  matchedListings: StoreListingRecord[]
   isSelected: boolean
   rowRef?: (element: HTMLDivElement | null) => void
   onSelect: () => void
@@ -1158,6 +1232,12 @@ function CanonicalWineRow({
         <VivinoUrlField wine={wine} onSave={onSave} />
         <Pipe />
         <WineInlineField wine={wine} field="vivino_rating" onSave={onSave} />
+        {matchedListings.length > 0 ? (
+          <>
+            <Pipe />
+            <MatchedListingPrices listings={matchedListings} />
+          </>
+        ) : null}
       </div>
     </div>
   )
