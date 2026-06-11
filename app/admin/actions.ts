@@ -191,6 +191,43 @@ export async function adminClearStoreListingMatch(
   return { listing: normalizeStoreListing(data) }
 }
 
+export async function adminDeleteStoreListing(
+  listingId: string,
+): Promise<{ error?: string }> {
+  const { client, configError } = getAdminClient()
+  if (!client) return { error: configError! }
+
+  const { error } = await client.from('store_listings').delete().eq('id', listingId)
+
+  if (error) return { error: error.message }
+
+  revalidateWinePages()
+  return {}
+}
+
+export async function adminDeleteWine(wineId: string): Promise<{ error?: string }> {
+  const { client, configError } = getAdminClient()
+  if (!client) return { error: configError! }
+
+  const { error: unlinkError } = await client
+    .from('store_listings')
+    .update({ wine_id: null })
+    .eq('wine_id', wineId)
+
+  if (unlinkError) return { error: unlinkError.message }
+
+  const { error: reviewsError } = await client.from('reviews').delete().eq('wine_id', wineId)
+
+  if (reviewsError) return { error: reviewsError.message }
+
+  const { error } = await client.from('wines').delete().eq('id', wineId)
+
+  if (error) return { error: error.message }
+
+  revalidateWinePages()
+  return {}
+}
+
 export async function adminPromoteListingToCanonicalWine(
   listing: StoreListingRecord,
 ): Promise<

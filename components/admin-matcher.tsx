@@ -13,6 +13,8 @@ import { EditableTextCell } from '@/components/editable-text-cell'
 import {
   adminClearStoreListingMatch,
   adminCreateWine,
+  adminDeleteStoreListing,
+  adminDeleteWine,
   adminMatchStoreListingToWine,
   adminPromoteListingToCanonicalWine,
   adminUpdateStoreListingField,
@@ -310,6 +312,133 @@ function AddToWinesButton({
   )
 }
 
+function iconActionButtonStyle(
+  variant: 'primary' | 'danger',
+  enabled: boolean,
+): CSSProperties {
+  if (variant === 'primary') {
+    return {
+      display: 'inline-flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      width: 22,
+      height: 22,
+      padding: 0,
+      border: '1px solid #067a5c',
+      borderRadius: 4,
+      background: enabled ? '#0a7' : '#d8ebe6',
+      color: enabled ? '#fff' : '#4a6a62',
+      cursor: enabled ? 'pointer' : 'not-allowed',
+      flexShrink: 0,
+    }
+  }
+
+  return {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 22,
+    height: 22,
+    padding: 0,
+    border: '1px solid #d9a0a0',
+    borderRadius: 4,
+    background: enabled ? '#fff' : '#f4f4f4',
+    color: enabled ? '#c33' : '#bbb',
+    cursor: enabled ? 'pointer' : 'not-allowed',
+    flexShrink: 0,
+  }
+}
+
+const rowActionsStyle: CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: 4,
+  flexShrink: 0,
+  marginTop: 2,
+}
+
+function PlusIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden>
+      <path
+        d="M6 1v10M1 6h10"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+      />
+    </svg>
+  )
+}
+
+function TrashIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden>
+      <path
+        d="M2.5 3.5h7M4.25 3.5V2.75h3.5V3.5M4.5 5.25v4.25M7.5 5.25v4.25M3.75 3.5l.4 6.25h3.7l.4-6.25"
+        stroke="currentColor"
+        strokeWidth="1.1"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
+    </svg>
+  )
+}
+
+function AddToWinesIconButton({
+  enabled,
+  busy,
+  title,
+  onClick,
+}: {
+  enabled: boolean
+  busy: boolean
+  title?: string
+  onClick: () => void
+}) {
+  return (
+    <button
+      type="button"
+      disabled={!enabled}
+      title={title}
+      aria-label={busy ? 'Adding to wines' : 'Add to wines'}
+      onClick={(event) => {
+        event.stopPropagation()
+        onClick()
+      }}
+      style={iconActionButtonStyle('primary', enabled)}
+    >
+      <PlusIcon />
+    </button>
+  )
+}
+
+function DeleteIconButton({
+  enabled,
+  title,
+  onClick,
+}: {
+  enabled: boolean
+  title: string
+  onClick: () => void
+}) {
+  return (
+    <button
+      type="button"
+      disabled={!enabled}
+      title={title}
+      aria-label={title}
+      onClick={(event) => {
+        event.stopPropagation()
+        onClick()
+      }}
+      style={iconActionButtonStyle('danger', enabled)}
+    >
+      <TrashIcon />
+    </button>
+  )
+}
+
 type AdminMatcherProps = {
   initialListings: StoreListingRecord[]
   initialWines: WineRecord[]
@@ -490,6 +619,64 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
     if (result.error || !result.wine) return
     setWines((current) => [...current, result.wine!])
     setSelectedWineId(result.wine.id)
+  }
+
+  async function handleDeleteListing(listing: StoreListingRecord) {
+    if (busy) return
+    if (!window.confirm(`Delete store listing "${listing.raw_title ?? 'listing'}"?`)) return
+
+    setBusy(true)
+    setMatchError(null)
+
+    const result = await adminDeleteStoreListing(listing.id)
+
+    setBusy(false)
+
+    if (result.error) {
+      setMatchError(result.error)
+      return
+    }
+
+    setListings((current) => current.filter((row) => row.id !== listing.id))
+    if (selectedListingId === listing.id) {
+      setSelectedListingId(null)
+      if (listing.wine_id && selectedWineId === listing.wine_id) {
+        setSelectedWineId(null)
+      }
+    }
+  }
+
+  async function handleDeleteWine(wine: WineRecord) {
+    if (busy) return
+    if (
+      !window.confirm(
+        `Delete wine "${formatWineLabel(wine)}"? Matched store listings will be unmatched.`,
+      )
+    ) {
+      return
+    }
+
+    setBusy(true)
+    setMatchError(null)
+
+    const result = await adminDeleteWine(wine.id)
+
+    setBusy(false)
+
+    if (result.error) {
+      setMatchError(result.error)
+      return
+    }
+
+    setWines((current) => current.filter((row) => row.id !== wine.id))
+    setListings((current) =>
+      current.map((listing) =>
+        listing.wine_id === wine.id ? { ...listing, wine_id: null, wines: null } : listing,
+      ),
+    )
+    if (selectedWineId === wine.id) {
+      setSelectedWineId(null)
+    }
   }
 
   async function saveListingField(
@@ -832,6 +1019,23 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
                               </span>
                             </LabeledField>
                           </div>
+                          {isSelected ? (
+                            <span style={rowActionsStyle}>
+                              {!isMatched ? (
+                                <AddToWinesIconButton
+                                  enabled={!busy}
+                                  busy={busy}
+                                  title={addToWinesHint}
+                                  onClick={() => void handleAddListingToWines()}
+                                />
+                              ) : null}
+                              <DeleteIconButton
+                                enabled={!busy}
+                                title="Delete store listing"
+                                onClick={() => void handleDeleteListing(listing)}
+                              />
+                            </span>
+                          ) : null}
                         </div>
                       )
                     })}
@@ -868,8 +1072,8 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
             <div
               style={{
                 padding: '8px 10px',
-                borderBottom: '1px solid #eee',
-                background: '#fafafa',
+                borderBottom: '1px solid #b8cfe8',
+                background: '#e8f0fc',
                 flexShrink: 0,
               }}
             >
@@ -877,7 +1081,7 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
                 style={{
                   fontSize: 11,
                   fontWeight: 600,
-                  color: '#666',
+                  color: '#4a6080',
                   textTransform: 'uppercase',
                   letterSpacing: '0.03em',
                   marginBottom: 6,
@@ -886,7 +1090,7 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
                 Suggested matches
               </div>
               {suggestedWines.length === 0 ? (
-                <p style={{ margin: 0, fontSize: 12, color: '#888' }}>
+                <p style={{ margin: 0, fontSize: 12, color: '#5a6d88' }}>
                   No close matches on producer or wine name.
                 </p>
               ) : (
@@ -897,6 +1101,9 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
                     gap: 2,
                     maxHeight: 240,
                     overflowY: 'auto',
+                    padding: '4px 6px',
+                    borderRadius: 6,
+                    background: '#dce8f8',
                   }}
                 >
                   {suggestedWines.map((wine) => (
@@ -905,8 +1112,10 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
                       wine={wine}
                       matchedListings={listingsByWineId.get(wine.id) ?? []}
                       isSelected={wine.id === selectedWineId}
+                      busy={busy}
                       onSelect={() => selectWine(wine)}
                       onToggleRadio={() => toggleWineSelection(wine)}
+                      onDelete={() => void handleDeleteWine(wine)}
                       onSave={saveWineField}
                     />
                   ))}
@@ -925,9 +1134,11 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
                     wine={wine}
                     matchedListings={listingsByWineId.get(wine.id) ?? []}
                     isSelected={wine.id === selectedWineId}
+                    busy={busy}
                     rowRef={(element) => setWineRowRef(wine.id, element)}
                     onSelect={() => selectWine(wine)}
                     onToggleRadio={() => toggleWineSelection(wine)}
+                    onDelete={() => void handleDeleteWine(wine)}
                     onSave={saveWineField}
                   />
                 ))}
@@ -1163,17 +1374,21 @@ function CanonicalWineRow({
   wine,
   matchedListings,
   isSelected,
+  busy,
   rowRef,
   onSelect,
   onToggleRadio,
+  onDelete,
   onSave,
 }: {
   wine: WineRecord
   matchedListings: StoreListingRecord[]
   isSelected: boolean
+  busy: boolean
   rowRef?: (element: HTMLDivElement | null) => void
   onSelect: () => void
   onToggleRadio: () => void
+  onDelete: () => void
   onSave: (
     wine: WineRecord,
     field: WineField,
@@ -1239,6 +1454,15 @@ function CanonicalWineRow({
           </>
         ) : null}
       </div>
+      {isSelected ? (
+        <span style={rowActionsStyle}>
+          <DeleteIconButton
+            enabled={!busy}
+            title="Delete wine"
+            onClick={onDelete}
+          />
+        </span>
+      ) : null}
     </div>
   )
 }
