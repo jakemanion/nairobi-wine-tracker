@@ -51,7 +51,7 @@ export function scoreWineMatch(
 export function suggestWineMatches(
   listing: StoreListingRecord,
   wines: WineRecord[],
-  limit = 5,
+  limit = 10,
 ): WineRecord[] {
   return wines
     .map((wine) => ({ wine, score: scoreWineMatch(listing, wine) }))

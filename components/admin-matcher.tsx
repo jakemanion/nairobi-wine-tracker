@@ -349,12 +349,38 @@ function iconActionButtonStyle(
   }
 }
 
+const SUGGESTION_LIMIT = 10
+const SUGGESTION_PANEL_MAX_HEIGHT = 520
+
 const rowActionsStyle: CSSProperties = {
   display: 'inline-flex',
   alignItems: 'center',
   gap: 4,
   flexShrink: 0,
   marginTop: 2,
+}
+
+const rowActionsColumnStyle: CSSProperties = {
+  display: 'inline-flex',
+  flexDirection: 'column',
+  alignItems: 'stretch',
+  gap: 4,
+  flexShrink: 0,
+  marginTop: 2,
+  minWidth: 22,
+}
+
+const suggestionRowContainerStyle: CSSProperties = {
+  flexShrink: 0,
+  width: '100%',
+  minWidth: 0,
+}
+
+const suggestionRowStyle: CSSProperties = {
+  width: '100%',
+  boxSizing: 'border-box',
+  flexShrink: 0,
+  background: '#fff',
 }
 
 function PlusIcon() {
@@ -501,7 +527,10 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
   const showMatchSuggestions = Boolean(selectedListing && !selectedListing.wine_id)
 
   const suggestedWines = useMemo(
-    () => (selectedListing && showMatchSuggestions ? suggestWineMatches(selectedListing, wines) : []),
+    () =>
+      selectedListing && showMatchSuggestions
+        ? suggestWineMatches(selectedListing, wines, SUGGESTION_LIMIT)
+        : [],
     [selectedListing, showMatchSuggestions, wines],
   )
 
@@ -1020,20 +1049,41 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
                             </LabeledField>
                           </div>
                           {isSelected ? (
-                            <span style={rowActionsStyle}>
-                              {!isMatched ? (
-                                <AddToWinesIconButton
+                            <span style={rowActionsColumnStyle}>
+                              <span style={rowActionsStyle}>
+                                {!isMatched ? (
+                                  <AddToWinesIconButton
+                                    enabled={!busy}
+                                    busy={busy}
+                                    title={addToWinesHint}
+                                    onClick={() => void handleAddListingToWines()}
+                                  />
+                                ) : null}
+                                <DeleteIconButton
                                   enabled={!busy}
-                                  busy={busy}
-                                  title={addToWinesHint}
-                                  onClick={() => void handleAddListingToWines()}
+                                  title="Delete store listing"
+                                  onClick={() => void handleDeleteListing(listing)}
                                 />
+                              </span>
+                              {selectedWineId && !isMatched ? (
+                                <button
+                                  type="button"
+                                  disabled={!canMatch}
+                                  title="Match selected listing to selected wine"
+                                  onClick={(event) => {
+                                    event.stopPropagation()
+                                    void handleMatch()
+                                  }}
+                                  style={{
+                                    ...actionButtonStyle('default', canMatch),
+                                    padding: '3px 6px',
+                                    fontSize: 11,
+                                    minWidth: 22,
+                                  }}
+                                >
+                                  Match
+                                </button>
                               ) : null}
-                              <DeleteIconButton
-                                enabled={!busy}
-                                title="Delete store listing"
-                                onClick={() => void handleDeleteListing(listing)}
-                              />
                             </span>
                           ) : null}
                         </div>
@@ -1098,26 +1148,29 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
                   style={{
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: 2,
-                    maxHeight: 240,
+                    gap: 4,
+                    maxHeight: SUGGESTION_PANEL_MAX_HEIGHT,
                     overflowY: 'auto',
+                    overflowX: 'hidden',
                     padding: '4px 6px',
                     borderRadius: 6,
                     background: '#dce8f8',
                   }}
                 >
                   {suggestedWines.map((wine) => (
-                    <CanonicalWineRow
-                      key={wine.id}
-                      wine={wine}
-                      matchedListings={listingsByWineId.get(wine.id) ?? []}
-                      isSelected={wine.id === selectedWineId}
-                      busy={busy}
-                      onSelect={() => selectWine(wine)}
-                      onToggleRadio={() => toggleWineSelection(wine)}
-                      onDelete={() => void handleDeleteWine(wine)}
-                      onSave={saveWineField}
-                    />
+                    <div key={wine.id} style={suggestionRowContainerStyle}>
+                      <CanonicalWineRow
+                        variant="suggestion"
+                        wine={wine}
+                        matchedListings={listingsByWineId.get(wine.id) ?? []}
+                        isSelected={wine.id === selectedWineId}
+                        busy={busy}
+                        onSelect={() => selectWine(wine)}
+                        onToggleRadio={() => toggleWineSelection(wine)}
+                        onDelete={() => void handleDeleteWine(wine)}
+                        onSave={saveWineField}
+                      />
+                    </div>
                   ))}
                 </div>
               )}
@@ -1370,11 +1423,59 @@ function MatchedListingPrices({ listings }: { listings: StoreListingRecord[] }) 
   )
 }
 
+function CanonicalWineFields({
+  wine,
+  matchedListings,
+  onSave,
+}: {
+  wine: WineRecord
+  matchedListings: StoreListingRecord[]
+  onSave: (
+    wine: WineRecord,
+    field: WineField,
+    value: string | null,
+  ) => Promise<{ error?: string }>
+}) {
+  return (
+    <>
+      <WineInlineField wine={wine} field="producer" onSave={onSave} />
+      <Pipe />
+      <WineInlineField wine={wine} field="wine_name" onSave={onSave} />
+      <Pipe />
+      <WineInlineField wine={wine} field="vintage" onSave={onSave} />
+      <Pipe />
+      <WineInlineField wine={wine} field="country" onSave={onSave} />
+      <Pipe />
+      <WineInlineField wine={wine} field="region" onSave={onSave} />
+      <Pipe />
+      <WineInlineField wine={wine} field="style" onSave={onSave} />
+      <Pipe />
+      <WineInlineField
+        wine={wine}
+        field="grape_varieties"
+        display={formatGrapeVarieties(wine.grape_varieties) || '—'}
+        onSave={onSave}
+      />
+      <Pipe />
+      <VivinoUrlField wine={wine} onSave={onSave} />
+      <Pipe />
+      <WineInlineField wine={wine} field="vivino_rating" onSave={onSave} />
+      {matchedListings.length > 0 ? (
+        <>
+          <Pipe />
+          <MatchedListingPrices listings={matchedListings} />
+        </>
+      ) : null}
+    </>
+  )
+}
+
 function CanonicalWineRow({
   wine,
   matchedListings,
   isSelected,
   busy,
+  variant = 'list',
   rowRef,
   onSelect,
   onToggleRadio,
@@ -1385,6 +1486,7 @@ function CanonicalWineRow({
   matchedListings: StoreListingRecord[]
   isSelected: boolean
   busy: boolean
+  variant?: 'list' | 'suggestion'
   rowRef?: (element: HTMLDivElement | null) => void
   onSelect: () => void
   onToggleRadio: () => void
@@ -1395,6 +1497,55 @@ function CanonicalWineRow({
     value: string | null,
   ) => Promise<{ error?: string }>
 }) {
+  const radio = (
+    <span
+      onClick={(event) => {
+        event.stopPropagation()
+        onToggleRadio()
+      }}
+      onKeyDown={(event) => event.stopPropagation()}
+      style={{ display: 'inline-flex', flexShrink: 0, marginTop: 2 }}
+    >
+      <input
+        type="radio"
+        checked={isSelected}
+        readOnly
+        tabIndex={-1}
+        aria-label={`Select ${formatWineLabel(wine)}`}
+        style={{ margin: 0, pointerEvents: 'none' }}
+      />
+    </span>
+  )
+
+  const deleteAction = isSelected ? (
+    <DeleteIconButton enabled={!busy} title="Delete wine" onClick={onDelete} />
+  ) : null
+
+  if (variant === 'suggestion') {
+    return (
+      <div
+        ref={rowRef}
+        role="button"
+        tabIndex={0}
+        onClick={onSelect}
+        onKeyDown={(event) => handleRowKeyDown(event, onSelect)}
+        style={{
+          ...rowStyle,
+          ...suggestionRowStyle,
+          ...(isSelected ? selectedRowStyle : {}),
+        }}
+      >
+        {radio}
+        <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <div style={inlineLineStyle}>
+            <CanonicalWineFields wine={wine} matchedListings={matchedListings} onSave={onSave} />
+          </div>
+          {deleteAction ? <span style={rowActionsStyle}>{deleteAction}</span> : null}
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div
       ref={rowRef}
@@ -1407,62 +1558,11 @@ function CanonicalWineRow({
         ...(isSelected ? selectedRowStyle : {}),
       }}
     >
-      <span
-        onClick={(event) => {
-          event.stopPropagation()
-          onToggleRadio()
-        }}
-        onKeyDown={(event) => event.stopPropagation()}
-        style={{ display: 'inline-flex', flexShrink: 0, marginTop: 2 }}
-      >
-        <input
-          type="radio"
-          checked={isSelected}
-          readOnly
-          tabIndex={-1}
-          aria-label={`Select ${formatWineLabel(wine)}`}
-          style={{ margin: 0, pointerEvents: 'none' }}
-        />
-      </span>
+      {radio}
       <div style={inlineLineStyle}>
-        <WineInlineField wine={wine} field="producer" onSave={onSave} />
-        <Pipe />
-        <WineInlineField wine={wine} field="wine_name" onSave={onSave} />
-        <Pipe />
-        <WineInlineField wine={wine} field="vintage" onSave={onSave} />
-        <Pipe />
-        <WineInlineField wine={wine} field="country" onSave={onSave} />
-        <Pipe />
-        <WineInlineField wine={wine} field="region" onSave={onSave} />
-        <Pipe />
-        <WineInlineField wine={wine} field="style" onSave={onSave} />
-        <Pipe />
-        <WineInlineField
-          wine={wine}
-          field="grape_varieties"
-          display={formatGrapeVarieties(wine.grape_varieties) || '—'}
-          onSave={onSave}
-        />
-        <Pipe />
-        <VivinoUrlField wine={wine} onSave={onSave} />
-        <Pipe />
-        <WineInlineField wine={wine} field="vivino_rating" onSave={onSave} />
-        {matchedListings.length > 0 ? (
-          <>
-            <Pipe />
-            <MatchedListingPrices listings={matchedListings} />
-          </>
-        ) : null}
+        <CanonicalWineFields wine={wine} matchedListings={matchedListings} onSave={onSave} />
       </div>
-      {isSelected ? (
-        <span style={rowActionsStyle}>
-          <DeleteIconButton
-            enabled={!busy}
-            title="Delete wine"
-            onClick={onDelete}
-          />
-        </span>
-      ) : null}
+      {deleteAction ? <span style={rowActionsStyle}>{deleteAction}</span> : null}
     </div>
   )
 }
