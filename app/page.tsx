@@ -80,7 +80,8 @@ export default async function Home() {
           )
         )
       `)
-      .limit(50),
+      .order('producer')
+      .order('wine_name'),
     supabase
       .from('reviews')
       .select(`
