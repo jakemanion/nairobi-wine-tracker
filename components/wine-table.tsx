@@ -195,6 +195,19 @@ const userColumnStyle: CSSProperties = {
   textAlign: 'center',
 }
 
+const tableScrollStyle: CSSProperties = {
+  overflow: 'auto',
+  maxHeight: 'calc(100vh - 160px)',
+  marginTop: 8,
+}
+
+const tableStyle: CSSProperties = {
+  width: '100%',
+  borderCollapse: 'separate',
+  borderSpacing: 0,
+  fontSize: 14,
+}
+
 type HeaderProps = {
   label: string
   sortKey: SortKey
@@ -213,6 +226,7 @@ function SortableTh({ label, sortKey, activeKey, dir, onSort, userColumn, center
 
   return (
     <th
+      className={userColumn ? 'wine-table-user-th' : undefined}
       aria-sort={ariaSort}
       style={{
         textAlign: alignCenter ? 'center' : 'left',
@@ -237,14 +251,14 @@ function SortableTh({ label, sortKey, activeKey, dir, onSort, userColumn, center
 
 function UserTh({ label }: { label: string }) {
   return (
-    <th style={{ borderBottom: '2px solid #ccc', ...userColumnStyle }}>
+    <th className="wine-table-user-th" style={{ borderBottom: '2px solid #ccc', ...userColumnStyle }}>
       {label}
     </th>
   )
 }
 
 function UserTd({ children }: { children: ReactNode }) {
-  return <td style={userColumnStyle}>{children}</td>
+  return <td className="wine-table-user-td" style={userColumnStyle}>{children}</td>
 }
 
 function updateWineReview(
@@ -284,27 +298,52 @@ export function WineTable({ wines: initialWines, userId }: { wines: WineRow[]; u
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setShowDetails((visible) => !visible)}
-        aria-pressed={showDetails}
+      <style>{`
+        .wine-table thead th {
+          position: sticky;
+          top: 0;
+          z-index: 2;
+          background: #fff;
+          box-shadow: 0 2px 0 #ccc;
+        }
+        .wine-table thead th.wine-table-user-th {
+          background: #eef2f8;
+        }
+        .wine-table tbody tr:hover td {
+          background: #f3f8ff;
+        }
+        .wine-table tbody tr:hover td.wine-table-user-td {
+          background: #e4ecf7;
+        }
+      `}</style>
+      <div
         style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 12,
           marginTop: 20,
-          padding: '6px 12px',
-          fontSize: 14,
-          cursor: 'pointer',
+          flexWrap: 'wrap',
         }}
       >
-        show/hide details
-      </button>
-      <table
-        style={{
-          width: '100%',
-          borderCollapse: 'collapse',
-          marginTop: 8,
-          fontSize: 14,
-        }}
-      >
+        <p style={{ margin: 0, color: '#555', fontSize: 14 }}>
+          Showing <strong>{sorted.length}</strong> {sorted.length === 1 ? 'wine' : 'wines'}
+        </p>
+        <button
+          type="button"
+          onClick={() => setShowDetails((visible) => !visible)}
+          aria-pressed={showDetails}
+          style={{
+            padding: '6px 12px',
+            fontSize: 14,
+            cursor: 'pointer',
+          }}
+        >
+          show/hide details
+        </button>
+      </div>
+      <div style={tableScrollStyle}>
+        <table className="wine-table" style={tableStyle}>
       <thead>
         <tr>
           <SortableTh label="Winery" sortKey="winery" activeKey={sortKey} dir={sortDir} onSort={onSort} />
@@ -460,6 +499,7 @@ export function WineTable({ wines: initialWines, userId }: { wines: WineRow[]; u
         ))}
       </tbody>
     </table>
+      </div>
     </>
   )
 }
