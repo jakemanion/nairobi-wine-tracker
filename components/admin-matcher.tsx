@@ -779,7 +779,7 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
 
     if (field === 'grape_varieties') {
       parsed = parseGrapeVarietiesInput(value)
-    } else if (field === 'vintage' || field === 'vivino_rating') {
+    } else if (field === 'vintage' || field === 'vivino_rating' || field === 'vivino_match_confidence') {
       if (!value) {
         parsed = null
       } else {
@@ -1393,6 +1393,7 @@ const wineFieldLabels: Record<WineField, string> = {
   style: 'Style',
   vivino_url: 'Vivino URL',
   vivino_rating: 'Vivino rating',
+  vivino_match_confidence: 'Vivino confidence',
 }
 
 function WineInlineField({
@@ -1427,52 +1428,6 @@ function WineInlineField({
         onSave={(next) => onSave(wine, field, next)}
       />
     </LabeledField>
-  )
-}
-
-function enrichmentStatusStyle(status: string | null | undefined): CSSProperties {
-  switch (status) {
-    case 'review_required':
-      return { color: '#a65e00', fontWeight: 600 }
-    case 'failed':
-      return { color: '#c33', fontWeight: 600 }
-    case 'matched':
-    case 'complete':
-      return { color: '#060', fontWeight: 500 }
-    case 'pending':
-      return { color: '#666', fontWeight: 500 }
-    default:
-      return { color: '#aaa', fontWeight: 400 }
-  }
-}
-
-function formatEnrichmentStatus(status: string | null | undefined): string {
-  if (!status) return '—'
-  return status.replace(/_/g, ' ')
-}
-
-function VivinoEnrichmentMeta({ wine }: { wine: WineRecord }) {
-  const confidence = wineMatchConfidence(wine)
-
-  return (
-    <>
-      <LabeledField label="Vivino confidence">
-        <span
-          style={{
-            fontWeight: confidence === 100 ? 700 : 500,
-            color: confidence === 100 ? '#BA1628' : confidence != null ? '#333' : '#aaa',
-          }}
-        >
-          {confidence != null ? confidence : '—'}
-        </span>
-      </LabeledField>
-      <Pipe />
-      <LabeledField label="Enrichment">
-        <span style={enrichmentStatusStyle(wine.vivino_enrichment_status)}>
-          {formatEnrichmentStatus(wine.vivino_enrichment_status)}
-        </span>
-      </LabeledField>
-    </>
   )
 }
 
@@ -1560,7 +1515,7 @@ function CanonicalWineFields({
       <Pipe />
       <WineInlineField wine={wine} field="vivino_rating" onSave={onSave} />
       <Pipe />
-      <VivinoEnrichmentMeta wine={wine} />
+      <WineInlineField wine={wine} field="vivino_match_confidence" onSave={onSave} />
       {matchedListings.length > 0 ? (
         <>
           <Pipe />

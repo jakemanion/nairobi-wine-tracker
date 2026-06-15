@@ -32,6 +32,7 @@ export type WineField =
   | 'style'
   | 'vivino_url'
   | 'vivino_rating'
+  | 'vivino_match_confidence'
 
 const wineSelect = `
   id,
