@@ -51,7 +51,9 @@ export default async function AdminPage() {
           grape_varieties,
           style,
           vivino_url,
-          vivino_rating
+          vivino_rating,
+          vivino_match_confidence,
+          vivino_enrichment_status
         `)
         .order('producer')
         .order('wine_name'),

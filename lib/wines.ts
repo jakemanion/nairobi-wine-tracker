@@ -1,5 +1,12 @@
 import { supabase } from '@/lib/supabase'
 
+export type VivinoEnrichmentStatus =
+  | 'matched'
+  | 'review_required'
+  | 'failed'
+  | 'complete'
+  | 'pending'
+
 export type WineRecord = {
   id: string
   producer: string | null
@@ -11,9 +18,20 @@ export type WineRecord = {
   style: string | null
   vivino_url: string | null
   vivino_rating: string | number | null
+  vivino_match_confidence: number | null
+  vivino_enrichment_status: VivinoEnrichmentStatus | null
 }
 
-export type WineField = keyof Omit<WineRecord, 'id'>
+export type WineField =
+  | 'producer'
+  | 'wine_name'
+  | 'vintage'
+  | 'country'
+  | 'region'
+  | 'grape_varieties'
+  | 'style'
+  | 'vivino_url'
+  | 'vivino_rating'
 
 const wineSelect = `
   id,
@@ -25,7 +43,9 @@ const wineSelect = `
   grape_varieties,
   style,
   vivino_url,
-  vivino_rating
+  vivino_rating,
+  vivino_match_confidence,
+  vivino_enrichment_status
 `
 
 type UpdateWineFieldArgs = {

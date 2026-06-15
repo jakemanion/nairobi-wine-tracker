@@ -178,6 +178,22 @@ const linkedToSelectedWineStyle = {
   borderColor: '#e6a800',
 }
 
+const perfectMatchRowStyle = {
+  borderColor: '#BA1628',
+  borderWidth: 2,
+}
+
+function wineMatchConfidence(wine: WineRecord): number | null {
+  const value = wine.vivino_match_confidence
+  if (value == null) return null
+  const n = typeof value === 'number' ? value : Number(value)
+  return Number.isFinite(n) ? n : null
+}
+
+function isPerfectMatch(wine: WineRecord): boolean {
+  return wineMatchConfidence(wine) === 100
+}
+
 const rowStyle = {
   display: 'flex' as const,
   alignItems: 'stretch' as const,
@@ -481,6 +497,7 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
   const [busy, setBusy] = useState(false)
   const [matchError, setMatchError] = useState<string | null>(null)
   const [unmatchedOnly, setUnmatchedOnly] = useState(false)
+  const [storePanelCollapsed, setStorePanelCollapsed] = useState(false)
   const [collapsedStores, setCollapsedStores] = useState<Set<string>>(() => new Set())
 
   useEffect(() => {
@@ -846,6 +863,14 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
         >
           Clear
         </button>
+        <button
+          type="button"
+          onClick={() => setStorePanelCollapsed((collapsed) => !collapsed)}
+          style={actionButtonStyle('default', true)}
+          title={storePanelCollapsed ? 'Show store listings panel' : 'Hide store listings panel'}
+        >
+          {storePanelCollapsed ? 'Show listings' : 'Hide listings'}
+        </button>
         <span style={{ color: '#555' }}>
           {selectedListing && selectedWine
             ? `${selectedListing.raw_title ?? 'listing'} → ${formatWineLabel(selectedWine)}`
@@ -855,7 +880,8 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
       </div>
 
       <div style={{ display: 'flex', gap: 12, flex: 1, minHeight: 0, overflow: 'hidden' }}>
-        <section style={panelStyle}>
+        {!storePanelCollapsed ? (
+        <section style={{ ...panelStyle, flex: 1 }}>
           <header
             style={{
               padding: '6px 10px',
@@ -1103,8 +1129,9 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
             )}
           </div>
         </section>
+        ) : null}
 
-        <section style={panelStyle}>
+        <section style={{ ...panelStyle, flex: 1 }}>
           <header
             style={{
               padding: '6px 10px',
@@ -1116,7 +1143,18 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
               fontSize: 13,
             }}
           >
-            <span style={{ fontWeight: 600 }}>Canonical wines ({wines.length})</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span style={{ fontWeight: 600 }}>Canonical wines ({wines.length})</span>
+              {storePanelCollapsed ? (
+                <button
+                  type="button"
+                  onClick={() => setStorePanelCollapsed(false)}
+                  style={{ padding: '2px 8px', fontSize: 11, cursor: 'pointer' }}
+                >
+                  Show listings
+                </button>
+              ) : null}
+            </div>
             <button
               type="button"
               onClick={() => void handleAddWine()}
@@ -1392,6 +1430,60 @@ function WineInlineField({
   )
 }
 
+function enrichmentStatusStyle(status: string | null | undefined): CSSProperties {
+  switch (status) {
+    case 'review_required':
+      return { color: '#a65e00', fontWeight: 600 }
+    case 'failed':
+      return { color: '#c33', fontWeight: 600 }
+    case 'matched':
+    case 'complete':
+      return { color: '#060', fontWeight: 500 }
+    case 'pending':
+      return { color: '#666', fontWeight: 500 }
+    default:
+      return { color: '#aaa', fontWeight: 400 }
+  }
+}
+
+function formatEnrichmentStatus(status: string | null | undefined): string {
+  if (!status) return '—'
+  return status.replace(/_/g, ' ')
+}
+
+function VivinoEnrichmentMeta({ wine }: { wine: WineRecord }) {
+  const confidence = wineMatchConfidence(wine)
+
+  return (
+    <>
+      <LabeledField label="Vivino confidence">
+        <span
+          style={{
+            fontWeight: confidence === 100 ? 700 : 500,
+            color: confidence === 100 ? '#BA1628' : confidence != null ? '#333' : '#aaa',
+          }}
+        >
+          {confidence != null ? confidence : '—'}
+        </span>
+      </LabeledField>
+      <Pipe />
+      <LabeledField label="Enrichment">
+        <span style={enrichmentStatusStyle(wine.vivino_enrichment_status)}>
+          {formatEnrichmentStatus(wine.vivino_enrichment_status)}
+        </span>
+      </LabeledField>
+    </>
+  )
+}
+
+function wineRowStyle(wine: WineRecord, isSelected: boolean): CSSProperties {
+  return {
+    ...rowStyle,
+    ...(isSelected ? selectedRowStyle : {}),
+    ...(isPerfectMatch(wine) ? perfectMatchRowStyle : {}),
+  }
+}
+
 function MatchedListingPrices({ listings }: { listings: StoreListingRecord[] }) {
   if (listings.length === 0) return null
 
@@ -1467,6 +1559,8 @@ function CanonicalWineFields({
       <VivinoUrlField wine={wine} onSave={onSave} />
       <Pipe />
       <WineInlineField wine={wine} field="vivino_rating" onSave={onSave} />
+      <Pipe />
+      <VivinoEnrichmentMeta wine={wine} />
       {matchedListings.length > 0 ? (
         <>
           <Pipe />
@@ -1544,9 +1638,8 @@ function CanonicalWineRow({
         onClick={onSelect}
         onKeyDown={(event) => handleRowKeyDown(event, onSelect)}
         style={{
-          ...rowStyle,
+          ...wineRowStyle(wine, isSelected),
           ...suggestionRowStyle,
-          ...(isSelected ? selectedRowStyle : {}),
         }}
       >
         {radio}
@@ -1568,10 +1661,7 @@ function CanonicalWineRow({
       tabIndex={0}
       onClick={onSelect}
       onKeyDown={(event) => handleRowKeyDown(event, onSelect)}
-      style={{
-        ...rowStyle,
-        ...(isSelected ? selectedRowStyle : {}),
-      }}
+      style={wineRowStyle(wine, isSelected)}
     >
       {radio}
       <div style={inlineLineStyle}>

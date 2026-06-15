@@ -20,7 +20,9 @@ const wineSelect = `
   grape_varieties,
   style,
   vivino_url,
-  vivino_rating
+  vivino_rating,
+  vivino_match_confidence,
+  vivino_enrichment_status
 `
 
 const listingSelect = `
