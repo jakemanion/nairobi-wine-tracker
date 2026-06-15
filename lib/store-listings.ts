@@ -6,6 +6,7 @@ export type StoreListingRecord = {
   id: string
   raw_title: string | null
   store_product_url: string | null
+  image_url: string | null
   current_price_ksh: string | number | null
   wine_id: string | null
   in_stock: boolean | null
@@ -35,6 +36,7 @@ const listingSelect = `
   id,
   raw_title,
   store_product_url,
+  image_url,
   current_price_ksh,
   wine_id,
   in_stock,

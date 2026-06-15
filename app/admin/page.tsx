@@ -17,6 +17,7 @@ export default async function AdminPage() {
           id,
           raw_title,
           store_product_url,
+          image_url,
           current_price_ksh,
           wine_id,
           in_stock,

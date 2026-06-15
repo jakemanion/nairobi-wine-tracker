@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from 'react'
 import { EditableTextCell } from '@/components/editable-text-cell'
+import { firstListingImageUrl, ListingThumbnail } from '@/components/listing-thumbnail'
 import {
   adminClearStoreListingMatch,
   adminCreateWine,
@@ -179,7 +180,7 @@ const linkedToSelectedWineStyle = {
 
 const rowStyle = {
   display: 'flex' as const,
-  alignItems: 'flex-start' as const,
+  alignItems: 'stretch' as const,
   gap: 6,
   border: '1px solid #e8e8e8',
   borderRadius: 4,
@@ -187,7 +188,7 @@ const rowStyle = {
   cursor: 'pointer' as const,
   fontSize: 12,
   lineHeight: 1.3,
-  minHeight: 24,
+  minHeight: 28,
 }
 
 const inlineLineStyle = {
@@ -357,6 +358,7 @@ const rowActionsStyle: CSSProperties = {
   alignItems: 'center',
   gap: 4,
   flexShrink: 0,
+  alignSelf: 'flex-start',
   marginTop: 2,
 }
 
@@ -366,6 +368,7 @@ const rowActionsColumnStyle: CSSProperties = {
   alignItems: 'stretch',
   gap: 4,
   flexShrink: 0,
+  alignSelf: 'flex-start',
   marginTop: 2,
   minWidth: 22,
 }
@@ -1086,6 +1089,10 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
                               ) : null}
                             </span>
                           ) : null}
+                          <ListingThumbnail
+                            imageUrl={listing.image_url}
+                            alt={listing.raw_title ?? 'Store listing'}
+                          />
                         </div>
                       )
                     })}
@@ -1521,6 +1528,13 @@ function CanonicalWineRow({
     <DeleteIconButton enabled={!busy} title="Delete wine" onClick={onDelete} />
   ) : null
 
+  const thumbnail = (
+    <ListingThumbnail
+      imageUrl={firstListingImageUrl(matchedListings)}
+      alt={formatWineLabel(wine)}
+    />
+  )
+
   if (variant === 'suggestion') {
     return (
       <div
@@ -1542,6 +1556,7 @@ function CanonicalWineRow({
           </div>
           {deleteAction ? <span style={rowActionsStyle}>{deleteAction}</span> : null}
         </div>
+        {thumbnail}
       </div>
     )
   }
@@ -1563,6 +1578,7 @@ function CanonicalWineRow({
         <CanonicalWineFields wine={wine} matchedListings={matchedListings} onSave={onSave} />
       </div>
       {deleteAction ? <span style={rowActionsStyle}>{deleteAction}</span> : null}
+      {thumbnail}
     </div>
   )
 }
