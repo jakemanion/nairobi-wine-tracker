@@ -330,39 +330,44 @@ function AddToWinesButton({
 }
 
 function iconActionButtonStyle(
-  variant: 'primary' | 'danger',
+  variant: 'primary' | 'danger' | 'default',
   enabled: boolean,
 ): CSSProperties {
-  if (variant === 'primary') {
-    return {
-      display: 'inline-flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      width: 22,
-      height: 22,
-      padding: 0,
-      border: '1px solid #067a5c',
-      borderRadius: 4,
-      background: enabled ? '#0a7' : '#d8ebe6',
-      color: enabled ? '#fff' : '#4a6a62',
-      cursor: enabled ? 'pointer' : 'not-allowed',
-      flexShrink: 0,
-    }
-  }
-
-  return {
+  const base: CSSProperties = {
     display: 'inline-flex',
     alignItems: 'center',
     justifyContent: 'center',
     width: 22,
     height: 22,
     padding: 0,
-    border: '1px solid #d9a0a0',
     borderRadius: 4,
-    background: enabled ? '#fff' : '#f4f4f4',
-    color: enabled ? '#c33' : '#bbb',
     cursor: enabled ? 'pointer' : 'not-allowed',
     flexShrink: 0,
+  }
+
+  if (variant === 'primary') {
+    return {
+      ...base,
+      border: '1px solid #067a5c',
+      background: enabled ? '#0a7' : '#d8ebe6',
+      color: enabled ? '#fff' : '#4a6a62',
+    }
+  }
+
+  if (variant === 'default') {
+    return {
+      ...base,
+      border: '1px solid #bbb',
+      background: enabled ? '#fff' : '#f4f4f4',
+      color: enabled ? '#444' : '#bbb',
+    }
+  }
+
+  return {
+    ...base,
+    border: '1px solid #d9a0a0',
+    background: enabled ? '#fff' : '#f4f4f4',
+    color: enabled ? '#c33' : '#bbb',
   }
 }
 
@@ -400,6 +405,55 @@ const suggestionRowStyle: CSSProperties = {
   boxSizing: 'border-box',
   flexShrink: 0,
   background: '#fff',
+}
+
+function formatVivinoSearchQuery(wine: Pick<WineRecord, 'producer' | 'wine_name'>): string {
+  const producer = (wine.producer ?? '').trim()
+  const wineName = (wine.wine_name ?? '').trim()
+  return `vivino ${producer} - ${wineName}`
+}
+
+function CopyIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden>
+      <rect
+        x="4"
+        y="4"
+        width="6.5"
+        height="6.5"
+        rx="1"
+        stroke="currentColor"
+        strokeWidth="1.1"
+        fill="none"
+      />
+      <path
+        d="M3.5 8V2.75A.75.75 0 0 1 4.25 2h5.25"
+        stroke="currentColor"
+        strokeWidth="1.1"
+        strokeLinecap="round"
+        fill="none"
+      />
+    </svg>
+  )
+}
+
+function CopyVivinoSearchButton({ wine }: { wine: WineRecord }) {
+  const query = formatVivinoSearchQuery(wine)
+
+  return (
+    <button
+      type="button"
+      title={`Copy search: ${query}`}
+      aria-label={`Copy Vivino search: ${query}`}
+      onClick={(event) => {
+        event.stopPropagation()
+        void navigator.clipboard.writeText(query)
+      }}
+      style={iconActionButtonStyle('default', true)}
+    >
+      <CopyIcon />
+    </button>
+  )
 }
 
 function PlusIcon() {
@@ -1577,6 +1631,13 @@ function CanonicalWineRow({
     <DeleteIconButton enabled={!busy} title="Delete wine" onClick={onDelete} />
   ) : null
 
+  const rowActions = (
+    <span style={rowActionsStyle}>
+      <CopyVivinoSearchButton wine={wine} />
+      {deleteAction}
+    </span>
+  )
+
   const thumbnail = (
     <ListingThumbnail
       imageUrl={firstListingImageUrl(matchedListings)}
@@ -1602,7 +1663,7 @@ function CanonicalWineRow({
           <div style={inlineLineStyle}>
             <CanonicalWineFields wine={wine} matchedListings={matchedListings} onSave={onSave} />
           </div>
-          {deleteAction ? <span style={rowActionsStyle}>{deleteAction}</span> : null}
+          {rowActions}
         </div>
         {thumbnail}
       </div>
@@ -1622,7 +1683,7 @@ function CanonicalWineRow({
       <div style={inlineLineStyle}>
         <CanonicalWineFields wine={wine} matchedListings={matchedListings} onSave={onSave} />
       </div>
-      {deleteAction ? <span style={rowActionsStyle}>{deleteAction}</span> : null}
+      {rowActions}
       {thumbnail}
     </div>
   )
