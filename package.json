@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "scrape:carrefour": "tsx scripts/scrape-carrefour.ts"
+    "scrape:carrefour": "tsx scripts/scrape-carrefour.ts",
+    "enrich": "tsx src/index.ts",
+    "enrich:first": "tsx src/first-run.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.10.3",
@@ -14,6 +16,7 @@
     "axios": "^1.16.1",
     "cheerio": "^1.2.0",
     "csv-writer": "^1.6.0",
+    "dotenv": "^16.6.1",
     "next": "16.2.6",
     "react": "19.2.4",
     "react-dom": "19.2.4"
