@@ -1,6 +1,13 @@
 'use client'
 
-import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react'
+import {
+  useLayoutEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type KeyboardEvent,
+  type MouseEvent,
+} from 'react'
 
 type EditableTextCellProps = {
   label: string
@@ -43,6 +50,11 @@ function normalizeValue(value: string | number | null | undefined): string {
   return String(value).trim()
 }
 
+function selectAllInField(element: HTMLInputElement | HTMLTextAreaElement) {
+  element.focus({ preventScroll: true })
+  element.select()
+}
+
 export function EditableTextCell({
   label,
   value,
@@ -59,24 +71,40 @@ export function EditableTextCell({
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null)
+  const selectAllOnFocusRef = useRef(true)
 
   const normalized = normalizeValue(value)
   const shown = display ?? (normalized || emptyDisplay)
 
-  useEffect(() => {
-    if (editing) {
-      setDraft(normalized)
-      requestAnimationFrame(() => {
-        const el = inputRef.current
-        if (!el) return
-        el.focus()
-        el.select()
-      })
-    }
-  }, [editing, normalized])
+  useLayoutEffect(() => {
+    if (!editing) return
 
-  function selectAllText(event: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) {
-    event.currentTarget.select()
+    const element = inputRef.current
+    if (!element) return
+
+    selectAllInField(element)
+    selectAllOnFocusRef.current = true
+
+    const timeoutId = window.setTimeout(() => {
+      if (inputRef.current) selectAllInField(inputRef.current)
+    }, 0)
+    const rafId = window.requestAnimationFrame(() => {
+      if (inputRef.current) selectAllInField(inputRef.current)
+    })
+
+    return () => {
+      window.clearTimeout(timeoutId)
+      window.cancelAnimationFrame(rafId)
+    }
+  }, [editing])
+
+  function beginEditing(event: MouseEvent<HTMLButtonElement>) {
+    event.stopPropagation()
+    event.preventDefault()
+    setError(null)
+    setDraft(normalized)
+    selectAllOnFocusRef.current = true
+    setEditing(true)
   }
 
   function cancel() {
@@ -122,6 +150,28 @@ export function EditableTextCell({
     }
   }
 
+  function onInputMouseDown(event: MouseEvent<HTMLInputElement | HTMLTextAreaElement>) {
+    event.stopPropagation()
+    if (selectAllOnFocusRef.current) {
+      event.preventDefault()
+      selectAllInField(event.currentTarget)
+    }
+  }
+
+  function onInputFocus(event: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) {
+    if (!selectAllOnFocusRef.current) return
+    selectAllInField(event.currentTarget)
+    selectAllOnFocusRef.current = false
+  }
+
+  function onInputClick(event: MouseEvent<HTMLInputElement | HTMLTextAreaElement>) {
+    event.stopPropagation()
+    if (selectAllOnFocusRef.current) {
+      selectAllInField(event.currentTarget)
+      selectAllOnFocusRef.current = false
+    }
+  }
+
   const wrapperStyle: CSSProperties = inline
     ? { display: 'inline-flex', alignItems: 'center', gap: 2, maxWidth: '100%' }
     : { display: 'flex', flexDirection: 'column', gap: 2 }
@@ -146,11 +196,9 @@ export function EditableTextCell({
       onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
         setDraft(e.target.value),
       onKeyDown,
-      onFocus: selectAllText,
-      onClick: (e: React.MouseEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        e.stopPropagation()
-        e.currentTarget.select()
-      },
+      onMouseDown: onInputMouseDown,
+      onFocus: onInputFocus,
+      onClick: onInputClick,
       onBlur: () => void submit(),
     }
 
@@ -161,9 +209,9 @@ export function EditableTextCell({
         onKeyDown={(event) => event.stopPropagation()}
       >
         {multiline ? (
-          <textarea {...sharedProps} rows={1} />
+          <textarea {...sharedProps} rows={1} autoFocus />
         ) : (
-          <input type="text" {...sharedProps} />
+          <input type="text" {...sharedProps} autoFocus />
         )}
         {error && <span style={{ color: '#c33', fontSize: 10 }}>{error}</span>}
       </span>
@@ -189,10 +237,7 @@ export function EditableTextCell({
         disabled={saving}
         aria-label={`Edit ${label}`}
         title={inline && !noTruncate ? String(shown) : undefined}
-        onClick={(event) => {
-          event.stopPropagation()
-          setEditing(true)
-        }}
+        onMouseDown={beginEditing}
       >
         {shown}
       </button>

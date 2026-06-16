@@ -605,6 +605,14 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
 
   const listingsByWineId = useMemo(() => groupListingsByWineId(listings), [listings])
 
+  const vivinoVerificationCounts = useMemo(() => {
+    let verified = 0
+    for (const wine of wines) {
+      if (isPerfectMatch(wine)) verified += 1
+    }
+    return { verified, unverified: wines.length - verified }
+  }, [wines])
+
   function toggleStoreCollapsed(storeName: string) {
     setCollapsedStores((current) => {
       const next = new Set(current)
@@ -1226,17 +1234,25 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
               fontSize: 13,
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span style={{ fontWeight: 600 }}>Canonical wines ({wines.length})</span>
-              {storePanelCollapsed ? (
-                <button
-                  type="button"
-                  onClick={() => setStorePanelCollapsed(false)}
-                  style={{ padding: '2px 8px', fontSize: 11, cursor: 'pointer' }}
-                >
-                  Show listings
-                </button>
-              ) : null}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                <span style={{ fontWeight: 600 }}>Canonical wines ({wines.length})</span>
+                {storePanelCollapsed ? (
+                  <button
+                    type="button"
+                    onClick={() => setStorePanelCollapsed(false)}
+                    style={{ padding: '2px 8px', fontSize: 11, cursor: 'pointer' }}
+                  >
+                    Show listings
+                  </button>
+                ) : null}
+              </div>
+              <span style={{ fontSize: 11, color: '#666' }}>
+                Verified:{' '}
+                <strong style={{ color: '#BA1628' }}>{vivinoVerificationCounts.verified}</strong>
+                {' · '}
+                Unverified: <strong>{vivinoVerificationCounts.unverified}</strong>
+              </span>
             </div>
             <button
               type="button"

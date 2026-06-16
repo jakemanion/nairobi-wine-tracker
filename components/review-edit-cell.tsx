@@ -1,6 +1,13 @@
 'use client'
 
-import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react'
+import {
+  useLayoutEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type KeyboardEvent,
+  type MouseEvent,
+} from 'react'
 import type { WineReview } from '@/components/wine-table'
 import { saveReviewField } from '@/lib/reviews'
 
@@ -67,6 +74,60 @@ function formatRating(value: number | null | undefined): string {
   return String(value)
 }
 
+function selectAllInInput(element: HTMLInputElement) {
+  element.focus({ preventScroll: true })
+  element.select()
+}
+
+function useSelectAllOnEdit(editing: boolean, inputRef: React.RefObject<HTMLInputElement | null>) {
+  const selectAllOnFocusRef = useRef(true)
+
+  useLayoutEffect(() => {
+    if (!editing) return
+
+    const element = inputRef.current
+    if (!element) return
+
+    selectAllInInput(element)
+    selectAllOnFocusRef.current = true
+
+    const timeoutId = window.setTimeout(() => {
+      if (inputRef.current) selectAllInInput(inputRef.current)
+    }, 0)
+    const rafId = window.requestAnimationFrame(() => {
+      if (inputRef.current) selectAllInInput(inputRef.current)
+    })
+
+    return () => {
+      window.clearTimeout(timeoutId)
+      window.cancelAnimationFrame(rafId)
+    }
+  }, [editing, inputRef])
+
+  return {
+    selectAllOnFocusRef,
+    onInputMouseDown(event: MouseEvent<HTMLInputElement>) {
+      event.stopPropagation()
+      if (selectAllOnFocusRef.current) {
+        event.preventDefault()
+        selectAllInInput(event.currentTarget)
+      }
+    },
+    onInputFocus(event: React.FocusEvent<HTMLInputElement>) {
+      if (!selectAllOnFocusRef.current) return
+      selectAllInInput(event.currentTarget)
+      selectAllOnFocusRef.current = false
+    },
+    onInputClick(event: MouseEvent<HTMLInputElement>) {
+      event.stopPropagation()
+      if (selectAllOnFocusRef.current) {
+        selectAllInInput(event.currentTarget)
+        selectAllOnFocusRef.current = false
+      }
+    },
+  }
+}
+
 export function EditableReviewRatingCell({
   label,
   wineId,
@@ -82,21 +143,16 @@ export function EditableReviewRatingCell({
 
   const value = review?.overall_score ?? null
   const display = formatRating(value)
+  const { onInputMouseDown, onInputFocus, onInputClick, selectAllOnFocusRef } =
+    useSelectAllOnEdit(editing, inputRef)
 
-  useEffect(() => {
-    if (editing) {
-      setDraft(value == null ? '' : String(value))
-      requestAnimationFrame(() => {
-        const el = inputRef.current
-        if (!el) return
-        el.focus()
-        el.select()
-      })
-    }
-  }, [editing, value])
-
-  function selectAllText(event: React.FocusEvent<HTMLInputElement>) {
-    event.currentTarget.select()
+  function beginEditing(event: MouseEvent<HTMLButtonElement>) {
+    event.stopPropagation()
+    event.preventDefault()
+    setError(null)
+    setDraft(value == null ? '' : String(value))
+    selectAllOnFocusRef.current = true
+    setEditing(true)
   }
 
   function cancel() {
@@ -168,10 +224,12 @@ export function EditableReviewRatingCell({
           disabled={saving}
           aria-label={label}
           style={inputStyle}
+          autoFocus
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={onKeyDown}
-          onFocus={selectAllText}
-          onClick={(e) => e.currentTarget.select()}
+          onMouseDown={onInputMouseDown}
+          onFocus={onInputFocus}
+          onClick={onInputClick}
         />
         {error && <span style={{ color: '#c33', fontSize: 10 }}>{error}</span>}
       </div>
@@ -185,7 +243,7 @@ export function EditableReviewRatingCell({
         style={{ ...displayButtonStyle, opacity: saving ? 0.5 : 1 }}
         disabled={saving}
         aria-label={`Edit ${label}`}
-        onClick={() => setEditing(true)}
+        onMouseDown={beginEditing}
       >
         {display}
       </button>
@@ -209,21 +267,16 @@ export function EditableReviewNotesCell({
 
   const value = review?.tasting_notes?.trim() ?? ''
   const display = value || '-'
+  const { onInputMouseDown, onInputFocus, onInputClick, selectAllOnFocusRef } =
+    useSelectAllOnEdit(editing, inputRef)
 
-  useEffect(() => {
-    if (editing) {
-      setDraft(value)
-      requestAnimationFrame(() => {
-        const el = inputRef.current
-        if (!el) return
-        el.focus()
-        el.select()
-      })
-    }
-  }, [editing, value])
-
-  function selectAllText(event: React.FocusEvent<HTMLInputElement>) {
-    event.currentTarget.select()
+  function beginEditing(event: MouseEvent<HTMLButtonElement>) {
+    event.stopPropagation()
+    event.preventDefault()
+    setError(null)
+    setDraft(value)
+    selectAllOnFocusRef.current = true
+    setEditing(true)
   }
 
   function cancel() {
@@ -289,10 +342,12 @@ export function EditableReviewNotesCell({
           disabled={saving}
           aria-label={label}
           style={inputStyle}
+          autoFocus
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={onKeyDown}
-          onFocus={selectAllText}
-          onClick={(e) => e.currentTarget.select()}
+          onMouseDown={onInputMouseDown}
+          onFocus={onInputFocus}
+          onClick={onInputClick}
         />
         {error && <span style={{ color: '#c33', fontSize: 10 }}>{error}</span>}
       </div>
@@ -306,7 +361,7 @@ export function EditableReviewNotesCell({
         style={{ ...displayButtonStyle, opacity: saving ? 0.5 : 1 }}
         disabled={saving}
         aria-label={`Edit ${label}`}
-        onClick={() => setEditing(true)}
+        onMouseDown={beginEditing}
       >
         {display}
       </button>
