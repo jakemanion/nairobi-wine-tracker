@@ -86,10 +86,18 @@ export function EditableReviewRatingCell({
   useEffect(() => {
     if (editing) {
       setDraft(value == null ? '' : String(value))
-      inputRef.current?.focus()
-      inputRef.current?.select()
+      requestAnimationFrame(() => {
+        const el = inputRef.current
+        if (!el) return
+        el.focus()
+        el.select()
+      })
     }
   }, [editing, value])
+
+  function selectAllText(event: React.FocusEvent<HTMLInputElement>) {
+    event.currentTarget.select()
+  }
 
   function cancel() {
     setEditing(false)
@@ -162,6 +170,8 @@ export function EditableReviewRatingCell({
           style={inputStyle}
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={onKeyDown}
+          onFocus={selectAllText}
+          onClick={(e) => e.currentTarget.select()}
         />
         {error && <span style={{ color: '#c33', fontSize: 10 }}>{error}</span>}
       </div>
@@ -203,10 +213,18 @@ export function EditableReviewNotesCell({
   useEffect(() => {
     if (editing) {
       setDraft(value)
-      inputRef.current?.focus()
-      inputRef.current?.select()
+      requestAnimationFrame(() => {
+        const el = inputRef.current
+        if (!el) return
+        el.focus()
+        el.select()
+      })
     }
   }, [editing, value])
+
+  function selectAllText(event: React.FocusEvent<HTMLInputElement>) {
+    event.currentTarget.select()
+  }
 
   function cancel() {
     setEditing(false)
@@ -273,6 +291,8 @@ export function EditableReviewNotesCell({
           style={inputStyle}
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={onKeyDown}
+          onFocus={selectAllText}
+          onClick={(e) => e.currentTarget.select()}
         />
         {error && <span style={{ color: '#c33', fontSize: 10 }}>{error}</span>}
       </div>

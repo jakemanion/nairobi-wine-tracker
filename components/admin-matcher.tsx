@@ -456,6 +456,35 @@ function CopyVivinoSearchButton({ wine }: { wine: WineRecord }) {
   )
 }
 
+function VerifiedButton({
+  enabled,
+  onClick,
+}: {
+  enabled: boolean
+  onClick: () => void
+}) {
+  return (
+    <button
+      type="button"
+      disabled={!enabled}
+      title="Set Vivino confidence to 100"
+      onClick={(event) => {
+        event.stopPropagation()
+        onClick()
+      }}
+      style={{
+        ...actionButtonStyle('default', enabled),
+        padding: '2px 5px',
+        fontSize: 10,
+        lineHeight: 1.2,
+        width: '100%',
+      }}
+    >
+      Verified
+    </button>
+  )
+}
+
 function PlusIcon() {
   return (
     <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden>
@@ -1267,6 +1296,9 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
                         onSelect={() => selectWine(wine)}
                         onToggleRadio={() => toggleWineSelection(wine)}
                         onDelete={() => void handleDeleteWine(wine)}
+                        onVerify={() =>
+                          void saveWineField(wine, 'vivino_match_confidence', '100')
+                        }
                         onSave={saveWineField}
                       />
                     </div>
@@ -1291,6 +1323,7 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
                     onSelect={() => selectWine(wine)}
                     onToggleRadio={() => toggleWineSelection(wine)}
                     onDelete={() => void handleDeleteWine(wine)}
+                    onVerify={() => void saveWineField(wine, 'vivino_match_confidence', '100')}
                     onSave={saveWineField}
                   />
                 ))}
@@ -1590,6 +1623,7 @@ function CanonicalWineRow({
   onSelect,
   onToggleRadio,
   onDelete,
+  onVerify,
   onSave,
 }: {
   wine: WineRecord
@@ -1601,6 +1635,7 @@ function CanonicalWineRow({
   onSelect: () => void
   onToggleRadio: () => void
   onDelete: () => void
+  onVerify: () => void
   onSave: (
     wine: WineRecord,
     field: WineField,
@@ -1632,9 +1667,12 @@ function CanonicalWineRow({
   ) : null
 
   const rowActions = (
-    <span style={rowActionsStyle}>
-      <CopyVivinoSearchButton wine={wine} />
-      {deleteAction}
+    <span style={rowActionsColumnStyle}>
+      <span style={rowActionsStyle}>
+        <CopyVivinoSearchButton wine={wine} />
+        {deleteAction}
+      </span>
+      <VerifiedButton enabled={!busy} onClick={onVerify} />
     </span>
   )
 

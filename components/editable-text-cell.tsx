@@ -66,10 +66,18 @@ export function EditableTextCell({
   useEffect(() => {
     if (editing) {
       setDraft(normalized)
-      inputRef.current?.focus()
-      inputRef.current?.select()
+      requestAnimationFrame(() => {
+        const el = inputRef.current
+        if (!el) return
+        el.focus()
+        el.select()
+      })
     }
   }, [editing, normalized])
+
+  function selectAllText(event: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) {
+    event.currentTarget.select()
+  }
 
   function cancel() {
     setEditing(false)
@@ -138,6 +146,11 @@ export function EditableTextCell({
       onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
         setDraft(e.target.value),
       onKeyDown,
+      onFocus: selectAllText,
+      onClick: (e: React.MouseEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        e.stopPropagation()
+        e.currentTarget.select()
+      },
       onBlur: () => void submit(),
     }
 
