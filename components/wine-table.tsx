@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react'
 import { EditableReviewBoolCell } from '@/components/review-bool-cell'
 import { EditableReviewNotesCell, EditableReviewRatingCell } from '@/components/review-edit-cell'
+import { minWinePriceKES, withComputedValueScore } from '@/lib/calculate-value-score'
 export type WineReview = {
   id: string
   overall_score: number | null
@@ -25,6 +26,7 @@ export type WineRow = {
   style: string | null
   vivino_url: string | null
   vivino_rating: string | number | null
+  valueScore?: number | null
   review?: WineReview | null
   store_listings?: Array<{
     id: string | number
@@ -35,6 +37,8 @@ export type WineRow = {
   }> | null
 }
 
+type DisplayWineRow = WineRow & { valueScore: number | null }
+
 type SortKey =
   | 'winery'
   | 'wine_name'
@@ -44,6 +48,7 @@ type SortKey =
   | 'grapes'
   | 'style'
   | 'vivino_rating'
+  | 'value_score'
   | 'my_rating'
   | 'store_prices'
 
@@ -76,18 +81,12 @@ function ratingNum(v: unknown): number | null {
   return Number.isFinite(n) ? n : null
 }
 
-function minListingPrice(wine: WineRow): number | null {
-  const listings = wine.store_listings
-  if (!listings?.length) return null
-  let min: number | null = null
-  for (const listing of listings) {
-    const p = listing?.current_price_ksh
-    if (p == null) continue
-    const n = typeof p === 'number' ? p : parseFloat(String(p))
-    if (!Number.isFinite(n)) continue
-    min = min == null ? n : Math.min(min, n)
-  }
-  return min
+function minListingPrice(wine: Pick<WineRow, 'store_listings'>): number | null {
+  return minWinePriceKES(wine.store_listings)
+}
+
+function formatValueScore(value: number | null | undefined): string {
+  return value != null ? value.toFixed(3) : '-'
 }
 
 function compareEmptyLast(
@@ -101,7 +100,7 @@ function compareEmptyLast(
   return body()
 }
 
-function compareWine(a: WineRow, b: WineRow, key: SortKey): number {
+function compareWine(a: DisplayWineRow, b: DisplayWineRow, key: SortKey): number {
   switch (key) {
     case 'winery': {
       const as = str(a.producer).toLowerCase()
@@ -143,6 +142,11 @@ function compareWine(a: WineRow, b: WineRow, key: SortKey): number {
       const bn = ratingNum(b.vivino_rating)
       return compareEmptyLast(an == null, bn == null, () => (an as number) - (bn as number))
     }
+    case 'value_score': {
+      const an = a.valueScore
+      const bn = b.valueScore
+      return compareEmptyLast(an == null, bn == null, () => (an as number) - (bn as number))
+    }
     case 'my_rating': {
       const an = ratingNum(a.review?.overall_score)
       const bn = ratingNum(b.review?.overall_score)
@@ -158,7 +162,18 @@ function compareWine(a: WineRow, b: WineRow, key: SortKey): number {
   }
 }
 
-function sortWines(rows: WineRow[], key: SortKey, dir: SortDir): WineRow[] {
+function sortWines(rows: DisplayWineRow[], key: SortKey, dir: SortDir): DisplayWineRow[] {
+  if (key === 'value_score') {
+    return [...rows].sort((a, b) => {
+      const an = a.valueScore
+      const bn = b.valueScore
+      if (an == null && bn == null) return 0
+      if (an == null) return 1
+      if (bn == null) return -1
+      return dir === 'desc' ? bn - an : an - bn
+    })
+  }
+
   const sign = dir === 'asc' ? 1 : -1
   return [...rows].sort((a, b) => compareWine(a, b, key) * sign)
 }
@@ -262,20 +277,24 @@ function UserTd({ children }: { children: ReactNode }) {
 }
 
 function updateWineReview(
-  wines: WineRow[],
+  wines: DisplayWineRow[],
   wineId: string | number,
   review: WineReview | null,
-): WineRow[] {
+): DisplayWineRow[] {
   return wines.map((wine) =>
     wine.id === wineId ? { ...wine, review: review ?? undefined } : wine,
   )
 }
 
 export function WineTable({ wines: initialWines, userId }: { wines: WineRow[]; userId: string }) {
-  const [wines, setWines] = useState(initialWines)
+  const initialWinesWithScores = useMemo(
+    () => initialWines.map(withComputedValueScore),
+    [initialWines],
+  )
+  const [wines, setWines] = useState<DisplayWineRow[]>(initialWinesWithScores)
 
   useEffect(() => {
-    setWines(initialWines)
+    setWines(initialWines.map(withComputedValueScore))
   }, [initialWines])
 
   const [sortKey, setSortKey] = useState<SortKey>('winery')
@@ -287,7 +306,7 @@ export function WineTable({ wines: initialWines, userId }: { wines: WineRow[]; u
       setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))
     } else {
       setSortKey(key)
-      setSortDir('asc')
+      setSortDir(key === 'value_score' ? 'desc' : 'asc')
     }
   }
 
@@ -366,6 +385,14 @@ export function WineTable({ wines: initialWines, userId }: { wines: WineRow[]; u
             centered
           />
           <SortableTh
+            label="Value Score"
+            sortKey="value_score"
+            activeKey={sortKey}
+            dir={sortDir}
+            onSort={onSort}
+            centered
+          />
+          <SortableTh
             label="Store Prices"
             sortKey="store_prices"
             activeKey={sortKey}
@@ -416,6 +443,8 @@ export function WineTable({ wines: initialWines, userId }: { wines: WineRow[]; u
                 (wine.vivino_rating ?? '-')
               )}
             </td>
+
+            <td style={{ textAlign: 'center' }}>{formatValueScore(wine.valueScore)}</td>
 
             <td>
               {wine.store_listings?.length ? (
