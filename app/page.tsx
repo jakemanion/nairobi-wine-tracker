@@ -74,6 +74,7 @@ export default async function Home() {
           current_price_ksh,
           store_product_url,
           in_stock,
+          image_url,
           stores (
             id,
             name

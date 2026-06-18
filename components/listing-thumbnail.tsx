@@ -31,6 +31,8 @@ function placePreview(clientX: number, clientY: number) {
   return { left, top }
 }
 
+export { placePreview as placeImagePreviewNearCursor }
+
 const thumbWrapStyle: CSSProperties = {
   flexShrink: 0,
   width: THUMB_WIDTH,
@@ -88,9 +90,16 @@ const previewImageStyle: CSSProperties = {
 type ListingThumbnailProps = {
   imageUrl: string | null | undefined
   alt: string
+  showHoverPreview?: boolean
+  onLoadStateChange?: (state: { loaded: boolean; failed: boolean }) => void
 }
 
-export function ListingThumbnail({ imageUrl, alt }: ListingThumbnailProps) {
+export function ListingThumbnail({
+  imageUrl,
+  alt,
+  showHoverPreview = true,
+  onLoadStateChange,
+}: ListingThumbnailProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [shouldLoad, setShouldLoad] = useState(false)
   const [loaded, setLoaded] = useState(false)
@@ -130,11 +139,12 @@ export function ListingThumbnail({ imageUrl, alt }: ListingThumbnailProps) {
   }, [src])
 
   function showPreview(event: ReactMouseEvent) {
-    if (!src || !loaded || failed) return
+    if (!showHoverPreview || !src || !loaded || failed) return
     setPreview(placePreview(event.clientX, event.clientY))
   }
 
   function hidePreview() {
+    if (!showHoverPreview) return
     setPreview(null)
   }
 
@@ -150,9 +160,9 @@ export function ListingThumbnail({ imageUrl, alt }: ListingThumbnailProps) {
           aria-label={`Preview image for ${alt}`}
           style={thumbButtonStyle}
           onClick={(event) => event.stopPropagation()}
-          onMouseEnter={showPreview}
-          onMouseMove={showPreview}
-          onMouseLeave={hidePreview}
+          onMouseEnter={showHoverPreview ? showPreview : undefined}
+          onMouseMove={showHoverPreview ? showPreview : undefined}
+          onMouseLeave={showHoverPreview ? hidePreview : undefined}
         >
           {shouldLoad ? (
             <img
@@ -164,8 +174,14 @@ export function ListingThumbnail({ imageUrl, alt }: ListingThumbnailProps) {
                 ...thumbImageStyle,
                 visibility: loaded && !failed ? 'visible' : 'hidden',
               }}
-              onLoad={() => setLoaded(true)}
-              onError={() => setFailed(true)}
+              onLoad={() => {
+                setLoaded(true)
+                onLoadStateChange?.({ loaded: true, failed: false })
+              }}
+              onError={() => {
+                setFailed(true)
+                onLoadStateChange?.({ loaded: false, failed: true })
+              }}
             />
           ) : null}
           {shouldLoad && !loaded && !failed ? (
@@ -175,7 +191,7 @@ export function ListingThumbnail({ imageUrl, alt }: ListingThumbnailProps) {
         </button>
       </div>
 
-      {mounted && preview && loaded && !failed
+      {mounted && showHoverPreview && preview && loaded && !failed
         ? createPortal(
             <div style={{ ...previewShellStyle, left: preview.left, top: preview.top }}>
               <img src={src} alt={alt} style={previewImageStyle} />
@@ -184,6 +200,31 @@ export function ListingThumbnail({ imageUrl, alt }: ListingThumbnailProps) {
           )
         : null}
     </>
+  )
+}
+
+export function CursorImagePreview({
+  src,
+  alt,
+  position,
+}: {
+  src: string
+  alt: string
+  position: { left: number; top: number }
+}) {
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (!mounted) return null
+
+  return createPortal(
+    <div style={{ ...previewShellStyle, left: position.left, top: position.top }}>
+      <img src={src} alt={alt} style={previewImageStyle} />
+    </div>,
+    document.body,
   )
 }
 

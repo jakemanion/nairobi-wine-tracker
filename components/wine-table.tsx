@@ -1,9 +1,16 @@
 'use client'
 
-import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useState, type CSSProperties, type MouseEvent, type ReactNode } from 'react'
 import { EditableReviewBoolCell } from '@/components/review-bool-cell'
 import { EditableReviewNotesCell, EditableReviewRatingCell } from '@/components/review-edit-cell'
+import {
+  CursorImagePreview,
+  firstListingImageUrl,
+  ListingThumbnail,
+  placeImagePreviewNearCursor,
+} from '@/components/listing-thumbnail'
 import { minWinePriceKES, withComputedValueScore } from '@/lib/calculate-value-score'
+import { formatWineLabel } from '@/lib/wines'
 export type WineReview = {
   id: string
   overall_score: number | null
@@ -33,6 +40,7 @@ export type WineRow = {
     current_price_ksh: string | number | null
     store_product_url: string | null
     in_stock: boolean | null
+    image_url?: string | null
     stores?: { id?: string | number; name?: string | null } | null
   }> | null
 }
@@ -48,6 +56,7 @@ type SortKey =
   | 'grapes'
   | 'style'
   | 'vivino_rating'
+  | 'vivino_then_price'
   | 'value_score'
   | 'my_rating'
   | 'store_prices'
@@ -162,7 +171,32 @@ function compareWine(a: DisplayWineRow, b: DisplayWineRow, key: SortKey): number
   }
 }
 
+function compareVivinoThenPrice(a: DisplayWineRow, b: DisplayWineRow): number {
+  const ar = ratingNum(a.vivino_rating)
+  const br = ratingNum(b.vivino_rating)
+  const aRatingEmpty = ar == null
+  const bRatingEmpty = br == null
+
+  if (!aRatingEmpty && !bRatingEmpty && ar !== br) {
+    return br - ar
+  }
+  if (aRatingEmpty !== bRatingEmpty) {
+    return aRatingEmpty ? 1 : -1
+  }
+
+  const ap = minListingPrice(a)
+  const bp = minListingPrice(b)
+  if (ap == null && bp == null) return 0
+  if (ap == null) return 1
+  if (bp == null) return -1
+  return ap - bp
+}
+
 function sortWines(rows: DisplayWineRow[], key: SortKey, dir: SortDir): DisplayWineRow[] {
+  if (key === 'vivino_then_price') {
+    return [...rows].sort(compareVivinoThenPrice)
+  }
+
   if (key === 'value_score') {
     return [...rows].sort((a, b) => {
       const an = a.valueScore
@@ -276,6 +310,158 @@ function UserTd({ children }: { children: ReactNode }) {
   return <td className="wine-table-user-td" style={userColumnStyle}>{children}</td>
 }
 
+type WineDataRowProps = {
+  wine: DisplayWineRow
+  showDetails: boolean
+  userId: string
+  onReviewChange: (review: WineReview | null) => void
+}
+
+function WineDataRow({ wine, showDetails, userId, onReviewChange }: WineDataRowProps) {
+  const imageUrl = firstListingImageUrl(wine.store_listings ?? [])
+  const imageAlt = formatWineLabel(wine)
+  const [imageReady, setImageReady] = useState(false)
+  const [preview, setPreview] = useState<{ left: number; top: number } | null>(null)
+
+  useEffect(() => {
+    setImageReady(false)
+    setPreview(null)
+  }, [imageUrl])
+
+  const handleLoadStateChange = useCallback((state: { loaded: boolean; failed: boolean }) => {
+    setImageReady(state.loaded && !state.failed)
+  }, [])
+
+  function handleRowMouseMove(event: MouseEvent<HTMLTableRowElement>) {
+    if (!imageUrl || !imageReady) return
+    setPreview(placeImagePreviewNearCursor(event.clientX, event.clientY))
+  }
+
+  function handleRowMouseLeave() {
+    setPreview(null)
+  }
+
+  return (
+    <>
+      <tr
+        style={{ borderBottom: '1px solid #eee' }}
+        onMouseMove={handleRowMouseMove}
+        onMouseLeave={handleRowMouseLeave}
+      >
+        <td style={{ width: 36, padding: '4px 6px', verticalAlign: 'middle' }}>
+          <ListingThumbnail
+            imageUrl={imageUrl}
+            alt={imageAlt}
+            showHoverPreview={false}
+            onLoadStateChange={handleLoadStateChange}
+          />
+        </td>
+      <td>{wine.producer ?? '-'}</td>
+      <td>{wine.wine_name ?? '-'}</td>
+
+      {showDetails && (
+        <>
+          <td>{wine.vintage ?? '-'}</td>
+          <td>{wine.country ?? '-'}</td>
+          <td>{wine.region ?? '-'}</td>
+          <td>{formatGrapeVarieties(wine.grape_varieties) || '-'}</td>
+          <td>{wine.style ?? '-'}</td>
+        </>
+      )}
+      <td style={{ textAlign: 'center' }}>
+        {wine.vivino_url && wine.vivino_rating != null && wine.vivino_rating !== '' ? (
+          <a
+            href={wine.vivino_url}
+            target="_blank"
+            rel="noreferrer"
+            style={tableLinkStyle()}
+          >
+            {wine.vivino_rating}
+          </a>
+        ) : (
+          (wine.vivino_rating ?? '-')
+        )}
+      </td>
+
+      <td style={{ textAlign: 'center' }}>{formatValueScore(wine.valueScore)}</td>
+
+      <td>
+        {wine.store_listings?.length ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            {wine.store_listings.map((listing) => (
+              <a
+                key={listing.id}
+                href={listing.store_product_url || '#'}
+                target="_blank"
+                rel="noreferrer"
+                style={tableLinkStyle(listing.in_stock ?? false)}
+              >
+                {listing.stores?.name}: KES {listing.current_price_ksh ?? '-'}
+              </a>
+            ))}
+          </div>
+        ) : (
+          <span style={{ color: '#999' }}>No listings</span>
+        )}
+      </td>
+
+      <UserTd>
+        <EditableReviewRatingCell
+          label="My rating"
+          wineId={String(wine.id)}
+          userId={userId}
+          review={wine.review}
+          onReviewChange={onReviewChange}
+        />
+      </UserTd>
+      <UserTd>
+        <EditableReviewBoolCell
+          label="Want to try"
+          field="want_to_try"
+          wineId={String(wine.id)}
+          userId={userId}
+          review={wine.review}
+          onReviewChange={onReviewChange}
+        />
+      </UserTd>
+      <UserTd>
+        <EditableReviewBoolCell
+          label="Tried"
+          field="tried"
+          wineId={String(wine.id)}
+          userId={userId}
+          review={wine.review}
+          onReviewChange={onReviewChange}
+        />
+      </UserTd>
+      <UserTd>
+        <EditableReviewBoolCell
+          label="Buy again"
+          field="would_buy_again"
+          wineId={String(wine.id)}
+          userId={userId}
+          review={wine.review}
+          onReviewChange={onReviewChange}
+        />
+      </UserTd>
+      <UserTd>
+        <EditableReviewNotesCell
+          label="Notes"
+          wineId={String(wine.id)}
+          userId={userId}
+          review={wine.review}
+          onReviewChange={onReviewChange}
+        />
+      </UserTd>
+      </tr>
+
+      {imageUrl && imageReady && preview ? (
+        <CursorImagePreview src={imageUrl} alt={imageAlt} position={preview} />
+      ) : null}
+    </>
+  )
+}
+
 function updateWineReview(
   wines: DisplayWineRow[],
   wineId: string | number,
@@ -348,23 +534,42 @@ export function WineTable({ wines: initialWines, userId }: { wines: WineRow[]; u
         <p style={{ margin: 0, color: '#555', fontSize: 14 }}>
           Showing <strong>{sorted.length}</strong> {sorted.length === 1 ? 'wine' : 'wines'}
         </p>
-        <button
-          type="button"
-          onClick={() => setShowDetails((visible) => !visible)}
-          aria-pressed={showDetails}
-          style={{
-            padding: '6px 12px',
-            fontSize: 14,
-            cursor: 'pointer',
-          }}
-        >
-          show/hide details
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            onClick={() => setShowDetails((visible) => !visible)}
+            aria-pressed={showDetails}
+            style={{
+              padding: '6px 12px',
+              fontSize: 14,
+              cursor: 'pointer',
+            }}
+          >
+            show/hide details
+          </button>
+          <button
+            type="button"
+            onClick={() => setSortKey('vivino_then_price')}
+            aria-pressed={sortKey === 'vivino_then_price'}
+            style={{
+              padding: '6px 12px',
+              fontSize: 14,
+              cursor: 'pointer',
+              fontWeight: sortKey === 'vivino_then_price' ? 600 : 400,
+            }}
+          >
+            Sort: rating → price
+          </button>
+        </div>
       </div>
       <div style={tableScrollStyle}>
         <table className="wine-table" style={tableStyle}>
       <thead>
         <tr>
+          <th
+            aria-label="Image"
+            style={{ width: 36, borderBottom: '2px solid #ccc' }}
+          />
           <SortableTh label="Winery" sortKey="winery" activeKey={sortKey} dir={sortDir} onSort={onSort} />
           <SortableTh label="Wine name" sortKey="wine_name" activeKey={sortKey} dir={sortDir} onSort={onSort} />
           {showDetails && (
@@ -416,115 +621,15 @@ export function WineTable({ wines: initialWines, userId }: { wines: WineRow[]; u
 
       <tbody>
         {sorted.map((wine) => (
-          <tr key={wine.id} style={{ borderBottom: '1px solid #eee' }}>
-            <td>{wine.producer ?? '-'}</td>
-            <td>{wine.wine_name ?? '-'}</td>
-
-            {showDetails && (
-              <>
-                <td>{wine.vintage ?? '-'}</td>
-                <td>{wine.country ?? '-'}</td>
-                <td>{wine.region ?? '-'}</td>
-                <td>{formatGrapeVarieties(wine.grape_varieties) || '-'}</td>
-                <td>{wine.style ?? '-'}</td>
-              </>
-            )}
-            <td style={{ textAlign: 'center' }}>
-              {wine.vivino_url && wine.vivino_rating != null && wine.vivino_rating !== '' ? (
-                <a
-                  href={wine.vivino_url}
-                  target="_blank"
-                  rel="noreferrer"
-                  style={tableLinkStyle()}
-                >
-                  {wine.vivino_rating}
-                </a>
-              ) : (
-                (wine.vivino_rating ?? '-')
-              )}
-            </td>
-
-            <td style={{ textAlign: 'center' }}>{formatValueScore(wine.valueScore)}</td>
-
-            <td>
-              {wine.store_listings?.length ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                  {wine.store_listings.map((listing) => (
-                    <a
-                      key={listing.id}
-                      href={listing.store_product_url || '#'}
-                      target="_blank"
-                      rel="noreferrer"
-                      style={tableLinkStyle(listing.in_stock ?? false)}
-                    >
-                      {listing.stores?.name}: KES {listing.current_price_ksh ?? '-'}
-                    </a>
-                  ))}
-                </div>
-              ) : (
-                <span style={{ color: '#999' }}>No listings</span>
-              )}
-            </td>
-
-            <UserTd>
-              <EditableReviewRatingCell
-                label="My rating"
-                wineId={String(wine.id)}
-                userId={userId}
-                review={wine.review}
-                onReviewChange={(review) =>
-                  setWines((current) => updateWineReview(current, wine.id, review))
-                }
-              />
-            </UserTd>
-            <UserTd>
-              <EditableReviewBoolCell
-                label="Want to try"
-                field="want_to_try"
-                wineId={String(wine.id)}
-                userId={userId}
-                review={wine.review}
-                onReviewChange={(review) =>
-                  setWines((current) => updateWineReview(current, wine.id, review))
-                }
-              />
-            </UserTd>
-            <UserTd>
-              <EditableReviewBoolCell
-                label="Tried"
-                field="tried"
-                wineId={String(wine.id)}
-                userId={userId}
-                review={wine.review}
-                onReviewChange={(review) =>
-                  setWines((current) => updateWineReview(current, wine.id, review))
-                }
-              />
-            </UserTd>
-            <UserTd>
-              <EditableReviewBoolCell
-                label="Buy again"
-                field="would_buy_again"
-                wineId={String(wine.id)}
-                userId={userId}
-                review={wine.review}
-                onReviewChange={(review) =>
-                  setWines((current) => updateWineReview(current, wine.id, review))
-                }
-              />
-            </UserTd>
-            <UserTd>
-              <EditableReviewNotesCell
-                label="Notes"
-                wineId={String(wine.id)}
-                userId={userId}
-                review={wine.review}
-                onReviewChange={(review) =>
-                  setWines((current) => updateWineReview(current, wine.id, review))
-                }
-              />
-            </UserTd>
-          </tr>
+          <WineDataRow
+            key={wine.id}
+            wine={wine}
+            showDetails={showDetails}
+            userId={userId}
+            onReviewChange={(review) =>
+              setWines((current) => updateWineReview(current, wine.id, review))
+            }
+          />
         ))}
       </tbody>
     </table>
