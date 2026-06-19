@@ -47,7 +47,7 @@ export type WineRow = {
 
 type DisplayWineRow = WineRow & { valueScore: number | null }
 
-type SortKey =
+type SortFieldKey =
   | 'winery'
   | 'wine_name'
   | 'vintage'
@@ -56,12 +56,65 @@ type SortKey =
   | 'grapes'
   | 'style'
   | 'vivino_rating'
-  | 'vivino_then_price'
   | 'value_score'
-  | 'my_rating'
   | 'store_prices'
+  | 'my_rating'
+  | 'want_to_try'
+  | 'tried'
+  | 'would_buy_again'
+  | 'notes'
+
+type SortFieldOption = SortFieldKey | 'none'
 
 type SortDir = 'asc' | 'desc'
+
+type SortCriterion = {
+  key: SortFieldOption
+  dir: SortDir
+}
+
+const SORT_FIELD_OPTIONS: Array<{ value: SortFieldKey; label: string }> = [
+  { value: 'winery', label: 'Winery' },
+  { value: 'wine_name', label: 'Wine name' },
+  { value: 'vintage', label: 'Vintage' },
+  { value: 'country', label: 'Country' },
+  { value: 'region', label: 'Region' },
+  { value: 'grapes', label: 'Grapes' },
+  { value: 'style', label: 'Style' },
+  { value: 'vivino_rating', label: 'Vivino rating' },
+  { value: 'value_score', label: 'Value score' },
+  { value: 'store_prices', label: 'Store price' },
+  { value: 'my_rating', label: 'My rating' },
+  { value: 'want_to_try', label: 'Want to try' },
+  { value: 'tried', label: 'Tried' },
+  { value: 'would_buy_again', label: 'Buy again' },
+  { value: 'notes', label: 'Notes' },
+]
+
+const SORT_DIR_OPTIONS: Array<{ value: SortDir; label: string }> = [
+  { value: 'asc', label: 'Ascending' },
+  { value: 'desc', label: 'Descending' },
+]
+
+function defaultSortDir(key: SortFieldKey): SortDir {
+  switch (key) {
+    case 'value_score':
+    case 'vivino_rating':
+    case 'my_rating':
+    case 'want_to_try':
+    case 'tried':
+    case 'would_buy_again':
+      return 'desc'
+    default:
+      return 'asc'
+  }
+}
+
+function boolSortNum(value: boolean | null | undefined): number | null {
+  if (value === true) return 1
+  if (value === false) return 0
+  return null
+}
 
 function formatGrapeVarieties(value: unknown): string {
   if (value == null || value === '') return ''
@@ -109,7 +162,7 @@ function compareEmptyLast(
   return body()
 }
 
-function compareWine(a: DisplayWineRow, b: DisplayWineRow, key: SortKey): number {
+function compareWineField(a: DisplayWineRow, b: DisplayWineRow, key: SortFieldKey): number {
   switch (key) {
     case 'winery': {
       const as = str(a.producer).toLowerCase()
@@ -166,50 +219,207 @@ function compareWine(a: DisplayWineRow, b: DisplayWineRow, key: SortKey): number
       const bn = minListingPrice(b)
       return compareEmptyLast(an == null, bn == null, () => (an as number) - (bn as number))
     }
+    case 'want_to_try': {
+      const an = boolSortNum(a.review?.want_to_try)
+      const bn = boolSortNum(b.review?.want_to_try)
+      return compareEmptyLast(an == null, bn == null, () => (an as number) - (bn as number))
+    }
+    case 'tried': {
+      const an = boolSortNum(a.review?.tried)
+      const bn = boolSortNum(b.review?.tried)
+      return compareEmptyLast(an == null, bn == null, () => (an as number) - (bn as number))
+    }
+    case 'would_buy_again': {
+      const an = boolSortNum(a.review?.would_buy_again)
+      const bn = boolSortNum(b.review?.would_buy_again)
+      return compareEmptyLast(an == null, bn == null, () => (an as number) - (bn as number))
+    }
+    case 'notes': {
+      const as = str(a.review?.tasting_notes).toLowerCase()
+      const bs = str(b.review?.tasting_notes).toLowerCase()
+      return compareEmptyLast(!as, !bs, () => as.localeCompare(bs, undefined, { sensitivity: 'base' }))
+    }
     default:
       return 0
   }
 }
 
-function compareVivinoThenPrice(a: DisplayWineRow, b: DisplayWineRow): number {
-  const ar = ratingNum(a.vivino_rating)
-  const br = ratingNum(b.vivino_rating)
-  const aRatingEmpty = ar == null
-  const bRatingEmpty = br == null
-
-  if (!aRatingEmpty && !bRatingEmpty && ar !== br) {
-    return br - ar
+function isSortFieldEmpty(wine: DisplayWineRow, key: SortFieldKey): boolean {
+  switch (key) {
+    case 'winery':
+      return !str(wine.producer)
+    case 'wine_name':
+      return !str(wine.wine_name)
+    case 'vintage':
+      return vintageNum(wine.vintage) == null
+    case 'country':
+      return !str(wine.country)
+    case 'region':
+      return !str(wine.region)
+    case 'grapes':
+      return !formatGrapeVarieties(wine.grape_varieties)
+    case 'style':
+      return !str(wine.style)
+    case 'vivino_rating':
+      return ratingNum(wine.vivino_rating) == null
+    case 'value_score':
+      return wine.valueScore == null
+    case 'store_prices':
+      return minListingPrice(wine) == null
+    case 'my_rating':
+      return ratingNum(wine.review?.overall_score) == null
+    case 'want_to_try':
+      return boolSortNum(wine.review?.want_to_try) == null
+    case 'tried':
+      return boolSortNum(wine.review?.tried) == null
+    case 'would_buy_again':
+      return boolSortNum(wine.review?.would_buy_again) == null
+    case 'notes':
+      return !str(wine.review?.tasting_notes)
+    default:
+      return false
   }
-  if (aRatingEmpty !== bRatingEmpty) {
-    return aRatingEmpty ? 1 : -1
-  }
-
-  const ap = minListingPrice(a)
-  const bp = minListingPrice(b)
-  if (ap == null && bp == null) return 0
-  if (ap == null) return 1
-  if (bp == null) return -1
-  return ap - bp
 }
 
-function sortWines(rows: DisplayWineRow[], key: SortKey, dir: SortDir): DisplayWineRow[] {
-  if (key === 'vivino_then_price') {
-    return [...rows].sort(compareVivinoThenPrice)
-  }
-
+function compareByCriterion(
+  a: DisplayWineRow,
+  b: DisplayWineRow,
+  key: SortFieldKey,
+  dir: SortDir,
+): number {
   if (key === 'value_score') {
-    return [...rows].sort((a, b) => {
-      const an = a.valueScore
-      const bn = b.valueScore
-      if (an == null && bn == null) return 0
-      if (an == null) return 1
-      if (bn == null) return -1
-      return dir === 'desc' ? bn - an : an - bn
-    })
+    const an = a.valueScore
+    const bn = b.valueScore
+    if (an == null && bn == null) return 0
+    if (an == null) return 1
+    if (bn == null) return -1
+    return dir === 'desc' ? bn - an : an - bn
   }
 
-  const sign = dir === 'asc' ? 1 : -1
-  return [...rows].sort((a, b) => compareWine(a, b, key) * sign)
+  const ascending = compareWineField(a, b, key)
+  if (ascending === 0) return 0
+  if (isSortFieldEmpty(a, key) || isSortFieldEmpty(b, key)) return ascending
+
+  return dir === 'asc' ? ascending : -ascending
+}
+
+function sortWines(rows: DisplayWineRow[], primary: SortCriterion, secondary: SortCriterion): DisplayWineRow[] {
+  return [...rows].sort((a, b) => {
+    if (primary.key !== 'none') {
+      const primaryCmp = compareByCriterion(a, b, primary.key, primary.dir)
+      if (primaryCmp !== 0) return primaryCmp
+    }
+
+    if (secondary.key !== 'none' && secondary.key !== primary.key) {
+      return compareByCriterion(a, b, secondary.key, secondary.dir)
+    }
+
+    return 0
+  })
+}
+
+const controlSelectStyle: CSSProperties = {
+  fontSize: 14,
+  padding: '4px 8px',
+  borderRadius: 4,
+  border: '1px solid #ccc',
+  background: '#fff',
+}
+
+function SortControls({
+  primarySort,
+  secondarySort,
+  onPrimaryChange,
+  onSecondaryChange,
+}: {
+  primarySort: SortCriterion
+  secondarySort: SortCriterion
+  onPrimaryChange: (next: SortCriterion) => void
+  onSecondaryChange: (next: SortCriterion) => void
+}) {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 8,
+        flexWrap: 'wrap',
+        fontSize: 14,
+      }}
+    >
+      <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+        <span>Sort by</span>
+        <select
+          aria-label="Primary sort field"
+          value={primarySort.key}
+          style={controlSelectStyle}
+          onChange={(event) => {
+            const key = event.target.value as SortFieldKey
+            onPrimaryChange({ key, dir: defaultSortDir(key) })
+          }}
+        >
+          {SORT_FIELD_OPTIONS.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+        <select
+          aria-label="Primary sort direction"
+          value={primarySort.dir}
+          style={controlSelectStyle}
+          disabled={primarySort.key === 'none'}
+          onChange={(event) =>
+            onPrimaryChange({ ...primarySort, dir: event.target.value as SortDir })
+          }
+        >
+          {SORT_DIR_OPTIONS.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+        <span>then by</span>
+        <select
+          aria-label="Secondary sort field"
+          value={secondarySort.key}
+          style={controlSelectStyle}
+          onChange={(event) => {
+            const key = event.target.value as SortFieldOption
+            if (key === 'none') {
+              onSecondaryChange({ key: 'none', dir: 'asc' })
+              return
+            }
+            onSecondaryChange({ key, dir: defaultSortDir(key) })
+          }}
+        >
+          <option value="none">None</option>
+          {SORT_FIELD_OPTIONS.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+        <select
+          aria-label="Secondary sort direction"
+          value={secondarySort.dir}
+          style={controlSelectStyle}
+          disabled={secondarySort.key === 'none'}
+          onChange={(event) =>
+            onSecondaryChange({ ...secondarySort, dir: event.target.value as SortDir })
+          }
+        >
+          {SORT_DIR_OPTIONS.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      </label>
+    </div>
+  )
 }
 
 const thButton: CSSProperties = {
@@ -259,18 +469,49 @@ const tableStyle: CSSProperties = {
 
 type HeaderProps = {
   label: string
-  sortKey: SortKey
-  activeKey: SortKey
-  dir: SortDir
-  onSort: (key: SortKey) => void
+  sortKey: SortFieldKey
+  primarySort: SortCriterion
+  secondarySort: SortCriterion
+  onSort: (key: SortFieldKey) => void
   userColumn?: boolean
   centered?: boolean
 }
 
-function SortableTh({ label, sortKey, activeKey, dir, onSort, userColumn, centered }: HeaderProps) {
-  const isActive = activeKey === sortKey
-  const ariaSort = isActive ? (dir === 'asc' ? 'ascending' : 'descending') : 'none'
-  const indicator = isActive ? (dir === 'asc' ? '↑' : '↓') : ''
+function sortIndicator(
+  sortKey: SortFieldKey,
+  primarySort: SortCriterion,
+  secondarySort: SortCriterion,
+): string {
+  if (primarySort.key === sortKey) {
+    return primarySort.dir === 'asc' ? '↑' : '↓'
+  }
+  if (secondarySort.key === sortKey) {
+    return secondarySort.dir === 'asc' ? '↑₂' : '↓₂'
+  }
+  return ''
+}
+
+function SortableTh({
+  label,
+  sortKey,
+  primarySort,
+  secondarySort,
+  onSort,
+  userColumn,
+  centered,
+}: HeaderProps) {
+  const isPrimary = primarySort.key === sortKey
+  const isSecondary = secondarySort.key === sortKey
+  const ariaSort = isPrimary
+    ? primarySort.dir === 'asc'
+      ? 'ascending'
+      : 'descending'
+    : isSecondary
+      ? secondarySort.dir === 'asc'
+        ? 'ascending'
+        : 'descending'
+      : 'none'
+  const indicator = sortIndicator(sortKey, primarySort, secondarySort)
   const alignCenter = centered || userColumn
 
   return (
@@ -294,14 +535,6 @@ function SortableTh({ label, sortKey, activeKey, dir, onSort, userColumn, center
           {indicator}
         </span>
       </button>
-    </th>
-  )
-}
-
-function UserTh({ label }: { label: string }) {
-  return (
-    <th className="wine-table-user-th" style={{ borderBottom: '2px solid #ccc', ...userColumnStyle }}>
-      {label}
     </th>
   )
 }
@@ -483,23 +716,31 @@ export function WineTable({ wines: initialWines, userId }: { wines: WineRow[]; u
     setWines(initialWines.map(withComputedValueScore))
   }, [initialWines])
 
-  const [sortKey, setSortKey] = useState<SortKey>('winery')
-  const [sortDir, setSortDir] = useState<SortDir>('asc')
+  const [primarySort, setPrimarySort] = useState<SortCriterion>({ key: 'winery', dir: 'asc' })
+  const [secondarySort, setSecondarySort] = useState<SortCriterion>({ key: 'none', dir: 'asc' })
   const [showDetails, setShowDetails] = useState(true)
 
-  const onSort = (key: SortKey) => {
-    if (key === sortKey) {
-      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))
-    } else {
-      setSortKey(key)
-      setSortDir(key === 'value_score' ? 'desc' : 'asc')
+  const onColumnSort = (key: SortFieldKey) => {
+    if (primarySort.key === key) {
+      setPrimarySort((current) => ({
+        ...current,
+        dir: current.dir === 'asc' ? 'desc' : 'asc',
+      }))
+      return
     }
+    setPrimarySort({ key, dir: defaultSortDir(key) })
   }
 
   const sorted = useMemo(
-    () => sortWines(wines, sortKey, sortDir),
-    [wines, sortKey, sortDir],
+    () => sortWines(wines, primarySort, secondarySort),
+    [wines, primarySort, secondarySort],
   )
+
+  const ratingThenPriceActive =
+    primarySort.key === 'vivino_rating' &&
+    primarySort.dir === 'desc' &&
+    secondarySort.key === 'store_prices' &&
+    secondarySort.dir === 'asc'
 
   return (
     <>
@@ -521,46 +762,56 @@ export function WineTable({ wines: initialWines, userId }: { wines: WineRow[]; u
           background: #e4ecf7;
         }
       `}</style>
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 12,
-          marginTop: 20,
-          flexWrap: 'wrap',
-        }}
-      >
-        <p style={{ margin: 0, color: '#555', fontSize: 14 }}>
-          Showing <strong>{sorted.length}</strong> {sorted.length === 1 ? 'wine' : 'wines'}
-        </p>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-          <button
-            type="button"
-            onClick={() => setShowDetails((visible) => !visible)}
-            aria-pressed={showDetails}
-            style={{
-              padding: '6px 12px',
-              fontSize: 14,
-              cursor: 'pointer',
-            }}
-          >
-            show/hide details
-          </button>
-          <button
-            type="button"
-            onClick={() => setSortKey('vivino_then_price')}
-            aria-pressed={sortKey === 'vivino_then_price'}
-            style={{
-              padding: '6px 12px',
-              fontSize: 14,
-              cursor: 'pointer',
-              fontWeight: sortKey === 'vivino_then_price' ? 600 : 400,
-            }}
-          >
-            Sort: rating → price
-          </button>
+      <div style={{ marginTop: 20, display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 12,
+            flexWrap: 'wrap',
+          }}
+        >
+          <p style={{ margin: 0, color: '#555', fontSize: 14 }}>
+            Showing <strong>{sorted.length}</strong> {sorted.length === 1 ? 'wine' : 'wines'}
+          </p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              onClick={() => setShowDetails((visible) => !visible)}
+              aria-pressed={showDetails}
+              style={{
+                padding: '6px 12px',
+                fontSize: 14,
+                cursor: 'pointer',
+              }}
+            >
+              show/hide details
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setPrimarySort({ key: 'vivino_rating', dir: 'desc' })
+                setSecondarySort({ key: 'store_prices', dir: 'asc' })
+              }}
+              aria-pressed={ratingThenPriceActive}
+              style={{
+                padding: '6px 12px',
+                fontSize: 14,
+                cursor: 'pointer',
+                fontWeight: ratingThenPriceActive ? 600 : 400,
+              }}
+            >
+              Sort: rating → price
+            </button>
+          </div>
         </div>
+        <SortControls
+          primarySort={primarySort}
+          secondarySort={secondarySort}
+          onPrimaryChange={setPrimarySort}
+          onSecondaryChange={setSecondarySort}
+        />
       </div>
       <div style={tableScrollStyle}>
         <table className="wine-table" style={tableStyle}>
@@ -570,52 +821,122 @@ export function WineTable({ wines: initialWines, userId }: { wines: WineRow[]; u
             aria-label="Image"
             style={{ width: 36, borderBottom: '2px solid #ccc' }}
           />
-          <SortableTh label="Winery" sortKey="winery" activeKey={sortKey} dir={sortDir} onSort={onSort} />
-          <SortableTh label="Wine name" sortKey="wine_name" activeKey={sortKey} dir={sortDir} onSort={onSort} />
+          <SortableTh
+            label="Winery"
+            sortKey="winery"
+            primarySort={primarySort}
+            secondarySort={secondarySort}
+            onSort={onColumnSort}
+          />
+          <SortableTh
+            label="Wine name"
+            sortKey="wine_name"
+            primarySort={primarySort}
+            secondarySort={secondarySort}
+            onSort={onColumnSort}
+          />
           {showDetails && (
             <>
-              <SortableTh label="Vintage" sortKey="vintage" activeKey={sortKey} dir={sortDir} onSort={onSort} />
-              <SortableTh label="Country" sortKey="country" activeKey={sortKey} dir={sortDir} onSort={onSort} />
-              <SortableTh label="Region" sortKey="region" activeKey={sortKey} dir={sortDir} onSort={onSort} />
-              <SortableTh label="Grapes" sortKey="grapes" activeKey={sortKey} dir={sortDir} onSort={onSort} />
-              <SortableTh label="Style" sortKey="style" activeKey={sortKey} dir={sortDir} onSort={onSort} />
+              <SortableTh
+                label="Vintage"
+                sortKey="vintage"
+                primarySort={primarySort}
+                secondarySort={secondarySort}
+                onSort={onColumnSort}
+              />
+              <SortableTh
+                label="Country"
+                sortKey="country"
+                primarySort={primarySort}
+                secondarySort={secondarySort}
+                onSort={onColumnSort}
+              />
+              <SortableTh
+                label="Region"
+                sortKey="region"
+                primarySort={primarySort}
+                secondarySort={secondarySort}
+                onSort={onColumnSort}
+              />
+              <SortableTh
+                label="Grapes"
+                sortKey="grapes"
+                primarySort={primarySort}
+                secondarySort={secondarySort}
+                onSort={onColumnSort}
+              />
+              <SortableTh
+                label="Style"
+                sortKey="style"
+                primarySort={primarySort}
+                secondarySort={secondarySort}
+                onSort={onColumnSort}
+              />
             </>
           )}
           <SortableTh
             label="Vivino rating"
             sortKey="vivino_rating"
-            activeKey={sortKey}
-            dir={sortDir}
-            onSort={onSort}
+            primarySort={primarySort}
+            secondarySort={secondarySort}
+            onSort={onColumnSort}
             centered
           />
           <SortableTh
             label="Value Score"
             sortKey="value_score"
-            activeKey={sortKey}
-            dir={sortDir}
-            onSort={onSort}
+            primarySort={primarySort}
+            secondarySort={secondarySort}
+            onSort={onColumnSort}
             centered
           />
           <SortableTh
             label="Store Prices"
             sortKey="store_prices"
-            activeKey={sortKey}
-            dir={sortDir}
-            onSort={onSort}
+            primarySort={primarySort}
+            secondarySort={secondarySort}
+            onSort={onColumnSort}
           />
           <SortableTh
             label="My rating"
             sortKey="my_rating"
-            activeKey={sortKey}
-            dir={sortDir}
-            onSort={onSort}
+            primarySort={primarySort}
+            secondarySort={secondarySort}
+            onSort={onColumnSort}
             userColumn
           />
-          <UserTh label="Want to try" />
-          <UserTh label="Tried" />
-          <UserTh label="Buy again" />
-          <UserTh label="Notes" />
+          <SortableTh
+            label="Want to try"
+            sortKey="want_to_try"
+            primarySort={primarySort}
+            secondarySort={secondarySort}
+            onSort={onColumnSort}
+            userColumn
+          />
+          <SortableTh
+            label="Tried"
+            sortKey="tried"
+            primarySort={primarySort}
+            secondarySort={secondarySort}
+            onSort={onColumnSort}
+            userColumn
+          />
+          <SortableTh
+            label="Buy again"
+            sortKey="would_buy_again"
+            primarySort={primarySort}
+            secondarySort={secondarySort}
+            onSort={onColumnSort}
+            userColumn
+          />
+          <SortableTh
+            label="Notes"
+            sortKey="notes"
+            primarySort={primarySort}
+            secondarySort={secondarySort}
+            onSort={onColumnSort}
+            userColumn
+          />
         </tr>
       </thead>
 
