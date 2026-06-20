@@ -85,20 +85,18 @@ function buildOptimisticReview(
   }
 }
 
-function placePanelUnderCursor(clientX: number, clientY: number) {
-  const gap = 10
+function placePanelAtCursor(clientX: number, clientY: number) {
   let left = clientX - PANEL_WIDTH / 2
-  let top = clientY + gap
+  let top = clientY - PANEL_HEIGHT / 2
 
   if (left < 12) left = 12
   if (left + PANEL_WIDTH > window.innerWidth - 12) {
     left = window.innerWidth - PANEL_WIDTH - 12
   }
-
-  if (top + PANEL_HEIGHT > window.innerHeight - 12) {
-    top = clientY - PANEL_HEIGHT - gap
-  }
   if (top < 12) top = 12
+  if (top + PANEL_HEIGHT > window.innerHeight - 12) {
+    top = window.innerHeight - PANEL_HEIGHT - 12
+  }
 
   return { left, top }
 }
@@ -246,15 +244,13 @@ export function EditableReviewWishlistCell({
     }, HOVER_CLOSE_DELAY_MS)
   }
 
-  function updatePanelPosition(event: ReactMouseEvent) {
-    setPanelPosition(placePanelUnderCursor(event.clientX, event.clientY))
-  }
-
   function openPanel(event: ReactMouseEvent) {
     if (saving) return
     cancelClose()
+    if (!panelOpen) {
+      setPanelPosition(placePanelAtCursor(event.clientX, event.clientY))
+    }
     setPanelOpen(true)
-    updatePanelPosition(event)
   }
 
   async function setValue(next: WishlistValue) {
@@ -303,7 +299,6 @@ export function EditableReviewWishlistCell({
           cursor: saving ? 'wait' : 'pointer',
         }}
         onMouseEnter={openPanel}
-        onMouseMove={updatePanelPosition}
         onMouseLeave={scheduleClose}
       >
         {currentOption.render(true)}
