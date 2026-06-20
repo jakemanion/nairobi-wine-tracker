@@ -19,9 +19,10 @@ type EditableReviewWishlistCellProps = {
   onReviewChange: (review: WineReview | null) => void
 }
 
-const ICON_SIZE = 28
-const PANEL_WIDTH = 300
-const PANEL_HEIGHT_WITH_TOOLTIP = 72
+const CELL_ICON_SIZE = 28
+const PANEL_ICON_SIZE = 16
+const PANEL_WIDTH = 118
+const PANEL_HEIGHT = 52
 const HOVER_CLOSE_DELAY_MS = 120
 
 const inactiveColor = '#bbb'
@@ -57,41 +58,42 @@ const panelShellStyle: CSSProperties = {
   position: 'fixed',
   zIndex: 10000,
   display: 'flex',
-  alignItems: 'flex-start',
-  gap: 2,
-  padding: '8px 10px',
-  background: '#fff',
-  border: '1px solid #ccc',
-  borderRadius: 8,
-  boxShadow: '0 6px 24px rgba(0,0,0,0.15)',
-}
-
-const panelOptionColumnStyle: CSSProperties = {
-  display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
-  gap: 4,
-  minWidth: 56,
+  gap: 2,
+  padding: '4px 6px 3px',
+  background: '#fff',
+  border: '1px solid #ccc',
+  borderRadius: 6,
+  boxShadow: '0 4px 16px rgba(0,0,0,0.14)',
+}
+
+const panelIconRowStyle: CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: 0,
 }
 
 const panelOptionStyle: CSSProperties = {
   background: 'none',
   border: 'none',
-  padding: '4px 6px',
+  padding: '2px 3px',
   cursor: 'pointer',
   lineHeight: 1,
   display: 'inline-flex',
   alignItems: 'center',
   justifyContent: 'center',
-  borderRadius: 4,
+  borderRadius: 3,
 }
 
-const tooltipStyle: CSSProperties = {
-  fontSize: 10,
-  color: '#555',
+const panelTooltipStyle: CSSProperties = {
+  fontSize: 9,
+  color: '#666',
   textAlign: 'center',
   lineHeight: 1.2,
-  maxWidth: 80,
+  minHeight: 11,
+  width: '100%',
+  whiteSpace: 'nowrap',
 }
 
 function buildOptimisticReview(
@@ -111,7 +113,7 @@ function buildOptimisticReview(
   }
 }
 
-function placePanelAtCenter(rect: DOMRect, panelHeight = PANEL_HEIGHT_WITH_TOOLTIP) {
+function placePanelAtCenter(rect: DOMRect, panelHeight = PANEL_HEIGHT) {
   const centerX = rect.left + rect.width / 2
   const centerY = rect.top + rect.height / 2
 
@@ -130,9 +132,9 @@ function placePanelAtCenter(rect: DOMRect, panelHeight = PANEL_HEIGHT_WITH_TOOLT
   return { left, top }
 }
 
-function OutlinedStarIcon({ color }: { color: string }) {
+function OutlinedStarIcon({ color, size = CELL_ICON_SIZE }: { color: string; size?: number }) {
   return (
-    <svg width={ICON_SIZE} height={ICON_SIZE} viewBox="0 0 14 14" aria-hidden>
+    <svg width={size} height={size} viewBox="0 0 14 14" aria-hidden>
       <path
         d="M7 1.6 8.6 5.2 12.5 5.6 9.6 8.2 10.5 12 7 10.2 3.5 12 4.4 8.2 1.5 5.6 5.4 5.2Z"
         fill="none"
@@ -144,9 +146,9 @@ function OutlinedStarIcon({ color }: { color: string }) {
   )
 }
 
-function FilledStarIcon({ color }: { color: string }) {
+function FilledStarIcon({ color, size = CELL_ICON_SIZE }: { color: string; size?: number }) {
   return (
-    <svg width={ICON_SIZE} height={ICON_SIZE} viewBox="0 0 14 14" aria-hidden>
+    <svg width={size} height={size} viewBox="0 0 14 14" aria-hidden>
       <path
         d="M7 1.6 8.6 5.2 12.5 5.6 9.6 8.2 10.5 12 7 10.2 3.5 12 4.4 8.2 1.5 5.6 5.4 5.2Z"
         fill={color}
@@ -161,12 +163,14 @@ function FilledStarIcon({ color }: { color: string }) {
 function DollarStarIcon({
   starColor,
   dollarColor,
+  size = CELL_ICON_SIZE,
 }: {
   starColor: string
   dollarColor: string
+  size?: number
 }) {
   return (
-    <svg width={ICON_SIZE} height={ICON_SIZE} viewBox="0 0 14 14" aria-hidden>
+    <svg width={size} height={size} viewBox="0 0 14 14" aria-hidden>
       <path
         d="M7 1.6 8.6 5.2 12.5 5.6 9.6 8.2 10.5 12 7 10.2 3.5 12 4.4 8.2 1.5 5.6 5.4 5.2Z"
         fill={starColor}
@@ -188,15 +192,19 @@ function DollarStarIcon({
   )
 }
 
-function renderWishlistIcon(value: WishlistValue, active = true): ReactNode {
+function renderWishlistIcon(
+  value: WishlistValue,
+  active = true,
+  size = CELL_ICON_SIZE,
+): ReactNode {
   switch (value) {
     case null:
-      return <OutlinedStarIcon color={active ? nullStarColor : '#e8e8e8'} />
+      return <OutlinedStarIcon color={active ? nullStarColor : '#e8e8e8'} size={size} />
     case 0:
       return (
         <span
           style={{
-            fontSize: ICON_SIZE,
+            fontSize: size,
             lineHeight: 1,
             color: active ? dontWantColor : inactiveColor,
             fontWeight: active ? 700 : 400,
@@ -206,12 +214,13 @@ function renderWishlistIcon(value: WishlistValue, active = true): ReactNode {
         </span>
       )
     case 1:
-      return <FilledStarIcon color={active ? wantColor : inactiveColor} />
+      return <FilledStarIcon color={active ? wantColor : inactiveColor} size={size} />
     case 2:
       return (
         <DollarStarIcon
           starColor={active ? silverTreatColor : inactiveColor}
           dollarColor={active ? '#4a4a4a' : '#888'}
+          size={size}
         />
       )
     case 3:
@@ -219,6 +228,7 @@ function renderWishlistIcon(value: WishlistValue, active = true): ReactNode {
         <DollarStarIcon
           starColor={active ? goldTreatColor : inactiveColor}
           dollarColor="#fff"
+          size={size}
         />
       )
     default:
@@ -258,7 +268,7 @@ export function EditableReviewWishlistCell({
   const [error, setError] = useState<string | null>(null)
   const [panelOpen, setPanelOpen] = useState(false)
   const [panelPosition, setPanelPosition] = useState({ left: 0, top: 0 })
-  const [hoveredOption, setHoveredOption] = useState<WishlistValue | undefined>(undefined)
+  const [hoveredOption, setHoveredOption] = useState<WishlistValue | 'none'>('none')
   const [mounted, setMounted] = useState(false)
   const closeTimeoutRef = useRef<number | null>(null)
   const rootRef = useRef<HTMLDivElement>(null)
@@ -288,7 +298,7 @@ export function EditableReviewWishlistCell({
     cancelClose()
     closeTimeoutRef.current = window.setTimeout(() => {
       setPanelOpen(false)
-      setHoveredOption(undefined)
+      setHoveredOption('none')
       closeTimeoutRef.current = null
     }, HOVER_CLOSE_DELAY_MS)
   }
@@ -365,43 +375,36 @@ export function EditableReviewWishlistCell({
               onMouseEnter={cancelClose}
               onMouseLeave={scheduleClose}
             >
-              {WISHLIST_OPTIONS.map((option) => {
-                const selected = value === option.value
-                const hovered = hoveredOption === option.value
-                return (
-                  <div
-                    key={option.ariaLabel}
-                    style={panelOptionColumnStyle}
-                    onMouseEnter={() => setHoveredOption(option.value)}
-                    onMouseLeave={() => setHoveredOption(undefined)}
-                  >
+              <div style={panelIconRowStyle}>
+                {WISHLIST_OPTIONS.map((option) => {
+                  const selected = value === option.value
+                  return (
                     <button
+                      key={option.ariaLabel}
                       type="button"
                       role="menuitemradio"
                       aria-checked={selected}
                       aria-label={option.ariaLabel}
-                      title={option.tooltip}
                       disabled={saving}
                       style={{
                         ...panelOptionStyle,
                         background: selected ? '#f0f4f8' : 'transparent',
-                        outline: selected ? '2px solid #c5d4e8' : 'none',
+                        outline: selected ? '1px solid #c5d4e8' : 'none',
                         cursor: saving ? 'wait' : 'pointer',
                       }}
+                      onMouseEnter={() => setHoveredOption(option.value)}
                       onClick={() => void setValue(option.value)}
                     >
-                      {renderWishlistIcon(option.value, true)}
+                      {renderWishlistIcon(option.value, true, PANEL_ICON_SIZE)}
                     </button>
-                    {hovered ? (
-                      <span style={tooltipStyle}>{option.tooltip}</span>
-                    ) : (
-                      <span style={{ ...tooltipStyle, visibility: 'hidden' }} aria-hidden>
-                        {option.tooltip}
-                      </span>
-                    )}
-                  </div>
-                )
-              })}
+                  )
+                })}
+              </div>
+              <span style={panelTooltipStyle} aria-live="polite">
+                {hoveredOption === 'none'
+                  ? '\u00a0'
+                  : wishlistOption(hoveredOption).tooltip}
+              </span>
             </div>,
             document.body,
           )
