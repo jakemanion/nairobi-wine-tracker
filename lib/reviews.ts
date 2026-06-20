@@ -1,14 +1,17 @@
 import { supabase } from '@/lib/supabase'
 import type { WineReview } from '@/components/wine-table'
 
+export type WishlistValue = 0 | 1 | 2 | null
+
 export type ReviewBoolField = 'want_to_try' | 'tried' | 'would_buy_again'
 
-export type ReviewEditableField = ReviewBoolField | 'overall_score' | 'tasting_notes'
+export type ReviewEditableField = ReviewBoolField | 'overall_score' | 'tasting_notes' | 'wishlist'
 
 const reviewSelect = `
   id,
   overall_score,
   value_score,
+  wishlist,
   want_to_try,
   tried,
   would_buy_again,
@@ -66,3 +69,25 @@ export async function saveReviewField({
 }
 
 export const saveReviewBoolField = saveReviewField
+
+type SaveReviewWishlistArgs = {
+  userId: string
+  wineId: string
+  reviewId?: string | null
+  value: WishlistValue
+}
+
+export async function saveReviewWishlistField({
+  userId,
+  wineId,
+  reviewId,
+  value,
+}: SaveReviewWishlistArgs): Promise<SaveReviewFieldResult> {
+  return saveReviewField({
+    userId,
+    wineId,
+    reviewId,
+    field: 'wishlist',
+    value,
+  })
+}

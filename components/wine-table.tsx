@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react'
 import { EditableReviewBoolCell } from '@/components/review-bool-cell'
 import { EditableReviewNotesCell, EditableReviewRatingCell } from '@/components/review-edit-cell'
+import { EditableReviewWishlistCell } from '@/components/review-wishlist-cell'
 import {
   firstListingImageUrl,
   ListingThumbnail,
@@ -13,6 +14,7 @@ export type WineReview = {
   id: string
   overall_score: number | null
   value_score: number | null
+  wishlist: number | null
   want_to_try: boolean | null
   tried: boolean | null
   would_buy_again: boolean | null
@@ -57,7 +59,7 @@ type SortFieldKey =
   | 'value_score'
   | 'store_prices'
   | 'my_rating'
-  | 'want_to_try'
+  | 'wishlist'
   | 'tried'
   | 'would_buy_again'
   | 'notes'
@@ -83,7 +85,7 @@ const SORT_FIELD_OPTIONS: Array<{ value: SortFieldKey; label: string }> = [
   { value: 'value_score', label: 'Value score' },
   { value: 'store_prices', label: 'Store price' },
   { value: 'my_rating', label: 'My rating' },
-  { value: 'want_to_try', label: 'Want to try' },
+  { value: 'wishlist', label: 'Wishlist' },
   { value: 'tried', label: 'Tried' },
   { value: 'would_buy_again', label: 'Buy again' },
   { value: 'notes', label: 'Notes' },
@@ -99,13 +101,19 @@ function defaultSortDir(key: SortFieldKey): SortDir {
     case 'value_score':
     case 'vivino_rating':
     case 'my_rating':
-    case 'want_to_try':
+    case 'wishlist':
     case 'tried':
     case 'would_buy_again':
       return 'desc'
     default:
       return 'asc'
   }
+}
+
+function wishlistSortNum(value: number | null | undefined): number | null {
+  if (value == null) return null
+  if (value === 0 || value === 1 || value === 2) return value
+  return null
 }
 
 function boolSortNum(value: boolean | null | undefined): number | null {
@@ -253,9 +261,9 @@ function compareWineField(a: DisplayWineRow, b: DisplayWineRow, key: SortFieldKe
       const bn = minListingPrice(b)
       return compareEmptyLast(an == null, bn == null, () => (an as number) - (bn as number))
     }
-    case 'want_to_try': {
-      const an = boolSortNum(a.review?.want_to_try)
-      const bn = boolSortNum(b.review?.want_to_try)
+    case 'wishlist': {
+      const an = wishlistSortNum(a.review?.wishlist)
+      const bn = wishlistSortNum(b.review?.wishlist)
       return compareEmptyLast(an == null, bn == null, () => (an as number) - (bn as number))
     }
     case 'tried': {
@@ -302,8 +310,8 @@ function isSortFieldEmpty(wine: DisplayWineRow, key: SortFieldKey): boolean {
       return minListingPrice(wine) == null
     case 'my_rating':
       return ratingNum(wine.review?.overall_score) == null
-    case 'want_to_try':
-      return boolSortNum(wine.review?.want_to_try) == null
+    case 'wishlist':
+      return wishlistSortNum(wine.review?.wishlist) == null
     case 'tried':
       return boolSortNum(wine.review?.tried) == null
     case 'would_buy_again':
@@ -715,9 +723,8 @@ function WineDataRow({ wine, showDetails, userId, onReviewChange }: WineDataRowP
         />
       </UserTd>
       <UserTd>
-        <EditableReviewBoolCell
-          label="Want to try"
-          field="want_to_try"
+        <EditableReviewWishlistCell
+          label="Wishlist"
           wineId={String(wine.id)}
           userId={userId}
           review={wine.review}
@@ -969,8 +976,8 @@ export function WineTable({ wines: initialWines, userId }: { wines: WineRow[]; u
             userColumn
           />
           <SortableTh
-            label="Want to try"
-            sortKey="want_to_try"
+            label="Wishlist"
+            sortKey="wishlist"
             primarySort={primarySort}
             secondarySort={secondarySort}
             onSort={onColumnSort}
