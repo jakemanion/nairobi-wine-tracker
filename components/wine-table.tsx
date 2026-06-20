@@ -159,9 +159,9 @@ function formatListingPrice(value: string | number | null | undefined): string {
 function formatCountryRegion(country: string | null, region: string | null): string {
   const c = str(country)
   const r = str(region)
-  if (c && r) return `${c} - "${r}"`
+  if (c && r) return `${c} - ${r}`
   if (c) return c
-  if (r) return `"${r}"`
+  if (r) return r
   return '-'
 }
 
@@ -170,20 +170,17 @@ const producerColumnStyle: CSSProperties = {
   maxWidth: 120,
   whiteSpace: 'normal',
   wordBreak: 'break-word',
-  verticalAlign: 'top',
 }
 
 const wineNameColumnStyle: CSSProperties = {
   width: '16%',
   whiteSpace: 'normal',
   wordBreak: 'break-word',
-  verticalAlign: 'top',
 }
 
 const countryRegionColumnStyle: CSSProperties = {
   whiteSpace: 'normal',
   wordBreak: 'break-word',
-  verticalAlign: 'top',
 }
 
 const thumbColumnWidth = 72
@@ -592,46 +589,49 @@ type CountryRegionThProps = {
 function CountryRegionTh({ primarySort, secondarySort, onSort }: CountryRegionThProps) {
   const countryIndicator = sortIndicator('country', primarySort, secondarySort)
   const regionIndicator = sortIndicator('region', primarySort, secondarySort)
-  const countryActive = countryIndicator !== ''
-  const regionActive = regionIndicator !== ''
+  const countryIsPrimary = primarySort.key === 'country'
+  const regionIsPrimary = primarySort.key === 'region'
 
   return (
-    <th style={{ borderBottom: '2px solid #ccc', verticalAlign: 'bottom' }}>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-        <span style={{ fontSize: 12, color: '#666' }}>Country / Region</span>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <button
-            type="button"
-            style={{
-              ...thButton,
-              width: 'auto',
-              fontWeight: countryActive ? 600 : 400,
-            }}
-            onClick={() => onSort('country')}
-            aria-label="Sort by country"
-          >
-            <span>Country</span>
-            <span style={{ display: 'inline-block', minWidth: 14, fontSize: 12 }} aria-hidden>
-              {countryIndicator}
-            </span>
-          </button>
-          <button
-            type="button"
-            style={{
-              ...thButton,
-              width: 'auto',
-              fontWeight: regionActive ? 600 : 400,
-            }}
-            onClick={() => onSort('region')}
-            aria-label="Sort by region"
-          >
-            <span>Region</span>
-            <span style={{ display: 'inline-block', minWidth: 14, fontSize: 12 }} aria-hidden>
-              {regionIndicator}
-            </span>
-          </button>
-        </div>
-      </div>
+    <th
+      aria-sort={
+        countryIsPrimary
+          ? primarySort.dir === 'asc'
+            ? 'ascending'
+            : 'descending'
+          : regionIsPrimary
+            ? primarySort.dir === 'asc'
+              ? 'ascending'
+              : 'descending'
+            : 'none'
+      }
+      style={{
+        textAlign: 'left',
+        borderBottom: '2px solid #ccc',
+      }}
+    >
+      <button
+        type="button"
+        style={thButton}
+        onClick={() => onSort('country')}
+        aria-label="Sort by country"
+      >
+        <span>Country</span>
+        <span style={{ display: 'inline-block', minWidth: 14, fontSize: 12 }} aria-hidden>
+          {countryIndicator}
+        </span>
+      </button>
+      <button
+        type="button"
+        style={thButton}
+        onClick={() => onSort('region')}
+        aria-label="Sort by region"
+      >
+        <span>Region</span>
+        <span style={{ display: 'inline-block', minWidth: 14, fontSize: 12 }} aria-hidden>
+          {regionIndicator}
+        </span>
+      </button>
     </th>
   )
 }
@@ -649,7 +649,7 @@ function WineDataRow({ wine, showDetails, userId, onReviewChange }: WineDataRowP
 
   return (
     <tr>
-      <td style={{ width: thumbColumnWidth, padding: '4px 6px', verticalAlign: 'middle' }}>
+      <td style={{ width: thumbColumnWidth, padding: '4px 6px' }}>
         <ListingThumbnail imageUrl={imageUrl} alt={imageAlt} size="large" />
       </td>
       <td className="wine-table-producer-col" style={producerColumnStyle}>
@@ -825,6 +825,10 @@ export function WineTable({ wines: initialWines, userId }: { wines: WineRow[]; u
         }
         .wine-table tbody td {
           border-bottom: 1px solid #ccc;
+          vertical-align: middle;
+        }
+        .wine-table thead th {
+          vertical-align: middle;
         }
         .wine-table thead th.wine-table-producer-col {
           width: 8%;
