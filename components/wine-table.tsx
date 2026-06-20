@@ -1,13 +1,11 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState, type CSSProperties, type MouseEvent, type ReactNode } from 'react'
+import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react'
 import { EditableReviewBoolCell } from '@/components/review-bool-cell'
 import { EditableReviewNotesCell, EditableReviewRatingCell } from '@/components/review-edit-cell'
 import {
-  CursorImagePreview,
   firstListingImageUrl,
   ListingThumbnail,
-  placeImagePreviewNearCursor,
 } from '@/components/listing-thumbnail'
 import { minWinePriceKES, withComputedValueScore } from '@/lib/calculate-value-score'
 import { formatWineLabel } from '@/lib/wines'
@@ -158,12 +156,34 @@ function formatListingPrice(value: string | number | null | undefined): string {
   return n.toLocaleString('en-KE', { maximumFractionDigits: 0 })
 }
 
+function formatCountryRegion(country: string | null, region: string | null): string {
+  const c = str(country)
+  const r = str(region)
+  if (c && r) return `${c} - "${r}"`
+  if (c) return c
+  if (r) return `"${r}"`
+  return '-'
+}
+
 const producerColumnStyle: CSSProperties = {
   width: '8%',
   maxWidth: 120,
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-  whiteSpace: 'nowrap',
+  whiteSpace: 'normal',
+  wordBreak: 'break-word',
+  verticalAlign: 'top',
+}
+
+const wineNameColumnStyle: CSSProperties = {
+  width: '16%',
+  whiteSpace: 'normal',
+  wordBreak: 'break-word',
+  verticalAlign: 'top',
+}
+
+const countryRegionColumnStyle: CSSProperties = {
+  whiteSpace: 'normal',
+  wordBreak: 'break-word',
+  verticalAlign: 'top',
 }
 
 const thumbColumnWidth = 72
@@ -563,6 +583,59 @@ function UserTd({ children }: { children: ReactNode }) {
   return <td className="wine-table-user-td" style={userColumnStyle}>{children}</td>
 }
 
+type CountryRegionThProps = {
+  primarySort: SortCriterion
+  secondarySort: SortCriterion
+  onSort: (key: SortFieldKey) => void
+}
+
+function CountryRegionTh({ primarySort, secondarySort, onSort }: CountryRegionThProps) {
+  const countryIndicator = sortIndicator('country', primarySort, secondarySort)
+  const regionIndicator = sortIndicator('region', primarySort, secondarySort)
+  const countryActive = countryIndicator !== ''
+  const regionActive = regionIndicator !== ''
+
+  return (
+    <th style={{ borderBottom: '2px solid #ccc', verticalAlign: 'bottom' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <span style={{ fontSize: 12, color: '#666' }}>Country / Region</span>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            style={{
+              ...thButton,
+              width: 'auto',
+              fontWeight: countryActive ? 600 : 400,
+            }}
+            onClick={() => onSort('country')}
+            aria-label="Sort by country"
+          >
+            <span>Country</span>
+            <span style={{ display: 'inline-block', minWidth: 14, fontSize: 12 }} aria-hidden>
+              {countryIndicator}
+            </span>
+          </button>
+          <button
+            type="button"
+            style={{
+              ...thButton,
+              width: 'auto',
+              fontWeight: regionActive ? 600 : 400,
+            }}
+            onClick={() => onSort('region')}
+            aria-label="Sort by region"
+          >
+            <span>Region</span>
+            <span style={{ display: 'inline-block', minWidth: 14, fontSize: 12 }} aria-hidden>
+              {regionIndicator}
+            </span>
+          </button>
+        </div>
+      </div>
+    </th>
+  )
+}
+
 type WineDataRowProps = {
   wine: DisplayWineRow
   showDetails: boolean
@@ -573,56 +646,24 @@ type WineDataRowProps = {
 function WineDataRow({ wine, showDetails, userId, onReviewChange }: WineDataRowProps) {
   const imageUrl = firstListingImageUrl(wine.store_listings ?? [])
   const imageAlt = formatWineLabel(wine)
-  const [imageReady, setImageReady] = useState(false)
-  const [preview, setPreview] = useState<{ left: number; top: number } | null>(null)
-
-  useEffect(() => {
-    setImageReady(false)
-    setPreview(null)
-  }, [imageUrl])
-
-  const handleLoadStateChange = useCallback((state: { loaded: boolean; failed: boolean }) => {
-    setImageReady(state.loaded && !state.failed)
-  }, [])
-
-  function handleRowMouseMove(event: MouseEvent<HTMLTableRowElement>) {
-    if (!imageUrl || !imageReady) return
-    setPreview(placeImagePreviewNearCursor(event.clientX, event.clientY))
-  }
-
-  function handleRowMouseLeave() {
-    setPreview(null)
-  }
 
   return (
-    <>
-      <tr
-        onMouseMove={handleRowMouseMove}
-        onMouseLeave={handleRowMouseLeave}
-      >
-        <td style={{ width: thumbColumnWidth, padding: '4px 6px', verticalAlign: 'middle' }}>
-          <ListingThumbnail
-            imageUrl={imageUrl}
-            alt={imageAlt}
-            size="large"
-            showHoverPreview={false}
-            onLoadStateChange={handleLoadStateChange}
-          />
-        </td>
-      <td
-        className="wine-table-producer-col"
-        style={producerColumnStyle}
-        title={wine.producer ?? undefined}
-      >
+    <tr>
+      <td style={{ width: thumbColumnWidth, padding: '4px 6px', verticalAlign: 'middle' }}>
+        <ListingThumbnail imageUrl={imageUrl} alt={imageAlt} size="large" />
+      </td>
+      <td className="wine-table-producer-col" style={producerColumnStyle}>
         {wine.producer ?? '-'}
       </td>
-      <td>{wine.wine_name ?? '-'}</td>
+      <td className="wine-table-wine-name-col" style={wineNameColumnStyle}>
+        {wine.wine_name ?? '-'}
+      </td>
 
       {showDetails && (
         <>
-          <td>{wine.vintage ?? '-'}</td>
-          <td>{wine.country ?? '-'}</td>
-          <td>{wine.region ?? '-'}</td>
+          <td style={countryRegionColumnStyle}>
+            {formatCountryRegion(wine.country, wine.region)}
+          </td>
           <td>{formatGrapeVarieties(wine.grape_varieties) || '-'}</td>
           <td>{wine.style ?? '-'}</td>
         </>
@@ -712,12 +753,7 @@ function WineDataRow({ wine, showDetails, userId, onReviewChange }: WineDataRowP
           onReviewChange={onReviewChange}
         />
       </UserTd>
-      </tr>
-
-      {imageUrl && imageReady && preview ? (
-        <CursorImagePreview src={imageUrl} alt={imageAlt} position={preview} />
-      ) : null}
-    </>
+    </tr>
   )
 }
 
@@ -794,6 +830,10 @@ export function WineTable({ wines: initialWines, userId }: { wines: WineRow[]; u
           width: 8%;
           max-width: 120px;
         }
+        .wine-table thead th.wine-table-wine-name-col,
+        .wine-table tbody td.wine-table-wine-name-col {
+          width: 16%;
+        }
       `}</style>
       <div style={{ marginTop: 20, display: 'flex', flexDirection: 'column', gap: 10 }}>
         <div
@@ -868,26 +908,11 @@ export function WineTable({ wines: initialWines, userId }: { wines: WineRow[]; u
             primarySort={primarySort}
             secondarySort={secondarySort}
             onSort={onColumnSort}
+            className="wine-table-wine-name-col"
           />
           {showDetails && (
             <>
-              <SortableTh
-                label="Vintage"
-                sortKey="vintage"
-                primarySort={primarySort}
-                secondarySort={secondarySort}
-                onSort={onColumnSort}
-              />
-              <SortableTh
-                label="Country"
-                sortKey="country"
-                primarySort={primarySort}
-                secondarySort={secondarySort}
-                onSort={onColumnSort}
-              />
-              <SortableTh
-                label="Region"
-                sortKey="region"
+              <CountryRegionTh
                 primarySort={primarySort}
                 secondarySort={secondarySort}
                 onSort={onColumnSort}
