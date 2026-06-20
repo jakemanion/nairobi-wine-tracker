@@ -20,16 +20,16 @@ type EditableReviewWishlistCellProps = {
 }
 
 const ICON_SIZE = 28
-const PANEL_WIDTH = 240
+const PANEL_WIDTH = 300
 const PANEL_HEIGHT_WITH_TOOLTIP = 72
 const HOVER_CLOSE_DELAY_MS = 120
 
 const inactiveColor = '#bbb'
 const wantColor = '#0a7'
 const dontWantColor = '#c33'
-const treatColor = '#b8860b'
-const nullActiveColor = '#888'
-const nullInactiveColor = '#ddd'
+const silverTreatColor = '#b0b0b0'
+const goldTreatColor = '#b8860b'
+const nullStarColor = '#d0d0d0'
 
 const rootStyle: CSSProperties = {
   display: 'flex',
@@ -71,7 +71,7 @@ const panelOptionColumnStyle: CSSProperties = {
   flexDirection: 'column',
   alignItems: 'center',
   gap: 4,
-  minWidth: 52,
+  minWidth: 56,
 }
 
 const panelOptionStyle: CSSProperties = {
@@ -91,7 +91,7 @@ const tooltipStyle: CSSProperties = {
   color: '#555',
   textAlign: 'center',
   lineHeight: 1.2,
-  maxWidth: 72,
+  maxWidth: 80,
 }
 
 function buildOptimisticReview(
@@ -158,13 +158,19 @@ function FilledStarIcon({ color }: { color: string }) {
   )
 }
 
-function TreatStarIcon({ color }: { color: string }) {
+function DollarStarIcon({
+  starColor,
+  dollarColor,
+}: {
+  starColor: string
+  dollarColor: string
+}) {
   return (
     <svg width={ICON_SIZE} height={ICON_SIZE} viewBox="0 0 14 14" aria-hidden>
       <path
         d="M7 1.6 8.6 5.2 12.5 5.6 9.6 8.2 10.5 12 7 10.2 3.5 12 4.4 8.2 1.5 5.6 5.4 5.2Z"
-        fill={color}
-        stroke={color}
+        fill={starColor}
+        stroke={starColor}
         strokeWidth="0.6"
         strokeLinejoin="round"
       />
@@ -174,7 +180,7 @@ function TreatStarIcon({ color }: { color: string }) {
         textAnchor="middle"
         fontSize="5.5"
         fontWeight="700"
-        fill="#fff"
+        fill={dollarColor}
       >
         $
       </text>
@@ -185,7 +191,7 @@ function TreatStarIcon({ color }: { color: string }) {
 function renderWishlistIcon(value: WishlistValue, active = true): ReactNode {
   switch (value) {
     case null:
-      return <OutlinedStarIcon color={active ? nullActiveColor : nullInactiveColor} />
+      return <OutlinedStarIcon color={active ? nullStarColor : '#e8e8e8'} />
     case 0:
       return (
         <span
@@ -202,7 +208,19 @@ function renderWishlistIcon(value: WishlistValue, active = true): ReactNode {
     case 1:
       return <FilledStarIcon color={active ? wantColor : inactiveColor} />
     case 2:
-      return <TreatStarIcon color={active ? treatColor : inactiveColor} />
+      return (
+        <DollarStarIcon
+          starColor={active ? silverTreatColor : inactiveColor}
+          dollarColor={active ? '#4a4a4a' : '#888'}
+        />
+      )
+    case 3:
+      return (
+        <DollarStarIcon
+          starColor={active ? goldTreatColor : inactiveColor}
+          dollarColor="#fff"
+        />
+      )
     default:
       return null
   }
@@ -216,11 +234,12 @@ const WISHLIST_OPTIONS: Array<{
   { value: null, ariaLabel: 'not set', tooltip: 'Not set' },
   { value: 0, ariaLabel: "don't want", tooltip: "Don't want" },
   { value: 1, ariaLabel: 'want', tooltip: 'Want' },
-  { value: 2, ariaLabel: 'want as an expensive treat', tooltip: 'Expensive treat' },
+  { value: 2, ariaLabel: 'expensive treat', tooltip: 'Expensive treat' },
+  { value: 3, ariaLabel: 'very expensive treat', tooltip: 'Very expensive treat' },
 ]
 
 function normalizeWishlistValue(value: number | null | undefined): WishlistValue {
-  if (value === 0 || value === 1 || value === 2) return value
+  if (value === 0 || value === 1 || value === 2 || value === 3) return value
   return null
 }
 

@@ -112,7 +112,7 @@ function defaultSortDir(key: SortFieldKey): SortDir {
 
 function wishlistSortNum(value: number | null | undefined): number | null {
   if (value == null) return null
-  if (value === 0 || value === 1 || value === 2) return value
+  if (value === 0 || value === 1 || value === 2 || value === 3) return value
   return null
 }
 

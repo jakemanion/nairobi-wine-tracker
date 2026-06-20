@@ -1,7 +1,7 @@
 import { supabase } from '@/lib/supabase'
 import type { WineReview } from '@/components/wine-table'
 
-export type WishlistValue = 0 | 1 | 2 | null
+export type WishlistValue = 0 | 1 | 2 | 3 | null
 
 export type ReviewBoolField = 'want_to_try' | 'tried' | 'would_buy_again'
 
