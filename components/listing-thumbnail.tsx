@@ -9,7 +9,11 @@ import {
 } from 'react'
 import { createPortal } from 'react-dom'
 
-const THUMB_WIDTH = 28
+const THUMB_DIMENSIONS = {
+  default: { width: 28, minHeight: 28, maxImageHeight: 48 },
+  large: { width: 56, minHeight: 56, maxImageHeight: 96 },
+} as const
+
 const PREVIEW_MAX_WIDTH = 280
 const PREVIEW_MAX_HEIGHT = 420
 
@@ -33,40 +37,6 @@ function placePreview(clientX: number, clientY: number) {
 
 export { placePreview as placeImagePreviewNearCursor }
 
-const thumbWrapStyle: CSSProperties = {
-  flexShrink: 0,
-  width: THUMB_WIDTH,
-  alignSelf: 'stretch',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  marginLeft: 4,
-  minHeight: 28,
-}
-
-const thumbButtonStyle: CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  width: '100%',
-  height: '100%',
-  minHeight: 28,
-  padding: 0,
-  border: '1px solid #e0e0e0',
-  borderRadius: 3,
-  background: '#fafafa',
-  cursor: 'zoom-in',
-  overflow: 'hidden',
-}
-
-const thumbImageStyle: CSSProperties = {
-  display: 'block',
-  width: '100%',
-  height: '100%',
-  maxHeight: 48,
-  objectFit: 'contain',
-}
-
 const previewShellStyle: CSSProperties = {
   position: 'fixed',
   zIndex: 10000,
@@ -87,9 +57,49 @@ const previewImageStyle: CSSProperties = {
   objectFit: 'contain',
 }
 
+type ThumbnailSize = keyof typeof THUMB_DIMENSIONS
+
+function thumbStyles(size: ThumbnailSize) {
+  const dims = THUMB_DIMENSIONS[size]
+  return {
+    wrap: {
+      flexShrink: 0,
+      width: dims.width,
+      alignSelf: 'stretch',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginLeft: 4,
+      minHeight: dims.minHeight,
+    } satisfies CSSProperties,
+    button: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      width: '100%',
+      height: '100%',
+      minHeight: dims.minHeight,
+      padding: 0,
+      border: '1px solid #e0e0e0',
+      borderRadius: 3,
+      background: '#fafafa',
+      cursor: 'zoom-in',
+      overflow: 'hidden',
+    } satisfies CSSProperties,
+    image: {
+      display: 'block',
+      width: '100%',
+      height: '100%',
+      maxHeight: dims.maxImageHeight,
+      objectFit: 'contain',
+    } satisfies CSSProperties,
+  }
+}
+
 type ListingThumbnailProps = {
   imageUrl: string | null | undefined
   alt: string
+  size?: ThumbnailSize
   showHoverPreview?: boolean
   onLoadStateChange?: (state: { loaded: boolean; failed: boolean }) => void
 }
@@ -97,6 +107,7 @@ type ListingThumbnailProps = {
 export function ListingThumbnail({
   imageUrl,
   alt,
+  size = 'default',
   showHoverPreview = true,
   onLoadStateChange,
 }: ListingThumbnailProps) {
@@ -152,13 +163,15 @@ export function ListingThumbnail({
     return null
   }
 
+  const styles = thumbStyles(size)
+
   return (
     <>
-      <div ref={containerRef} style={thumbWrapStyle}>
+      <div ref={containerRef} style={styles.wrap}>
         <button
           type="button"
           aria-label={`Preview image for ${alt}`}
-          style={thumbButtonStyle}
+          style={styles.button}
           onClick={(event) => event.stopPropagation()}
           onMouseEnter={showHoverPreview ? showPreview : undefined}
           onMouseMove={showHoverPreview ? showPreview : undefined}
@@ -171,7 +184,7 @@ export function ListingThumbnail({
               loading="lazy"
               decoding="async"
               style={{
-                ...thumbImageStyle,
+                ...styles.image,
                 visibility: loaded && !failed ? 'visible' : 'hidden',
               }}
               onLoad={() => {

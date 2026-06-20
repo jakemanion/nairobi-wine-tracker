@@ -74,7 +74,7 @@ type SortCriterion = {
 }
 
 const SORT_FIELD_OPTIONS: Array<{ value: SortFieldKey; label: string }> = [
-  { value: 'winery', label: 'Winery' },
+  { value: 'winery', label: 'Producer' },
   { value: 'wine_name', label: 'Wine name' },
   { value: 'vintage', label: 'Vintage' },
   { value: 'country', label: 'Country' },
@@ -150,6 +150,23 @@ function minListingPrice(wine: Pick<WineRow, 'store_listings'>): number | null {
 function formatValueScore(value: number | null | undefined): string {
   return value != null ? value.toFixed(3) : '-'
 }
+
+function formatListingPrice(value: string | number | null | undefined): string {
+  if (value == null || value === '') return '-'
+  const n = typeof value === 'number' ? value : parseFloat(String(value))
+  if (!Number.isFinite(n)) return String(value)
+  return n.toLocaleString('en-KE', { maximumFractionDigits: 0 })
+}
+
+const producerColumnStyle: CSSProperties = {
+  width: '8%',
+  maxWidth: 120,
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+}
+
+const thumbColumnWidth = 72
 
 function compareEmptyLast(
   aEmpty: boolean,
@@ -465,6 +482,7 @@ const tableStyle: CSSProperties = {
   borderCollapse: 'separate',
   borderSpacing: 0,
   fontSize: 14,
+  tableLayout: 'fixed',
 }
 
 type HeaderProps = {
@@ -475,6 +493,7 @@ type HeaderProps = {
   onSort: (key: SortFieldKey) => void
   userColumn?: boolean
   centered?: boolean
+  className?: string
 }
 
 function sortIndicator(
@@ -499,6 +518,7 @@ function SortableTh({
   onSort,
   userColumn,
   centered,
+  className,
 }: HeaderProps) {
   const isPrimary = primarySort.key === sortKey
   const isSecondary = secondarySort.key === sortKey
@@ -516,7 +536,7 @@ function SortableTh({
 
   return (
     <th
-      className={userColumn ? 'wine-table-user-th' : undefined}
+      className={[className, userColumn ? 'wine-table-user-th' : undefined].filter(Boolean).join(' ') || undefined}
       aria-sort={ariaSort}
       style={{
         textAlign: alignCenter ? 'center' : 'left',
@@ -577,19 +597,25 @@ function WineDataRow({ wine, showDetails, userId, onReviewChange }: WineDataRowP
   return (
     <>
       <tr
-        style={{ borderBottom: '1px solid #eee' }}
         onMouseMove={handleRowMouseMove}
         onMouseLeave={handleRowMouseLeave}
       >
-        <td style={{ width: 36, padding: '4px 6px', verticalAlign: 'middle' }}>
+        <td style={{ width: thumbColumnWidth, padding: '4px 6px', verticalAlign: 'middle' }}>
           <ListingThumbnail
             imageUrl={imageUrl}
             alt={imageAlt}
+            size="large"
             showHoverPreview={false}
             onLoadStateChange={handleLoadStateChange}
           />
         </td>
-      <td>{wine.producer ?? '-'}</td>
+      <td
+        className="wine-table-producer-col"
+        style={producerColumnStyle}
+        title={wine.producer ?? undefined}
+      >
+        {wine.producer ?? '-'}
+      </td>
       <td>{wine.wine_name ?? '-'}</td>
 
       {showDetails && (
@@ -627,9 +653,9 @@ function WineDataRow({ wine, showDetails, userId, onReviewChange }: WineDataRowP
                 href={listing.store_product_url || '#'}
                 target="_blank"
                 rel="noreferrer"
-                style={tableLinkStyle(listing.in_stock ?? false)}
+                style={tableLinkStyle()}
               >
-                {listing.stores?.name}: KES {listing.current_price_ksh ?? '-'}
+                {listing.stores?.name}: {formatListingPrice(listing.current_price_ksh)}
               </a>
             ))}
           </div>
@@ -761,6 +787,13 @@ export function WineTable({ wines: initialWines, userId }: { wines: WineRow[]; u
         .wine-table tbody tr:hover td.wine-table-user-td {
           background: #e4ecf7;
         }
+        .wine-table tbody td {
+          border-bottom: 1px solid #ccc;
+        }
+        .wine-table thead th.wine-table-producer-col {
+          width: 8%;
+          max-width: 120px;
+        }
       `}</style>
       <div style={{ marginTop: 20, display: 'flex', flexDirection: 'column', gap: 10 }}>
         <div
@@ -819,14 +852,15 @@ export function WineTable({ wines: initialWines, userId }: { wines: WineRow[]; u
         <tr>
           <th
             aria-label="Image"
-            style={{ width: 36, borderBottom: '2px solid #ccc' }}
+            style={{ width: thumbColumnWidth, borderBottom: '2px solid #ccc' }}
           />
           <SortableTh
-            label="Winery"
+            label="Producer"
             sortKey="winery"
             primarySort={primarySort}
             secondarySort={secondarySort}
             onSort={onColumnSort}
+            className="wine-table-producer-col"
           />
           <SortableTh
             label="Wine name"
