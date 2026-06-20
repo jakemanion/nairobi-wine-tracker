@@ -5,7 +5,6 @@ import {
   useRef,
   useState,
   type CSSProperties,
-  type MouseEvent as ReactMouseEvent,
   type ReactNode,
 } from 'react'
 import { createPortal } from 'react-dom'
@@ -20,6 +19,11 @@ type EditableReviewWishlistCellProps = {
   onReviewChange: (review: WineReview | null) => void
 }
 
+const ICON_SIZE = 28
+const PANEL_WIDTH = 220
+const PANEL_HEIGHT = 56
+const HOVER_CLOSE_DELAY_MS = 120
+
 const inactiveColor = '#bbb'
 const wantColor = '#0a7'
 const dontWantColor = '#c33'
@@ -27,14 +31,20 @@ const treatColor = '#b8860b'
 const nullActiveColor = '#888'
 const nullInactiveColor = '#ddd'
 
-const PANEL_WIDTH = 148
-const PANEL_HEIGHT = 40
-const HOVER_CLOSE_DELAY_MS = 120
+const rootStyle: CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: 2,
+  width: '100%',
+  height: '100%',
+}
 
 const triggerButtonStyle: CSSProperties = {
   background: 'none',
   border: 'none',
-  padding: '4px 6px',
+  padding: '4px 8px',
   cursor: 'pointer',
   lineHeight: 1,
   display: 'inline-flex',
@@ -48,8 +58,8 @@ const panelShellStyle: CSSProperties = {
   zIndex: 10000,
   display: 'flex',
   alignItems: 'center',
-  gap: 2,
-  padding: '6px 8px',
+  gap: 4,
+  padding: '8px 10px',
   background: '#fff',
   border: '1px solid #ccc',
   borderRadius: 8,
@@ -59,7 +69,7 @@ const panelShellStyle: CSSProperties = {
 const panelOptionStyle: CSSProperties = {
   background: 'none',
   border: 'none',
-  padding: '4px 6px',
+  padding: '6px 8px',
   cursor: 'pointer',
   lineHeight: 1,
   display: 'inline-flex',
@@ -85,9 +95,12 @@ function buildOptimisticReview(
   }
 }
 
-function placePanelAtCursor(clientX: number, clientY: number) {
-  let left = clientX - PANEL_WIDTH / 2
-  let top = clientY - PANEL_HEIGHT / 2
+function placePanelAtCenter(rect: DOMRect) {
+  const centerX = rect.left + rect.width / 2
+  const centerY = rect.top + rect.height / 2
+
+  let left = centerX - PANEL_WIDTH / 2
+  let top = centerY - PANEL_HEIGHT / 2
 
   if (left < 12) left = 12
   if (left + PANEL_WIDTH > window.innerWidth - 12) {
@@ -103,7 +116,7 @@ function placePanelAtCursor(clientX: number, clientY: number) {
 
 function OutlinedStarIcon({ color }: { color: string }) {
   return (
-    <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden>
+    <svg width={ICON_SIZE} height={ICON_SIZE} viewBox="0 0 14 14" aria-hidden>
       <path
         d="M7 1.6 8.6 5.2 12.5 5.6 9.6 8.2 10.5 12 7 10.2 3.5 12 4.4 8.2 1.5 5.6 5.4 5.2Z"
         fill="none"
@@ -117,7 +130,7 @@ function OutlinedStarIcon({ color }: { color: string }) {
 
 function FilledStarIcon({ color }: { color: string }) {
   return (
-    <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden>
+    <svg width={ICON_SIZE} height={ICON_SIZE} viewBox="0 0 14 14" aria-hidden>
       <path
         d="M7 1.6 8.6 5.2 12.5 5.6 9.6 8.2 10.5 12 7 10.2 3.5 12 4.4 8.2 1.5 5.6 5.4 5.2Z"
         fill={color}
@@ -131,7 +144,7 @@ function FilledStarIcon({ color }: { color: string }) {
 
 function TreatStarIcon({ color }: { color: string }) {
   return (
-    <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden>
+    <svg width={ICON_SIZE} height={ICON_SIZE} viewBox="0 0 14 14" aria-hidden>
       <path
         d="M7 1.6 8.6 5.2 12.5 5.6 9.6 8.2 10.5 12 7 10.2 3.5 12 4.4 8.2 1.5 5.6 5.4 5.2Z"
         fill={color}
@@ -171,7 +184,8 @@ const WISHLIST_OPTIONS: Array<{
     render: (selected) => (
       <span
         style={{
-          fontSize: 15,
+          fontSize: ICON_SIZE,
+          lineHeight: 1,
           color: selected ? dontWantColor : inactiveColor,
           fontWeight: selected ? 700 : 400,
         }}
@@ -214,6 +228,7 @@ export function EditableReviewWishlistCell({
   const [panelPosition, setPanelPosition] = useState({ left: 0, top: 0 })
   const [mounted, setMounted] = useState(false)
   const closeTimeoutRef = useRef<number | null>(null)
+  const rootRef = useRef<HTMLDivElement>(null)
   const value = normalizeWishlistValue(review?.wishlist)
   const currentOption = wishlistOption(value)
 
@@ -244,11 +259,14 @@ export function EditableReviewWishlistCell({
     }, HOVER_CLOSE_DELAY_MS)
   }
 
-  function openPanel(event: ReactMouseEvent) {
+  function openPanel() {
     if (saving) return
     cancelClose()
     if (!panelOpen) {
-      setPanelPosition(placePanelAtCursor(event.clientX, event.clientY))
+      const cell = rootRef.current?.closest('td') ?? rootRef.current
+      if (cell) {
+        setPanelPosition(placePanelAtCenter(cell.getBoundingClientRect()))
+      }
     }
     setPanelOpen(true)
   }
@@ -286,7 +304,7 @@ export function EditableReviewWishlistCell({
   }
 
   return (
-    <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+    <div ref={rootRef} style={rootStyle}>
       <button
         type="button"
         aria-label={`${label}: ${currentOption.ariaLabel}`}
