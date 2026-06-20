@@ -1,6 +1,14 @@
 'use client'
 
-import { useState, type CSSProperties, type ReactNode } from 'react'
+import {
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type MouseEvent as ReactMouseEvent,
+  type ReactNode,
+} from 'react'
+import { createPortal } from 'react-dom'
 import type { WineReview } from '@/components/wine-table'
 import { saveReviewWishlistField, type WishlistValue } from '@/lib/reviews'
 
@@ -19,15 +27,45 @@ const treatColor = '#b8860b'
 const nullActiveColor = '#888'
 const nullInactiveColor = '#ddd'
 
-const optionButtonStyle: CSSProperties = {
+const PANEL_WIDTH = 148
+const PANEL_HEIGHT = 40
+const HOVER_CLOSE_DELAY_MS = 120
+
+const triggerButtonStyle: CSSProperties = {
   background: 'none',
   border: 'none',
-  padding: '2px 4px',
+  padding: '4px 6px',
   cursor: 'pointer',
   lineHeight: 1,
   display: 'inline-flex',
   alignItems: 'center',
   justifyContent: 'center',
+  borderRadius: 4,
+}
+
+const panelShellStyle: CSSProperties = {
+  position: 'fixed',
+  zIndex: 10000,
+  display: 'flex',
+  alignItems: 'center',
+  gap: 2,
+  padding: '6px 8px',
+  background: '#fff',
+  border: '1px solid #ccc',
+  borderRadius: 8,
+  boxShadow: '0 6px 24px rgba(0,0,0,0.15)',
+}
+
+const panelOptionStyle: CSSProperties = {
+  background: 'none',
+  border: 'none',
+  padding: '4px 6px',
+  cursor: 'pointer',
+  lineHeight: 1,
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  borderRadius: 4,
 }
 
 function buildOptimisticReview(
@@ -45,6 +83,24 @@ function buildOptimisticReview(
     tasting_notes: review?.tasting_notes ?? null,
     tasted_on: review?.tasted_on ?? null,
   }
+}
+
+function placePanelUnderCursor(clientX: number, clientY: number) {
+  const gap = 10
+  let left = clientX - PANEL_WIDTH / 2
+  let top = clientY + gap
+
+  if (left < 12) left = 12
+  if (left + PANEL_WIDTH > window.innerWidth - 12) {
+    left = window.innerWidth - PANEL_WIDTH - 12
+  }
+
+  if (top + PANEL_HEIGHT > window.innerHeight - 12) {
+    top = clientY - PANEL_HEIGHT - gap
+  }
+  if (top < 12) top = 12
+
+  return { left, top }
 }
 
 function OutlinedStarIcon({ color }: { color: string }) {
@@ -102,25 +158,24 @@ function TreatStarIcon({ color }: { color: string }) {
 const WISHLIST_OPTIONS: Array<{
   value: WishlistValue
   ariaLabel: string
-  activeColor: string
-  render: (active: boolean) => ReactNode
+  render: (selected: boolean) => ReactNode
 }> = [
   {
     value: null,
     ariaLabel: 'not set',
-    activeColor: nullActiveColor,
-    render: (active) => <OutlinedStarIcon color={active ? nullActiveColor : nullInactiveColor} />,
+    render: (selected) => (
+      <OutlinedStarIcon color={selected ? nullActiveColor : nullInactiveColor} />
+    ),
   },
   {
     value: 0,
     ariaLabel: "don't want",
-    activeColor: dontWantColor,
-    render: (active) => (
+    render: (selected) => (
       <span
         style={{
           fontSize: 15,
-          color: active ? dontWantColor : inactiveColor,
-          fontWeight: active ? 700 : 400,
+          color: selected ? dontWantColor : inactiveColor,
+          fontWeight: selected ? 700 : 400,
         }}
       >
         ✗
@@ -130,16 +185,23 @@ const WISHLIST_OPTIONS: Array<{
   {
     value: 1,
     ariaLabel: 'want',
-    activeColor: wantColor,
-    render: (active) => <FilledStarIcon color={active ? wantColor : inactiveColor} />,
+    render: (selected) => <FilledStarIcon color={selected ? wantColor : inactiveColor} />,
   },
   {
     value: 2,
     ariaLabel: 'want as an expensive treat',
-    activeColor: treatColor,
-    render: (active) => <TreatStarIcon color={active ? treatColor : inactiveColor} />,
+    render: (selected) => <TreatStarIcon color={selected ? treatColor : inactiveColor} />,
   },
 ]
+
+function normalizeWishlistValue(value: number | null | undefined): WishlistValue {
+  if (value === 0 || value === 1 || value === 2) return value
+  return null
+}
+
+function wishlistOption(value: number | null | undefined) {
+  return WISHLIST_OPTIONS.find((option) => option.value === normalizeWishlistValue(value)) ?? WISHLIST_OPTIONS[0]
+}
 
 export function EditableReviewWishlistCell({
   label,
@@ -150,10 +212,56 @@ export function EditableReviewWishlistCell({
 }: EditableReviewWishlistCellProps) {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const value = review?.wishlist ?? null
+  const [panelOpen, setPanelOpen] = useState(false)
+  const [panelPosition, setPanelPosition] = useState({ left: 0, top: 0 })
+  const [mounted, setMounted] = useState(false)
+  const closeTimeoutRef = useRef<number | null>(null)
+  const value = normalizeWishlistValue(review?.wishlist)
+  const currentOption = wishlistOption(value)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    return () => {
+      if (closeTimeoutRef.current != null) {
+        window.clearTimeout(closeTimeoutRef.current)
+      }
+    }
+  }, [])
+
+  function cancelClose() {
+    if (closeTimeoutRef.current != null) {
+      window.clearTimeout(closeTimeoutRef.current)
+      closeTimeoutRef.current = null
+    }
+  }
+
+  function scheduleClose() {
+    cancelClose()
+    closeTimeoutRef.current = window.setTimeout(() => {
+      setPanelOpen(false)
+      closeTimeoutRef.current = null
+    }, HOVER_CLOSE_DELAY_MS)
+  }
+
+  function updatePanelPosition(event: ReactMouseEvent) {
+    setPanelPosition(placePanelUnderCursor(event.clientX, event.clientY))
+  }
+
+  function openPanel(event: ReactMouseEvent) {
+    if (saving) return
+    cancelClose()
+    setPanelOpen(true)
+    updatePanelPosition(event)
+  }
 
   async function setValue(next: WishlistValue) {
-    if (saving || value === next) return
+    if (saving || value === next) {
+      setPanelOpen(false)
+      return
+    }
 
     const previousReview = review ?? null
     const optimisticReview = buildOptimisticReview(review, next)
@@ -161,6 +269,7 @@ export function EditableReviewWishlistCell({
     setSaving(true)
     setError(null)
     onReviewChange(optimisticReview)
+    setPanelOpen(false)
 
     const result = await saveReviewWishlistField({
       userId,
@@ -182,36 +291,59 @@ export function EditableReviewWishlistCell({
 
   return (
     <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-      <div
-        role="group"
-        aria-label={label}
+      <button
+        type="button"
+        aria-label={`${label}: ${currentOption.ariaLabel}`}
+        aria-haspopup="true"
+        aria-expanded={panelOpen}
+        disabled={saving}
         style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: 1,
+          ...triggerButtonStyle,
           opacity: saving ? 0.5 : 1,
+          cursor: saving ? 'wait' : 'pointer',
         }}
+        onMouseEnter={openPanel}
+        onMouseMove={updatePanelPosition}
+        onMouseLeave={scheduleClose}
       >
-        {WISHLIST_OPTIONS.map((option) => {
-          const active = value === option.value
-          return (
-            <button
-              key={option.ariaLabel}
-              type="button"
-              style={{
-                ...optionButtonStyle,
-                cursor: saving ? 'wait' : 'pointer',
-              }}
-              disabled={saving}
-              aria-label={`${label}: ${option.ariaLabel}`}
-              aria-pressed={active}
-              onClick={() => setValue(option.value)}
+        {currentOption.render(true)}
+      </button>
+
+      {mounted && panelOpen
+        ? createPortal(
+            <div
+              role="menu"
+              aria-label={`${label} options`}
+              style={{ ...panelShellStyle, left: panelPosition.left, top: panelPosition.top }}
+              onMouseEnter={cancelClose}
+              onMouseLeave={scheduleClose}
             >
-              {option.render(active)}
-            </button>
+              {WISHLIST_OPTIONS.map((option) => {
+                const selected = value === option.value
+                return (
+                  <button
+                    key={option.ariaLabel}
+                    type="button"
+                    role="menuitemradio"
+                    aria-checked={selected}
+                    aria-label={option.ariaLabel}
+                    disabled={saving}
+                    style={{
+                      ...panelOptionStyle,
+                      background: selected ? '#f0f4f8' : 'transparent',
+                      cursor: saving ? 'wait' : 'pointer',
+                    }}
+                    onClick={() => void setValue(option.value)}
+                  >
+                    {option.render(selected)}
+                  </button>
+                )
+              })}
+            </div>,
+            document.body,
           )
-        })}
-      </div>
+        : null}
+
       {error && (
         <span style={{ color: '#c33', fontSize: 10, maxWidth: 110, lineHeight: 1.2 }}>
           {error}
