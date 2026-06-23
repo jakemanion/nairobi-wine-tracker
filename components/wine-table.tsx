@@ -711,15 +711,6 @@ function WineDataRow({ wine, showDetails, userId, onReviewChange }: WineDataRowP
       </td>
 
       <UserTd>
-        <EditableReviewRatingCell
-          label="My rating"
-          wineId={String(wine.id)}
-          userId={userId}
-          review={wine.review}
-          onReviewChange={onReviewChange}
-        />
-      </UserTd>
-      <UserTd>
         <EditableReviewWishlistCell
           label="Wishlist"
           wineId={String(wine.id)}
@@ -731,6 +722,15 @@ function WineDataRow({ wine, showDetails, userId, onReviewChange }: WineDataRowP
       <UserTd>
         <EditableReviewTriedStatusCell
           label="Tried"
+          wineId={String(wine.id)}
+          userId={userId}
+          review={wine.review}
+          onReviewChange={onReviewChange}
+        />
+      </UserTd>
+      <UserTd>
+        <EditableReviewRatingCell
+          label="My rating"
           wineId={String(wine.id)}
           userId={userId}
           review={wine.review}
@@ -954,14 +954,6 @@ export function WineTable({ wines: initialWines, userId }: { wines: WineRow[]; u
             onSort={onColumnSort}
           />
           <SortableTh
-            label="My rating"
-            sortKey="my_rating"
-            primarySort={primarySort}
-            secondarySort={secondarySort}
-            onSort={onColumnSort}
-            userColumn
-          />
-          <SortableTh
             label="Wishlist"
             sortKey="wishlist"
             primarySort={primarySort}
@@ -972,6 +964,14 @@ export function WineTable({ wines: initialWines, userId }: { wines: WineRow[]; u
           <SortableTh
             label="Tried"
             sortKey="tried_status"
+            primarySort={primarySort}
+            secondarySort={secondarySort}
+            onSort={onColumnSort}
+            userColumn
+          />
+          <SortableTh
+            label="My rating"
+            sortKey="my_rating"
             primarySort={primarySort}
             secondarySort={secondarySort}
             onSort={onColumnSort}
