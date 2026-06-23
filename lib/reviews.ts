@@ -3,15 +3,23 @@ import type { WineReview } from '@/components/wine-table'
 
 export type WishlistValue = 0 | 1 | 2 | 3 | null
 
+export type TriedStatusValue = 0 | 1 | 2 | null
+
 export type ReviewBoolField = 'want_to_try' | 'tried' | 'would_buy_again'
 
-export type ReviewEditableField = ReviewBoolField | 'overall_score' | 'tasting_notes' | 'wishlist'
+export type ReviewEditableField =
+  | ReviewBoolField
+  | 'overall_score'
+  | 'tasting_notes'
+  | 'wishlist'
+  | 'tried_status'
 
 const reviewSelect = `
   id,
   overall_score,
   value_score,
   wishlist,
+  tried_status,
   want_to_try,
   tried,
   would_buy_again,
@@ -88,6 +96,28 @@ export async function saveReviewWishlistField({
     wineId,
     reviewId,
     field: 'wishlist',
+    value,
+  })
+}
+
+type SaveReviewTriedStatusArgs = {
+  userId: string
+  wineId: string
+  reviewId?: string | null
+  value: TriedStatusValue
+}
+
+export async function saveReviewTriedStatusField({
+  userId,
+  wineId,
+  reviewId,
+  value,
+}: SaveReviewTriedStatusArgs): Promise<SaveReviewFieldResult> {
+  return saveReviewField({
+    userId,
+    wineId,
+    reviewId,
+    field: 'tried_status',
     value,
   })
 }

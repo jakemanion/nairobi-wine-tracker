@@ -9,9 +9,9 @@ import {
 } from 'react'
 import { createPortal } from 'react-dom'
 import type { WineReview } from '@/components/wine-table'
-import { saveReviewWishlistField, type WishlistValue } from '@/lib/reviews'
+import { saveReviewTriedStatusField, type TriedStatusValue } from '@/lib/reviews'
 
-type EditableReviewWishlistCellProps = {
+type EditableReviewTriedStatusCellProps = {
   label: string
   wineId: string
   userId: string
@@ -21,15 +21,14 @@ type EditableReviewWishlistCellProps = {
 
 const CELL_ICON_SIZE = 28
 const PANEL_ICON_SIZE = 16
-const PANEL_WIDTH = 118
+const PANEL_WIDTH = 94
 const PANEL_HEIGHT = 52
 const HOVER_CLOSE_DELAY_MS = 120
 
 const inactiveColor = '#bbb'
-const wantColor = '#0a7'
-const dontWantColor = '#c33'
-const silverTreatColor = '#b0b0b0'
-const goldTreatColor = '#b8860b'
+const triedColor = '#555'
+const buyAgainColor = '#0a7'
+const dontBuyAgainColor = '#c33'
 const nullStarColor = '#d0d0d0'
 
 const rootStyle: CSSProperties = {
@@ -98,15 +97,15 @@ const panelTooltipStyle: CSSProperties = {
 
 function buildOptimisticReview(
   review: WineReview | null | undefined,
-  wishlist: WishlistValue,
+  tried_status: TriedStatusValue,
 ): WineReview {
   return {
     id: review?.id ?? 'pending',
     overall_score: review?.overall_score ?? null,
     value_score: review?.value_score ?? null,
-    wishlist,
+    wishlist: review?.wishlist ?? null,
     want_to_try: review?.want_to_try ?? null,
-    tried_status: review?.tried_status ?? null,
+    tried_status,
     tasting_notes: review?.tasting_notes ?? null,
     tasted_on: review?.tasted_on ?? null,
   }
@@ -145,54 +144,38 @@ function OutlinedStarIcon({ color, size = CELL_ICON_SIZE }: { color: string; siz
   )
 }
 
-function FilledStarIcon({ color, size = CELL_ICON_SIZE }: { color: string; size?: number }) {
+function TickIcon({ color, size = CELL_ICON_SIZE }: { color: string; size?: number }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 14 14" aria-hidden>
-      <path
-        d="M7 1.6 8.6 5.2 12.5 5.6 9.6 8.2 10.5 12 7 10.2 3.5 12 4.4 8.2 1.5 5.6 5.4 5.2Z"
-        fill={color}
-        stroke={color}
-        strokeWidth="0.6"
-        strokeLinejoin="round"
-      />
-    </svg>
+    <span
+      style={{
+        fontSize: size,
+        lineHeight: 1,
+        color,
+        fontWeight: 700,
+      }}
+    >
+      ✓
+    </span>
   )
 }
 
-function DollarStarIcon({
-  starColor,
-  dollarColor,
-  size = CELL_ICON_SIZE,
-}: {
-  starColor: string
-  dollarColor: string
-  size?: number
-}) {
+function CrossIcon({ color, size = CELL_ICON_SIZE }: { color: string; size?: number }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 14 14" aria-hidden>
-      <path
-        d="M7 1.6 8.6 5.2 12.5 5.6 9.6 8.2 10.5 12 7 10.2 3.5 12 4.4 8.2 1.5 5.6 5.4 5.2Z"
-        fill={starColor}
-        stroke={starColor}
-        strokeWidth="0.6"
-        strokeLinejoin="round"
-      />
-      <text
-        x="7"
-        y="9.2"
-        textAnchor="middle"
-        fontSize="5.5"
-        fontWeight="700"
-        fill={dollarColor}
-      >
-        $
-      </text>
-    </svg>
+    <span
+      style={{
+        fontSize: size,
+        lineHeight: 1,
+        color,
+        fontWeight: 700,
+      }}
+    >
+      ✗
+    </span>
   )
 }
 
-function renderWishlistIcon(
-  value: WishlistValue,
+function renderTriedStatusIcon(
+  value: TriedStatusValue,
   active = true,
   size = CELL_ICON_SIZE,
 ): ReactNode {
@@ -200,79 +183,56 @@ function renderWishlistIcon(
     case null:
       return <OutlinedStarIcon color={active ? nullStarColor : '#e8e8e8'} size={size} />
     case 0:
-      return (
-        <span
-          style={{
-            fontSize: size,
-            lineHeight: 1,
-            color: active ? dontWantColor : inactiveColor,
-            fontWeight: active ? 700 : 400,
-          }}
-        >
-          ✗
-        </span>
-      )
+      return <TickIcon color={active ? triedColor : inactiveColor} size={size} />
     case 1:
-      return <FilledStarIcon color={active ? wantColor : inactiveColor} size={size} />
+      return <TickIcon color={active ? buyAgainColor : inactiveColor} size={size} />
     case 2:
-      return (
-        <DollarStarIcon
-          starColor={active ? silverTreatColor : inactiveColor}
-          dollarColor={active ? '#4a4a4a' : '#888'}
-          size={size}
-        />
-      )
-    case 3:
-      return (
-        <DollarStarIcon
-          starColor={active ? goldTreatColor : inactiveColor}
-          dollarColor="#fff"
-          size={size}
-        />
-      )
+      return <CrossIcon color={active ? dontBuyAgainColor : inactiveColor} size={size} />
     default:
       return null
   }
 }
 
-const WISHLIST_OPTIONS: Array<{
-  value: WishlistValue
+const TRIED_STATUS_OPTIONS: Array<{
+  value: TriedStatusValue
   ariaLabel: string
   tooltip: string
 }> = [
   { value: null, ariaLabel: 'not set', tooltip: 'Not set' },
-  { value: 0, ariaLabel: "don't want", tooltip: "Don't want" },
-  { value: 1, ariaLabel: 'want', tooltip: 'Want' },
-  { value: 2, ariaLabel: 'expensive treat', tooltip: 'Expensive treat' },
-  { value: 3, ariaLabel: 'very expensive treat', tooltip: 'Very expensive treat' },
+  { value: 0, ariaLabel: 'tried', tooltip: 'Tried' },
+  { value: 1, ariaLabel: 'tried buy again', tooltip: 'Buy again' },
+  { value: 2, ariaLabel: 'tried dont buy again', tooltip: "Don't buy again" },
 ]
 
-function normalizeWishlistValue(value: number | null | undefined): WishlistValue {
-  if (value === 0 || value === 1 || value === 2 || value === 3) return value
+function normalizeTriedStatusValue(value: number | null | undefined): TriedStatusValue {
+  if (value === 0 || value === 1 || value === 2) return value
   return null
 }
 
-function wishlistOption(value: number | null | undefined) {
-  return WISHLIST_OPTIONS.find((option) => option.value === normalizeWishlistValue(value)) ?? WISHLIST_OPTIONS[0]
+function triedStatusOption(value: number | null | undefined) {
+  return (
+    TRIED_STATUS_OPTIONS.find((option) => option.value === normalizeTriedStatusValue(value)) ??
+    TRIED_STATUS_OPTIONS[0]
+  )
 }
 
-export function EditableReviewWishlistCell({
+export function EditableReviewTriedStatusCell({
   label,
   wineId,
   userId,
   review,
   onReviewChange,
-}: EditableReviewWishlistCellProps) {
+}: EditableReviewTriedStatusCellProps) {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [panelOpen, setPanelOpen] = useState(false)
   const [panelPosition, setPanelPosition] = useState({ left: 0, top: 0 })
-  const [hoveredOption, setHoveredOption] = useState<WishlistValue | 'none'>('none')
+  const [hoveredOption, setHoveredOption] = useState<TriedStatusValue | 'none'>('none')
   const [mounted, setMounted] = useState(false)
   const closeTimeoutRef = useRef<number | null>(null)
   const rootRef = useRef<HTMLDivElement>(null)
-  const value = normalizeWishlistValue(review?.wishlist)
-  const currentOption = wishlistOption(value)
+  const value = normalizeTriedStatusValue(review?.tried_status)
+  const currentOption = triedStatusOption(value)
 
   useEffect(() => {
     setMounted(true)
@@ -314,7 +274,7 @@ export function EditableReviewWishlistCell({
     setPanelOpen(true)
   }
 
-  async function setValue(next: WishlistValue) {
+  async function setValue(next: TriedStatusValue) {
     if (saving || value === next) {
       setPanelOpen(false)
       return
@@ -328,7 +288,7 @@ export function EditableReviewWishlistCell({
     onReviewChange(optimisticReview)
     setPanelOpen(false)
 
-    const result = await saveReviewWishlistField({
+    const result = await saveReviewTriedStatusField({
       userId,
       wineId,
       reviewId: review?.id,
@@ -339,7 +299,7 @@ export function EditableReviewWishlistCell({
 
     if (result.error || !result.review) {
       onReviewChange(previousReview)
-      setError(result.error ?? 'Failed to save wishlist.')
+      setError(result.error ?? 'Failed to save tried status.')
       return
     }
 
@@ -362,7 +322,7 @@ export function EditableReviewWishlistCell({
         onMouseEnter={openPanel}
         onMouseLeave={scheduleClose}
       >
-        {renderWishlistIcon(value, true)}
+        {renderTriedStatusIcon(value, true)}
       </button>
 
       {mounted && panelOpen
@@ -375,7 +335,7 @@ export function EditableReviewWishlistCell({
               onMouseLeave={scheduleClose}
             >
               <div style={panelIconRowStyle}>
-                {WISHLIST_OPTIONS.map((option) => {
+                {TRIED_STATUS_OPTIONS.map((option) => {
                   const selected = value === option.value
                   return (
                     <button
@@ -394,7 +354,7 @@ export function EditableReviewWishlistCell({
                       onMouseEnter={() => setHoveredOption(option.value)}
                       onClick={() => void setValue(option.value)}
                     >
-                      {renderWishlistIcon(option.value, true, PANEL_ICON_SIZE)}
+                      {renderTriedStatusIcon(option.value, true, PANEL_ICON_SIZE)}
                     </button>
                   )
                 })}
@@ -402,7 +362,7 @@ export function EditableReviewWishlistCell({
               <span style={panelTooltipStyle} aria-live="polite">
                 {hoveredOption === 'none'
                   ? '\u00a0'
-                  : wishlistOption(hoveredOption).tooltip}
+                  : triedStatusOption(hoveredOption).tooltip}
               </span>
             </div>,
             document.body,
