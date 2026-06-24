@@ -8,8 +8,21 @@ import {
   firstListingImageUrl,
   ListingThumbnail,
 } from '@/components/listing-thumbnail'
+import {
+  WineFilterPanel,
+  type SortCriterion,
+  type SortDir,
+  type SortFieldKey,
+} from '@/components/wine-filter-panel'
 import { minWinePriceKES, withComputedValueScore } from '@/lib/calculate-value-score'
 import { formatWineLabel } from '@/lib/wines'
+import {
+  collectFilterOptions,
+  countActiveFilters,
+  EMPTY_WINE_FILTERS,
+  filterWines,
+  type WineFilters,
+} from '@/lib/wine-filters'
 export type WineReview = {
   id: string
   overall_score: number | null
@@ -47,53 +60,6 @@ export type WineRow = {
 }
 
 type DisplayWineRow = WineRow & { valueScore: number | null }
-
-type SortFieldKey =
-  | 'winery'
-  | 'wine_name'
-  | 'vintage'
-  | 'country'
-  | 'region'
-  | 'grapes'
-  | 'style'
-  | 'vivino_rating'
-  | 'value_score'
-  | 'store_prices'
-  | 'my_rating'
-  | 'wishlist'
-  | 'tried_status'
-  | 'notes'
-
-type SortFieldOption = SortFieldKey | 'none'
-
-type SortDir = 'asc' | 'desc'
-
-type SortCriterion = {
-  key: SortFieldOption
-  dir: SortDir
-}
-
-const SORT_FIELD_OPTIONS: Array<{ value: SortFieldKey; label: string }> = [
-  { value: 'winery', label: 'Producer' },
-  { value: 'wine_name', label: 'Wine name' },
-  { value: 'vintage', label: 'Vintage' },
-  { value: 'country', label: 'Country' },
-  { value: 'region', label: 'Region' },
-  { value: 'grapes', label: 'Grapes' },
-  { value: 'style', label: 'Style' },
-  { value: 'vivino_rating', label: 'Vivino rating' },
-  { value: 'value_score', label: 'Value score' },
-  { value: 'store_prices', label: 'Store price' },
-  { value: 'my_rating', label: 'My rating' },
-  { value: 'wishlist', label: 'Wishlist' },
-  { value: 'tried_status', label: 'Tried' },
-  { value: 'notes', label: 'Notes' },
-]
-
-const SORT_DIR_OPTIONS: Array<{ value: SortDir; label: string }> = [
-  { value: 'asc', label: 'Ascending' },
-  { value: 'desc', label: 'Descending' },
-]
 
 function defaultSortDir(key: SortFieldKey): SortDir {
   switch (key) {
@@ -355,110 +321,6 @@ function sortWines(rows: DisplayWineRow[], primary: SortCriterion, secondary: So
 
     return 0
   })
-}
-
-const controlSelectStyle: CSSProperties = {
-  fontSize: 14,
-  padding: '4px 8px',
-  borderRadius: 4,
-  border: '1px solid #ccc',
-  background: '#fff',
-}
-
-function SortControls({
-  primarySort,
-  secondarySort,
-  onPrimaryChange,
-  onSecondaryChange,
-}: {
-  primarySort: SortCriterion
-  secondarySort: SortCriterion
-  onPrimaryChange: (next: SortCriterion) => void
-  onSecondaryChange: (next: SortCriterion) => void
-}) {
-  return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 8,
-        flexWrap: 'wrap',
-        fontSize: 14,
-      }}
-    >
-      <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-        <span>Sort by</span>
-        <select
-          aria-label="Primary sort field"
-          value={primarySort.key}
-          style={controlSelectStyle}
-          onChange={(event) => {
-            const key = event.target.value as SortFieldKey
-            onPrimaryChange({ key, dir: defaultSortDir(key) })
-          }}
-        >
-          {SORT_FIELD_OPTIONS.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-        <select
-          aria-label="Primary sort direction"
-          value={primarySort.dir}
-          style={controlSelectStyle}
-          disabled={primarySort.key === 'none'}
-          onChange={(event) =>
-            onPrimaryChange({ ...primarySort, dir: event.target.value as SortDir })
-          }
-        >
-          {SORT_DIR_OPTIONS.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-      </label>
-      <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-        <span>then by</span>
-        <select
-          aria-label="Secondary sort field"
-          value={secondarySort.key}
-          style={controlSelectStyle}
-          onChange={(event) => {
-            const key = event.target.value as SortFieldOption
-            if (key === 'none') {
-              onSecondaryChange({ key: 'none', dir: 'asc' })
-              return
-            }
-            onSecondaryChange({ key, dir: defaultSortDir(key) })
-          }}
-        >
-          <option value="none">None</option>
-          {SORT_FIELD_OPTIONS.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-        <select
-          aria-label="Secondary sort direction"
-          value={secondarySort.dir}
-          style={controlSelectStyle}
-          disabled={secondarySort.key === 'none'}
-          onChange={(event) =>
-            onSecondaryChange({ ...secondarySort, dir: event.target.value as SortDir })
-          }
-        >
-          {SORT_DIR_OPTIONS.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-      </label>
-    </div>
-  )
 }
 
 const thButton: CSSProperties = {
@@ -774,6 +636,13 @@ export function WineTable({ wines: initialWines, userId }: { wines: WineRow[]; u
   const [primarySort, setPrimarySort] = useState<SortCriterion>({ key: 'winery', dir: 'asc' })
   const [secondarySort, setSecondarySort] = useState<SortCriterion>({ key: 'none', dir: 'asc' })
   const [showDetails, setShowDetails] = useState(true)
+  const [filters, setFilters] = useState<WineFilters>(EMPTY_WINE_FILTERS)
+  const [panelExpanded, setPanelExpanded] = useState(false)
+
+  const filterOptions = useMemo(() => collectFilterOptions(wines), [wines])
+  const activeFilterCount = useMemo(() => countActiveFilters(filters), [filters])
+
+  const filtered = useMemo(() => filterWines(wines, filters), [wines, filters])
 
   const onColumnSort = (key: SortFieldKey) => {
     if (primarySort.key === key) {
@@ -787,8 +656,8 @@ export function WineTable({ wines: initialWines, userId }: { wines: WineRow[]; u
   }
 
   const sorted = useMemo(
-    () => sortWines(wines, primarySort, secondarySort),
-    [wines, primarySort, secondarySort],
+    () => sortWines(filtered, primarySort, secondarySort),
+    [filtered, primarySort, secondarySort],
   )
 
   const ratingThenPriceActive =
@@ -843,7 +712,14 @@ export function WineTable({ wines: initialWines, userId }: { wines: WineRow[]; u
           }}
         >
           <p style={{ margin: 0, color: '#555', fontSize: 14 }}>
-            Showing <strong>{sorted.length}</strong> {sorted.length === 1 ? 'wine' : 'wines'}
+            Showing <strong>{sorted.length}</strong>{' '}
+            {sorted.length === 1 ? 'wine' : 'wines'}
+            {sorted.length !== wines.length ? (
+              <>
+                {' '}
+                of <strong>{wines.length}</strong>
+              </>
+            ) : null}
           </p>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
             <button
@@ -858,29 +734,24 @@ export function WineTable({ wines: initialWines, userId }: { wines: WineRow[]; u
             >
               show/hide details
             </button>
-            <button
-              type="button"
-              onClick={() => {
-                setPrimarySort({ key: 'vivino_rating', dir: 'desc' })
-                setSecondarySort({ key: 'store_prices', dir: 'asc' })
-              }}
-              aria-pressed={ratingThenPriceActive}
-              style={{
-                padding: '6px 12px',
-                fontSize: 14,
-                cursor: 'pointer',
-                fontWeight: ratingThenPriceActive ? 600 : 400,
-              }}
-            >
-              Sort: rating → price
-            </button>
           </div>
         </div>
-        <SortControls
+        <WineFilterPanel
+          expanded={panelExpanded}
+          onExpandedChange={setPanelExpanded}
+          filters={filters}
+          onFiltersChange={setFilters}
+          filterOptions={filterOptions}
+          activeFilterCount={activeFilterCount}
           primarySort={primarySort}
           secondarySort={secondarySort}
-          onPrimaryChange={setPrimarySort}
-          onSecondaryChange={setSecondarySort}
+          onPrimarySortChange={setPrimarySort}
+          onSecondarySortChange={setSecondarySort}
+          ratingThenPriceActive={ratingThenPriceActive}
+          onApplyRatingThenPrice={() => {
+            setPrimarySort({ key: 'vivino_rating', dir: 'desc' })
+            setSecondarySort({ key: 'store_prices', dir: 'asc' })
+          }}
         />
       </div>
       <div style={tableScrollStyle}>

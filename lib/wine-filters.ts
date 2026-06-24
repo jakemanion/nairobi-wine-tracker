@@ -1,0 +1,157 @@
+import { minWinePriceKES } from '@/lib/calculate-value-score'
+import { formatGrapeVarieties } from '@/lib/grape-varieties'
+import type { WineRow } from '@/components/wine-table'
+
+export type WishlistFilterValue = 'unset' | 0 | 1 | 2 | 3
+export type TriedStatusFilterValue = 'unset' | 0 | 1 | 2
+
+export type WineFilters = {
+  priceMin: string
+  priceMax: string
+  vivinoMin: string
+  vivinoMax: string
+  wishlist: WishlistFilterValue[]
+  triedStatus: TriedStatusFilterValue[]
+  stores: string[]
+  grapes: string
+  producer: string
+  country: string
+  region: string
+}
+
+export const EMPTY_WINE_FILTERS: WineFilters = {
+  priceMin: '',
+  priceMax: '',
+  vivinoMin: '',
+  vivinoMax: '',
+  wishlist: [],
+  triedStatus: [],
+  stores: [],
+  grapes: '',
+  producer: '',
+  country: '',
+  region: '',
+}
+
+function parseBound(raw: string): number | null {
+  const trimmed = raw.trim()
+  if (!trimmed) return null
+  const n = parseFloat(trimmed)
+  return Number.isFinite(n) ? n : null
+}
+
+function ratingNum(v: unknown): number | null {
+  if (v == null || v === '') return null
+  if (typeof v === 'number' && Number.isFinite(v)) return v
+  const n = parseFloat(String(v))
+  return Number.isFinite(n) ? n : null
+}
+
+function normalizeWishlist(value: number | null | undefined): WishlistFilterValue {
+  if (value === 0 || value === 1 || value === 2 || value === 3) return value
+  return 'unset'
+}
+
+function normalizeTriedStatus(value: number | null | undefined): TriedStatusFilterValue {
+  if (value === 0 || value === 1 || value === 2) return value
+  return 'unset'
+}
+
+export function collectFilterOptions(wines: WineRow[]) {
+  const stores = new Set<string>()
+  const producers = new Set<string>()
+  const countries = new Set<string>()
+  const regions = new Set<string>()
+
+  for (const wine of wines) {
+    const producer = wine.producer?.trim()
+    if (producer) producers.add(producer)
+
+    const country = wine.country?.trim()
+    if (country) countries.add(country)
+
+    const region = wine.region?.trim()
+    if (region) regions.add(region)
+
+    for (const listing of wine.store_listings ?? []) {
+      const name = listing.stores?.name?.trim()
+      if (name) stores.add(name)
+    }
+  }
+
+  const sortAlpha = (a: string, b: string) => a.localeCompare(b, undefined, { sensitivity: 'base' })
+
+  return {
+    stores: [...stores].sort(sortAlpha),
+    producers: [...producers].sort(sortAlpha),
+    countries: [...countries].sort(sortAlpha),
+    regions: [...regions].sort(sortAlpha),
+  }
+}
+
+export function countActiveFilters(filters: WineFilters): number {
+  let count = 0
+  if (filters.priceMin.trim()) count += 1
+  if (filters.priceMax.trim()) count += 1
+  if (filters.vivinoMin.trim()) count += 1
+  if (filters.vivinoMax.trim()) count += 1
+  if (filters.wishlist.length > 0) count += 1
+  if (filters.triedStatus.length > 0) count += 1
+  if (filters.stores.length > 0) count += 1
+  if (filters.grapes.trim()) count += 1
+  if (filters.producer.trim()) count += 1
+  if (filters.country.trim()) count += 1
+  if (filters.region.trim()) count += 1
+  return count
+}
+
+export function filterWines<T extends WineRow>(wines: T[], filters: WineFilters): T[] {
+  const priceMin = parseBound(filters.priceMin)
+  const priceMax = parseBound(filters.priceMax)
+  const vivinoMin = parseBound(filters.vivinoMin)
+  const vivinoMax = parseBound(filters.vivinoMax)
+  const grapesQuery = filters.grapes.trim().toLowerCase()
+  const producerFilter = filters.producer.trim()
+  const countryFilter = filters.country.trim()
+  const regionFilter = filters.region.trim()
+
+  return wines.filter((wine) => {
+    const price = minWinePriceKES(wine.store_listings)
+    if (priceMin != null && (price == null || price < priceMin)) return false
+    if (priceMax != null && (price == null || price > priceMax)) return false
+
+    const vivino = ratingNum(wine.vivino_rating)
+    if (vivinoMin != null && (vivino == null || vivino < vivinoMin)) return false
+    if (vivinoMax != null && (vivino == null || vivino > vivinoMax)) return false
+
+    if (filters.wishlist.length > 0) {
+      const wishlist = normalizeWishlist(wine.review?.wishlist)
+      if (!filters.wishlist.includes(wishlist)) return false
+    }
+
+    if (filters.triedStatus.length > 0) {
+      const tried = normalizeTriedStatus(wine.review?.tried_status)
+      if (!filters.triedStatus.includes(tried)) return false
+    }
+
+    if (filters.stores.length > 0) {
+      const wineStores = new Set(
+        (wine.store_listings ?? [])
+          .map((listing) => listing.stores?.name?.trim())
+          .filter(Boolean) as string[],
+      )
+      if (!filters.stores.some((store) => wineStores.has(store))) return false
+    }
+
+    if (grapesQuery) {
+      const grapes = formatGrapeVarieties(wine.grape_varieties).toLowerCase()
+      if (!grapes.includes(grapesQuery)) return false
+    }
+
+    if (producerFilter && (wine.producer?.trim() ?? '') !== producerFilter) return false
+    if (countryFilter && (wine.country?.trim() ?? '') !== countryFilter) return false
+    if (regionFilter && (wine.region?.trim() ?? '') !== regionFilter) return false
+
+    return true
+  })
+}
