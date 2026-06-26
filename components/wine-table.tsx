@@ -23,6 +23,7 @@ import {
   filterWines,
   type WineFilters,
 } from '@/lib/wine-filters'
+import { createWineSearchIndex, normalizeSearchText } from '@/lib/wine-search'
 export type WineReview = {
   id: string
   overall_score: number | null
@@ -361,6 +362,18 @@ const tableScrollStyle: CSSProperties = {
   marginTop: 8,
 }
 
+const searchInputStyle: CSSProperties = {
+  fontSize: 14,
+  padding: '8px 10px',
+  borderRadius: 6,
+  border: '1px solid #ccc',
+  background: '#fff',
+  minWidth: 220,
+  flex: '1 1 240px',
+  maxWidth: 420,
+  boxSizing: 'border-box',
+}
+
 const tableStyle: CSSProperties = {
   width: '100%',
   borderCollapse: 'separate',
@@ -638,11 +651,23 @@ export function WineTable({ wines: initialWines, userId }: { wines: WineRow[]; u
   const [showDetails, setShowDetails] = useState(true)
   const [filters, setFilters] = useState<WineFilters>(EMPTY_WINE_FILTERS)
   const [panelExpanded, setPanelExpanded] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
 
   const filterOptions = useMemo(() => collectFilterOptions(wines), [wines])
   const activeFilterCount = useMemo(() => countActiveFilters(filters), [filters])
 
   const filtered = useMemo(() => filterWines(wines, filters), [wines, filters])
+  const searchIndex = useMemo(() => createWineSearchIndex(filtered), [filtered])
+
+  const searched = useMemo(() => {
+    const trimmed = searchQuery.trim()
+    if (!trimmed) return filtered
+
+    const normalizedQuery = normalizeSearchText(trimmed)
+    if (!normalizedQuery) return filtered
+
+    return searchIndex.search(normalizedQuery).map((result) => result.item.wine)
+  }, [filtered, searchIndex, searchQuery])
 
   const onColumnSort = (key: SortFieldKey) => {
     if (primarySort.key === key) {
@@ -656,9 +681,12 @@ export function WineTable({ wines: initialWines, userId }: { wines: WineRow[]; u
   }
 
   const sorted = useMemo(
-    () => sortWines(filtered, primarySort, secondarySort),
-    [filtered, primarySort, secondarySort],
+    () => sortWines(searched, primarySort, secondarySort),
+    [searched, primarySort, secondarySort],
   )
+
+  const searchActive = searchQuery.trim().length > 0
+  const listConstrained = sorted.length !== wines.length
 
   const ratingThenPriceActive =
     primarySort.key === 'vivino_rating' &&
@@ -706,6 +734,36 @@ export function WineTable({ wines: initialWines, userId }: { wines: WineRow[]; u
           style={{
             display: 'flex',
             alignItems: 'center',
+            gap: 8,
+            flexWrap: 'wrap',
+          }}
+        >
+          <input
+            type="search"
+            value={searchQuery}
+            placeholder="Search producer or wine name…"
+            aria-label="Search producer or wine name"
+            style={searchInputStyle}
+            onChange={(event) => setSearchQuery(event.target.value)}
+          />
+          {searchActive ? (
+            <button
+              type="button"
+              onClick={() => setSearchQuery('')}
+              style={{
+                padding: '6px 12px',
+                fontSize: 14,
+                cursor: 'pointer',
+              }}
+            >
+              Clear search
+            </button>
+          ) : null}
+        </div>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
             justifyContent: 'space-between',
             gap: 12,
             flexWrap: 'wrap',
@@ -714,10 +772,16 @@ export function WineTable({ wines: initialWines, userId }: { wines: WineRow[]; u
           <p style={{ margin: 0, color: '#555', fontSize: 14 }}>
             Showing <strong>{sorted.length}</strong>{' '}
             {sorted.length === 1 ? 'wine' : 'wines'}
-            {sorted.length !== wines.length ? (
+            {listConstrained ? (
               <>
                 {' '}
                 of <strong>{wines.length}</strong>
+              </>
+            ) : null}
+            {searchActive ? (
+              <>
+                {' '}
+                matching &ldquo;{searchQuery.trim()}&rdquo;
               </>
             ) : null}
           </p>
