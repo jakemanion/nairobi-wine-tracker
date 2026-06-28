@@ -69,51 +69,152 @@ const TRIED_STATUS_FILTER_OPTIONS: Array<{ value: TriedStatusFilterValue; label:
   { value: 2, label: "Don't buy again" },
 ]
 
-const controlStyle: CSSProperties = {
-  fontSize: 14,
-  padding: '4px 8px',
-  borderRadius: 4,
-  border: '1px solid #ccc',
-  background: '#fff',
-  width: '100%',
-  boxSizing: 'border-box',
-}
-
-const panelStyle: CSSProperties = {
-  border: '1px solid #ccc',
-  borderRadius: 6,
-  marginTop: 12,
-  background: '#fafafa',
-}
-
-const toggleButtonStyle: CSSProperties = {
-  width: '100%',
+const checkboxRowStyle: CSSProperties = {
   display: 'flex',
   alignItems: 'center',
-  justifyContent: 'space-between',
-  gap: 8,
-  padding: '10px 12px',
-  fontSize: 14,
-  fontWeight: 600,
-  cursor: 'pointer',
-  border: 'none',
-  background: 'none',
-  textAlign: 'left',
+  gap: 6,
 }
 
-const sectionTitleStyle: CSSProperties = {
-  margin: '0 0 8px',
-  fontSize: 13,
-  fontWeight: 600,
-  color: '#333',
-}
+type PanelTheme = 'light' | 'dark'
 
-const fieldLabelStyle: CSSProperties = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: 4,
-  fontSize: 13,
-  color: '#444',
+function panelThemeStyles(theme: PanelTheme) {
+  if (theme === 'dark') {
+    return {
+      control: {
+        fontSize: 14,
+        padding: '4px 8px',
+        borderRadius: 4,
+        border: '1px solid #3A3848',
+        background: '#14141A',
+        color: '#EDE8E0',
+        width: '100%',
+        boxSizing: 'border-box' as const,
+      },
+      panel: {
+        border: '1px solid #3A3848',
+        borderRadius: 6,
+        marginTop: 12,
+        background: '#1A1A22',
+      },
+      toggleButton: {
+        width: '100%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: 8,
+        padding: '10px 12px',
+        fontSize: 14,
+        fontWeight: 600,
+        cursor: 'pointer',
+        border: 'none',
+        background: 'none',
+        textAlign: 'left' as const,
+        color: '#EDE8E0',
+      },
+      sectionTitle: {
+        margin: '0 0 8px',
+        fontSize: 13,
+        fontWeight: 600,
+        color: '#C0BCB4',
+      },
+      fieldLabel: {
+        display: 'flex',
+        flexDirection: 'column' as const,
+        gap: 4,
+        fontSize: 13,
+        color: '#9A98A8',
+      },
+      mutedText: '#6A6878',
+      activeBadge: '#C93048',
+      chevron: '#6A6878',
+      presetButton: {
+        padding: '6px 12px',
+        fontSize: 14,
+        cursor: 'pointer',
+        background: '#14141A',
+        border: '1px solid #3A3848',
+        borderRadius: 4,
+        color: '#EDE8E0',
+      },
+      clearButton: {
+        padding: '6px 12px',
+        fontSize: 14,
+        background: '#14141A',
+        border: '1px solid #3A3848',
+        borderRadius: 4,
+        color: '#EDE8E0',
+      },
+      inlineLabel: { color: '#9A98A8' },
+    }
+  }
+
+  return {
+    control: {
+      fontSize: 14,
+      padding: '4px 8px',
+      borderRadius: 4,
+      border: '1px solid #ccc',
+      background: '#fff',
+      color: '#171717',
+      width: '100%',
+      boxSizing: 'border-box' as const,
+    },
+    panel: {
+      border: '1px solid #ccc',
+      borderRadius: 6,
+      marginTop: 12,
+      background: '#fafafa',
+    },
+    toggleButton: {
+      width: '100%',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: 8,
+      padding: '10px 12px',
+      fontSize: 14,
+      fontWeight: 600,
+      cursor: 'pointer',
+      border: 'none',
+      background: 'none',
+      textAlign: 'left' as const,
+      color: '#171717',
+    },
+    sectionTitle: {
+      margin: '0 0 8px',
+      fontSize: 13,
+      fontWeight: 600,
+      color: '#333',
+    },
+    fieldLabel: {
+      display: 'flex',
+      flexDirection: 'column' as const,
+      gap: 4,
+      fontSize: 13,
+      color: '#444',
+    },
+    mutedText: '#888',
+    activeBadge: '#0a7',
+    chevron: '#666',
+    presetButton: {
+      padding: '6px 12px',
+      fontSize: 14,
+      cursor: 'pointer',
+      background: '#fff',
+      border: '1px solid #ccc',
+      borderRadius: 4,
+      color: '#171717',
+    },
+    clearButton: {
+      padding: '6px 12px',
+      fontSize: 14,
+      background: '#fff',
+      border: '1px solid #ccc',
+      borderRadius: 4,
+      color: '#171717',
+    },
+    inlineLabel: { color: '#444' },
+  }
 }
 
 const gridStyle: CSSProperties = {
@@ -127,12 +228,6 @@ const checkboxGroupStyle: CSSProperties = {
   flexDirection: 'column',
   gap: 4,
   fontSize: 13,
-}
-
-const checkboxRowStyle: CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: 6,
 }
 
 function defaultSortDir(key: SortFieldKey): SortDir {
@@ -170,6 +265,8 @@ type WineFilterPanelProps = {
   onSecondarySortChange: (next: SortCriterion) => void
   ratingThenPriceActive: boolean
   onApplyRatingThenPrice: () => void
+  embedded?: boolean
+  theme?: PanelTheme
 }
 
 export function WineFilterPanel({
@@ -185,34 +282,20 @@ export function WineFilterPanel({
   onSecondarySortChange,
   ratingThenPriceActive,
   onApplyRatingThenPrice,
+  embedded = false,
+  theme = 'light',
 }: WineFilterPanelProps) {
   function updateFilters(patch: Partial<WineFilters>) {
     onFiltersChange({ ...filters, ...patch })
   }
 
-  return (
-    <div style={panelStyle}>
-      <button
-        type="button"
-        style={toggleButtonStyle}
-        aria-expanded={expanded}
-        onClick={() => onExpandedChange(!expanded)}
-      >
-        <span>
-          Filters &amp; sort
-          {activeFilterCount > 0 ? (
-            <span style={{ marginLeft: 8, fontWeight: 500, color: '#0a7' }}>
-              ({activeFilterCount} active)
-            </span>
-          ) : null}
-        </span>
-        <span aria-hidden style={{ color: '#666' }}>
-          {expanded ? '▾' : '▸'}
-        </span>
-      </button>
+  const styles = panelThemeStyles(theme)
+  const controlStyle = styles.control
+  const sectionTitleStyle = styles.sectionTitle
+  const fieldLabelStyle = styles.fieldLabel
 
-      {expanded ? (
-        <div style={{ padding: '0 12px 12px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+  const panelBody = (
+    <div style={{ padding: embedded ? '12px' : '0 12px 12px', display: 'flex', flexDirection: 'column', gap: 16 }}>
           <section>
             <h3 style={sectionTitleStyle}>Filters</h3>
             <div style={gridStyle}>
@@ -327,7 +410,7 @@ export function WineFilterPanel({
                 <span>Store</span>
                 <div style={checkboxGroupStyle}>
                   {filterOptions.stores.length === 0 ? (
-                    <span style={{ color: '#888' }}>No stores in list</span>
+                    <span style={{ color: styles.mutedText }}>No stores in list</span>
                   ) : (
                     filterOptions.stores.map((store) => (
                       <label key={store} style={checkboxRowStyle}>
@@ -396,6 +479,7 @@ export function WineFilterPanel({
                 gap: 8,
                 flexWrap: 'wrap',
                 fontSize: 14,
+                color: styles.inlineLabel.color,
               }}
             >
               <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
@@ -474,10 +558,9 @@ export function WineFilterPanel({
                 onClick={onApplyRatingThenPrice}
                 aria-pressed={ratingThenPriceActive}
                 style={{
-                  padding: '6px 12px',
-                  fontSize: 14,
-                  cursor: 'pointer',
+                  ...styles.presetButton,
                   fontWeight: ratingThenPriceActive ? 600 : 400,
+                  borderColor: ratingThenPriceActive ? '#C93048' : styles.presetButton.border,
                 }}
               >
                 Sort: rating → price
@@ -490,8 +573,7 @@ export function WineFilterPanel({
               type="button"
               disabled={activeFilterCount === 0}
               style={{
-                padding: '6px 12px',
-                fontSize: 14,
+                ...styles.clearButton,
                 cursor: activeFilterCount === 0 ? 'default' : 'pointer',
                 opacity: activeFilterCount === 0 ? 0.5 : 1,
               }}
@@ -500,8 +582,34 @@ export function WineFilterPanel({
               Clear filters
             </button>
           </div>
-        </div>
-      ) : null}
+    </div>
+  )
+
+  if (embedded) {
+    return expanded ? panelBody : null
+  }
+
+  return (
+    <div style={styles.panel}>
+      <button
+        type="button"
+        style={styles.toggleButton}
+        aria-expanded={expanded}
+        onClick={() => onExpandedChange(!expanded)}
+      >
+        <span>
+          Filters &amp; sort
+          {activeFilterCount > 0 ? (
+            <span style={{ marginLeft: 8, fontWeight: 500, color: styles.activeBadge }}>
+              ({activeFilterCount} active)
+            </span>
+          ) : null}
+        </span>
+        <span aria-hidden style={{ color: styles.chevron }}>
+          {expanded ? '▾' : '▸'}
+        </span>
+      </button>
+      {expanded ? panelBody : null}
     </div>
   )
 }

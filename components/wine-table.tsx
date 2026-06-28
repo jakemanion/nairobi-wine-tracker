@@ -309,7 +309,7 @@ function compareByCriterion(
   return dir === 'asc' ? ascending : -ascending
 }
 
-function sortWines(rows: DisplayWineRow[], primary: SortCriterion, secondary: SortCriterion): DisplayWineRow[] {
+export function sortWines(rows: DisplayWineRow[], primary: SortCriterion, secondary: SortCriterion): DisplayWineRow[] {
   return [...rows].sort((a, b) => {
     if (primary.key !== 'none') {
       const primaryCmp = compareByCriterion(a, b, primary.key, primary.dir)

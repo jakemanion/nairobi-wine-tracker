@@ -1,5 +1,6 @@
 import Link from 'next/link'
-import { WineTable, type WineReview, type WineRow } from '@/components/wine-table'
+import { PreviewWineList } from '@/components/preview/preview-wine-list'
+import type { WineReview, WineRow } from '@/components/wine-table'
 import { createServerReadClient } from '@/lib/supabase-server'
 import { getCurrentUserId } from '@/lib/user'
 
@@ -18,9 +19,7 @@ type UserReview = {
 }
 
 function attachReviews(wines: WineRow[], reviews: UserReview[]): WineRow[] {
-  const reviewsByWineId = new Map(
-    reviews.map((review) => [review.wine_id, review]),
-  )
+  const reviewsByWineId = new Map(reviews.map((review) => [review.wine_id, review]))
 
   return wines.map((wine) => {
     const review = reviewsByWineId.get(String(wine.id))
@@ -42,7 +41,7 @@ function attachReviews(wines: WineRow[], reviews: UserReview[]): WineRow[] {
   })
 }
 
-export default async function Home() {
+export default async function PreviewPage() {
   const userId = getCurrentUserId()
   const supabase = createServerReadClient()
 
@@ -102,31 +101,22 @@ export default async function Home() {
   const error = profileError ?? winesError ?? reviewsError
   const userName = profile?.display_name ?? profile?.username ?? 'Unknown user'
 
+  if (error) {
+    return (
+      <main className="p-6">
+        <p style={{ color: '#c05050' }}>Error: {error.message}</p>
+        <Link href="/" style={{ color: '#C93048' }}>
+          Back to classic view
+        </Link>
+      </main>
+    )
+  }
+
   return (
-    <main style={{ padding: 20 }}>
-      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12 }}>
-        <h1 style={{ margin: 0 }}>Wine Tracker (Nairobi)</h1>
-        <Link href="/admin" style={{ color: '#0a7', textDecoration: 'none', fontSize: 14 }}>
-          Admin →
-        </Link>
-        <Link href="/preview" style={{ color: '#0a7', textDecoration: 'none', fontSize: 14 }}>
-          Preview design →
-        </Link>
-      </div>
-      <p style={{ marginTop: 8, marginBottom: 0, color: '#444' }}>
-        Signed in as <strong>{userName}</strong>
-      </p>
-
-      {error && (
-        <p style={{ color: 'red' }}>
-          Error: {error.message}
-        </p>
-      )}
-
-      <WineTable
-        userId={userId}
-        wines={attachReviews((wines ?? []) as WineRow[], (reviews ?? []) as UserReview[])}
-      />
-    </main>
+    <PreviewWineList
+      userId={userId}
+      userName={userName}
+      wines={attachReviews((wines ?? []) as WineRow[], (reviews ?? []) as UserReview[])}
+    />
   )
 }
