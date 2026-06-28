@@ -17,7 +17,7 @@ import {
 } from '@/lib/preview/wine-card-model'
 import { getReviewPanelTextColors } from '@/lib/preview/preview-colors'
 import { saveReviewField } from '@/lib/reviews'
-import type { WishlistValue } from '@/lib/reviews'
+import type { WishlistValue, TriedStatusValue } from '@/lib/reviews'
 
 type PreviewWineCardProps = {
   wine: PreviewWineCardData
@@ -25,6 +25,11 @@ type PreviewWineCardProps = {
   review?: WineReview | null
   onReviewChange: (review: WineReview | null) => void
   imagePriority?: boolean
+}
+
+function normalizeTriedStatus(value: number | null | undefined): TriedStatusValue {
+  if (value === 0 || value === 1 || value === 2) return value
+  return null
 }
 
 function normalizeWishlist(value: number | null | undefined): WishlistValue {
@@ -135,10 +140,14 @@ export function PreviewWineCard({
 }: PreviewWineCardProps) {
   const { colors, mode } = usePreviewTheme()
   const wishlist = normalizeWishlist(review?.wishlist)
-  const isIgnored = wishlist === 0
+  const triedStatus = normalizeTriedStatus(review?.tried_status)
+  const isDimmed = wishlist === 0 || triedStatus === 2
+  const ratingInactive = triedStatus == null
   const minPrice = lowestPrice(wine.prices)
   const ribbon = colourRibbonStyle(wine.colour)
   const panelText = getReviewPanelTextColors(mode, wishlist)
+  const ratingLabelColor = ratingInactive ? panelText.muted : panelText.label
+  const ratingValueColor = ratingInactive ? panelText.muted : panelText.body
 
   const [ratingDraft, setRatingDraft] = useState(review?.overall_score ?? 0)
   const [notesDraft, setNotesDraft] = useState(review?.tasting_notes ?? '')
@@ -226,40 +235,26 @@ export function PreviewWineCard({
         background: colors.cardBg,
         border: `1px solid ${colors.cardBorder}`,
         borderRadius: '0 12px 12px 12px',
-        boxShadow: isIgnored ? 'none' : colors.cardShadow,
-        opacity: isIgnored ? 0.4 : 1,
+        boxShadow: isDimmed ? 'none' : colors.cardShadow,
+        opacity: isDimmed ? 0.4 : 1,
       }}
     >
       <div
-        className="absolute top-0 left-0 overflow-hidden z-10 pointer-events-none"
-        style={{ width: 56, height: 56 }}
+        className="absolute top-0 left-0 z-10 pointer-events-none"
+        style={{
+          background: ribbon.background,
+          color: '#fff',
+          fontSize: 9,
+          fontWeight: 600,
+          lineHeight: 1.2,
+          padding: '3px 7px',
+          borderBottomRightRadius: 8,
+          fontFamily: 'var(--font-dm-sans), sans-serif',
+          letterSpacing: '0.02em',
+          boxShadow: '0 1px 4px rgba(0,0,0,0.35)',
+        }}
       >
-        <div
-          style={{
-            position: 'absolute',
-            top: -4,
-            left: -16,
-            width: 88,
-            padding: '5px 0',
-            transform: 'rotate(-45deg)',
-            transformOrigin: 'center',
-            background: ribbon.background,
-            textAlign: 'center',
-            boxShadow: '0 2px 6px rgba(0,0,0,0.6)',
-          }}
-        >
-          <span
-            style={{
-              color: '#fff',
-              fontSize: 7,
-              fontWeight: 700,
-              letterSpacing: '0.12em',
-              fontFamily: 'var(--font-dm-sans), sans-serif',
-            }}
-          >
-            {ribbon.label}
-          </span>
-        </div>
+        {ribbon.label}
       </div>
 
       <div
@@ -370,17 +365,20 @@ export function PreviewWineCard({
             review={review}
             onReviewChange={onReviewChange}
           />
-          <div className="flex-1 min-w-0">
+          <div
+            className="flex-1 min-w-0 transition-opacity duration-200"
+            style={{ opacity: ratingInactive ? 0.45 : 1 }}
+          >
             <p
               className="text-[9px] uppercase tracking-wider mb-1"
-              style={{ color: panelText.label, fontFamily: 'var(--font-dm-sans), sans-serif' }}
+              style={{ color: ratingLabelColor, fontFamily: 'var(--font-dm-sans), sans-serif' }}
             >
               My Rating
             </p>
             <RatingSlider
               value={ratingDraft}
-              disabled={savingRating}
-              valueColor={panelText.body}
+              disabled={savingRating || ratingInactive}
+              valueColor={ratingValueColor}
               onChange={setRatingDraft}
               onCommit={(v) => void saveRating(v)}
             />
@@ -390,7 +388,7 @@ export function PreviewWineCard({
         <textarea
           value={notesDraft}
           disabled={savingNotes}
-          placeholder="Tasting notes, pairings…"
+          placeholder="Notes"
           rows={2}
           className="w-full text-[11px] resize-none focus:outline-none transition-colors leading-relaxed rounded-lg px-2.5 py-1.5 disabled:opacity-60"
           style={{

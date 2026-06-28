@@ -27,10 +27,10 @@ const colourRibbonBg: Record<WineColour, string> = {
 }
 
 const colourLabel: Record<WineColour, string> = {
-  Red: 'RED',
-  White: 'WHITE',
-  Rosé: 'ROSÉ',
-  Sparkling: 'SPAR',
+  Red: 'Red',
+  White: 'White',
+  Rosé: 'Rosé',
+  Sparkling: 'Sparkling',
 }
 
 export function colourRibbonStyle(colour: WineColour) {

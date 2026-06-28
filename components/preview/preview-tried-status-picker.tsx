@@ -30,7 +30,7 @@ const TRIED_OPTIONS: Array<{
   label: string
   tooltip: string
 }> = [
-  { value: null, label: 'Not set', tooltip: 'Not set' },
+  { value: null, label: 'Not tried', tooltip: 'Not tried' },
   { value: 0, label: 'Tried', tooltip: 'Tried' },
   { value: 1, label: 'Buy again', tooltip: 'Buy again' },
   { value: 2, label: "Don't buy again", tooltip: "Don't buy again" },
@@ -110,7 +110,7 @@ function buttonConfig(value: TriedStatusValue) {
     default:
       return {
         icon: Star,
-        label: 'Not set',
+        label: 'Not tried',
         border: '#5A5868',
         bg: '#2A2A34',
         color: '#C8C4D0',

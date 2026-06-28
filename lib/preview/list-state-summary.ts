@@ -27,7 +27,7 @@ const WISHLIST_LABELS: Record<string, string> = {
 }
 
 const TRIED_LABELS: Record<string, string> = {
-  unset: 'Not set',
+  unset: 'Not tried',
   '0': 'Tried',
   '1': 'Buy again',
   '2': "Don't buy again",

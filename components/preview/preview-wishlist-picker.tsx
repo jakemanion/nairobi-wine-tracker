@@ -34,8 +34,8 @@ const WISHLIST_OPTIONS: Array<{
   { value: null, label: 'Not set', tooltip: 'Not set' },
   { value: 0, label: "Don't want", tooltip: "Don't want" },
   { value: 1, label: 'Want', tooltip: 'Wishlist' },
-  { value: 2, label: 'Expensive treat', tooltip: '$ Treat' },
-  { value: 3, label: 'Very expensive treat', tooltip: '$$ Treat' },
+  { value: 2, label: 'Expensive treat', tooltip: 'Expensive treat' },
+  { value: 3, label: 'Very expensive treat', tooltip: 'Very expensive treat' },
 ]
 
 function normalizeWishlist(value: number | null | undefined): WishlistValue {
@@ -103,7 +103,7 @@ function buttonConfig(value: WishlistValue) {
     case 2:
       return {
         icon: BookmarkCheck,
-        label: '$ Treat',
+        label: 'Expensive treat',
         border: '#585A60',
         bg: '#2E3038',
         color: '#A0A8B8',
@@ -112,7 +112,7 @@ function buttonConfig(value: WishlistValue) {
     case 3:
       return {
         icon: Crown,
-        label: '$$ Treat',
+        label: 'Very expensive treat',
         border: '#7A6820',
         bg: '#2A2208',
         color: '#C8A830',
