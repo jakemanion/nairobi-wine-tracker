@@ -56,18 +56,18 @@ export function buildListStateSummary({
   secondarySort: SortCriterion
   resultCount: number
   totalCount: number
-}): string[] {
-  const lines: string[] = []
+}): string {
+  const parts: string[] = []
 
-  const countLine =
+  parts.push(
     resultCount === totalCount
       ? `Showing all ${resultCount} wines`
-      : `Showing ${resultCount} of ${totalCount} wines`
-  lines.push(countLine)
+      : `Showing ${resultCount} of ${totalCount} wines`,
+  )
 
   const trimmedSearch = searchQuery.trim()
   if (trimmedSearch) {
-    lines.push(`Search: “${trimmedSearch}”`)
+    parts.push(`Search: “${trimmedSearch}”`)
   }
 
   const filterParts: string[] = []
@@ -92,20 +92,20 @@ export function buildListStateSummary({
   }
 
   if (filterParts.length > 0) {
-    lines.push(`Filters: ${filterParts.join('; ')}`)
-  } else if (!trimmedSearch) {
-    lines.push('Filters: none')
+    parts.push(`Filters: ${filterParts.join('; ')}`)
+  } else {
+    parts.push('Filters: none')
   }
 
   const sortParts = [`${sortLabel(primarySort.key)} (${dirLabel(primarySort.dir)})`]
   if (secondarySort.key !== 'none') {
     sortParts.push(`${sortLabel(secondarySort.key)} (${dirLabel(secondarySort.dir)})`)
   }
-  lines.push(
+  parts.push(
     secondarySort.key !== 'none'
       ? `Sort: ${sortParts[0]}, then ${sortParts[1]}`
       : `Sort: ${sortParts[0]}`,
   )
 
-  return lines
+  return parts.join(' · ')
 }

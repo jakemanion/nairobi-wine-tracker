@@ -53,7 +53,7 @@ export function PreviewToolbar({
   const searchActive = searchQuery.trim().length > 0
   const toolsActive = toolsExpanded || activeFilterCount > 0 || searchActive
 
-  const summaryLines = useMemo(
+  const summaryText = useMemo(
     () =>
       buildListStateSummary({
         filters,
@@ -129,15 +129,19 @@ export function PreviewToolbar({
         ) : null}
       </div>
 
-      <div
-        className="px-3 pb-3 flex flex-col gap-1"
-        style={{ color: colors.summaryText, fontFamily: 'var(--font-dm-sans), sans-serif', fontSize: 11 }}
-      >
-        {summaryLines.map((line) => (
-          <p key={line} style={{ margin: 0, lineHeight: 1.45 }}>
-            {line}
-          </p>
-        ))}
+      <div className="px-3 pb-2.5 flex justify-center min-w-0">
+        <p
+          className="m-0 w-full text-center truncate"
+          title={summaryText}
+          style={{
+            color: colors.summaryText,
+            fontFamily: 'var(--font-dm-sans), sans-serif',
+            fontSize: 11,
+            lineHeight: 1.3,
+          }}
+        >
+          {summaryText}
+        </p>
       </div>
 
       {toolsExpanded ? (
