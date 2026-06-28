@@ -9,24 +9,22 @@ import {
   PreviewWishlistPicker,
 } from '@/components/preview/preview-wishlist-picker'
 import { PreviewTriedStatusPicker } from '@/components/preview/preview-tried-status-picker'
+import { usePreviewTheme } from '@/components/preview/preview-theme-context'
 import {
   colourRibbonStyle,
   lowestPrice,
   type PreviewWineCardData,
 } from '@/lib/preview/wine-card-model'
+import { getReviewPanelTextColors } from '@/lib/preview/preview-colors'
 import { saveReviewField } from '@/lib/reviews'
-import type { TriedStatusValue, WishlistValue } from '@/lib/reviews'
+import type { WishlistValue } from '@/lib/reviews'
 
 type PreviewWineCardProps = {
   wine: PreviewWineCardData
   userId: string
   review?: WineReview | null
   onReviewChange: (review: WineReview | null) => void
-}
-
-function normalizeTriedStatus(value: number | null | undefined): TriedStatusValue {
-  if (value === 0 || value === 1 || value === 2) return value
-  return null
+  imagePriority?: boolean
 }
 
 function normalizeWishlist(value: number | null | undefined): WishlistValue {
@@ -93,11 +91,13 @@ function VivinoCircle({ rating, url }: { rating: number; url: string | null }) {
 function RatingSlider({
   value,
   disabled,
+  valueColor,
   onChange,
   onCommit,
 }: {
   value: number
   disabled?: boolean
+  valueColor: string
   onChange: (v: number) => void
   onCommit: (v: number) => void
 }) {
@@ -118,7 +118,7 @@ function RatingSlider({
       />
       <span
         className="text-xs font-bold w-7 text-right tabular-nums"
-        style={{ color: '#C0BCB4', fontFamily: 'var(--font-dm-sans), sans-serif' }}
+        style={{ color: valueColor, fontFamily: 'var(--font-dm-sans), sans-serif' }}
       >
         {value.toFixed(1)}
       </span>
@@ -126,12 +126,19 @@ function RatingSlider({
   )
 }
 
-export function PreviewWineCard({ wine, userId, review, onReviewChange }: PreviewWineCardProps) {
+export function PreviewWineCard({
+  wine,
+  userId,
+  review,
+  onReviewChange,
+  imagePriority = false,
+}: PreviewWineCardProps) {
+  const { colors, mode } = usePreviewTheme()
   const wishlist = normalizeWishlist(review?.wishlist)
-  const triedStatus = normalizeTriedStatus(review?.tried_status)
   const isIgnored = wishlist === 0
   const minPrice = lowestPrice(wine.prices)
   const ribbon = colourRibbonStyle(wine.colour)
+  const panelText = getReviewPanelTextColors(mode, wishlist)
 
   const [ratingDraft, setRatingDraft] = useState(review?.overall_score ?? 0)
   const [notesDraft, setNotesDraft] = useState(review?.tasting_notes ?? '')
@@ -216,12 +223,10 @@ export function PreviewWineCard({ wine, userId, review, onReviewChange }: Previe
     <div
       className="relative flex items-stretch overflow-hidden transition-opacity duration-300"
       style={{
-        background: '#222228',
-        border: '1px solid #343440',
+        background: colors.cardBg,
+        border: `1px solid ${colors.cardBorder}`,
         borderRadius: '0 12px 12px 12px',
-        boxShadow: isIgnored
-          ? 'none'
-          : '0 6px 24px rgba(0,0,0,0.55), 0 1px 4px rgba(0,0,0,0.4)',
+        boxShadow: isIgnored ? 'none' : colors.cardShadow,
         opacity: isIgnored ? 0.4 : 1,
       }}
     >
@@ -259,26 +264,30 @@ export function PreviewWineCard({ wine, userId, review, onReviewChange }: Previe
 
       <div
         className="w-[96px] flex-shrink-0 self-stretch relative min-h-[112px]"
-        style={{ background: '#1A1A20' }}
+        style={{ background: colors.imageColumnBg }}
       >
-        <PreviewBottleImage src={wine.image} alt={wine.name} />
+        <PreviewBottleImage
+          src={wine.image}
+          alt={wine.name}
+          priority={imagePriority}
+        />
       </div>
 
       <div
         className="flex-1 min-w-0 px-3.5 py-2.5 flex flex-col justify-between gap-1.5"
-        style={{ borderRight: '1px solid #2E2E3A' }}
+        style={{ borderRight: `1px solid ${colors.infoBorder}` }}
       >
         <div className="flex items-start gap-2">
           <div className="flex-1 min-w-0 pt-0.5">
             <p
               className="text-[9px] font-semibold uppercase tracking-[0.14em] leading-none mb-0.5"
-              style={{ color: '#C93048', fontFamily: 'var(--font-dm-sans), sans-serif' }}
+              style={{ color: colors.producer, fontFamily: 'var(--font-dm-sans), sans-serif' }}
             >
               {wine.producer}
             </p>
             <h3
               className="text-sm font-semibold leading-snug"
-              style={{ color: '#EDE8E0', fontFamily: 'var(--font-playfair), serif' }}
+              style={{ color: colors.wineName, fontFamily: 'var(--font-playfair), serif' }}
             >
               {wine.name}
             </h3>
@@ -289,10 +298,10 @@ export function PreviewWineCard({ wine, userId, review, onReviewChange }: Previe
         </div>
 
         <div className="flex items-center gap-1">
-          <MapPin className="w-3 h-3 flex-shrink-0" style={{ color: '#5A5868' }} />
+          <MapPin className="w-3 h-3 flex-shrink-0" style={{ color: colors.muted }} />
           <span
             className="text-[11px] truncate"
-            style={{ color: '#7A7888', fontFamily: 'var(--font-dm-sans), sans-serif' }}
+            style={{ color: colors.muted, fontFamily: 'var(--font-dm-sans), sans-serif' }}
           >
             {wine.region} · {wine.country}
           </span>
@@ -305,9 +314,9 @@ export function PreviewWineCard({ wine, userId, review, onReviewChange }: Previe
                 key={grape}
                 className="text-[10px] px-1.5 py-0.5 rounded"
                 style={{
-                  background: '#2A2A34',
-                  border: '1px solid #3A3A48',
-                  color: '#9A98A8',
+                  background: colors.grapeBg,
+                  border: `1px solid ${colors.grapeBorder}`,
+                  color: colors.grapeText,
                   fontFamily: 'var(--font-dm-sans), sans-serif',
                 }}
               >
@@ -327,17 +336,17 @@ export function PreviewWineCard({ wine, userId, review, onReviewChange }: Previe
                   className="text-[11px]"
                   style={{
                     fontFamily: 'var(--font-dm-sans), sans-serif',
-                    color: isLowest ? '#C93048' : '#606070',
+                    color: isLowest ? colors.priceLow : colors.priceMuted,
                     fontWeight: isLowest ? 700 : 400,
                   }}
                 >
-                  <span style={{ color: '#484858' }}>{listing.shop}: </span>
+                  <span style={{ color: colors.priceShop }}>{listing.shop}: </span>
                   {formatPrice(listing.price)}
                 </span>
               )
             })
           ) : (
-            <span className="text-[11px]" style={{ color: '#606070' }}>
+            <span className="text-[11px]" style={{ color: colors.priceMuted }}>
               No listings
             </span>
           )}
@@ -346,7 +355,7 @@ export function PreviewWineCard({ wine, userId, review, onReviewChange }: Previe
 
       <div
         className="flex-shrink-0 px-3.5 py-2.5 flex flex-col gap-2 transition-colors duration-300"
-        style={{ width: '44%', ...getReviewPanelStyle(wishlist, triedStatus) }}
+        style={{ width: '44%', ...getReviewPanelStyle(wishlist, mode) }}
       >
         <div className="flex items-center gap-2">
           <PreviewWishlistPicker
@@ -364,13 +373,14 @@ export function PreviewWineCard({ wine, userId, review, onReviewChange }: Previe
           <div className="flex-1 min-w-0">
             <p
               className="text-[9px] uppercase tracking-wider mb-1"
-              style={{ color: '#5A5868', fontFamily: 'var(--font-dm-sans), sans-serif' }}
+              style={{ color: panelText.label, fontFamily: 'var(--font-dm-sans), sans-serif' }}
             >
               My Rating
             </p>
             <RatingSlider
               value={ratingDraft}
               disabled={savingRating}
+              valueColor={panelText.body}
               onChange={setRatingDraft}
               onCommit={(v) => void saveRating(v)}
             />
@@ -384,11 +394,11 @@ export function PreviewWineCard({ wine, userId, review, onReviewChange }: Previe
           rows={2}
           className="w-full text-[11px] resize-none focus:outline-none transition-colors leading-relaxed rounded-lg px-2.5 py-1.5 disabled:opacity-60"
           style={{
-            background: 'rgba(0,0,0,0.25)',
-            border: '1px solid #3A3848',
-            color: '#C0BCB4',
+            background: panelText.notesBg,
+            border: `1px solid ${panelText.notesBorder}`,
+            color: panelText.notesText,
             fontFamily: 'var(--font-dm-sans), sans-serif',
-            caretColor: '#C93048',
+            caretColor: colors.producer,
           }}
           onChange={(e) => {
             notesDirtyRef.current = true

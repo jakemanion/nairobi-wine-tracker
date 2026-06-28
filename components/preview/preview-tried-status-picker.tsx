@@ -9,10 +9,13 @@ import {
 import { createPortal } from 'react-dom'
 import { Check, Star, X } from 'lucide-react'
 import type { WineReview } from '@/components/wine-table'
+import { usePreviewTheme } from '@/components/preview/preview-theme-context'
 import { saveReviewTriedStatusField, type TriedStatusValue } from '@/lib/reviews'
 
-const PANEL_WIDTH = 176
-const PANEL_HEIGHT = 56
+const PANEL_WIDTH = 208
+const PANEL_HEIGHT = 88
+const OPTION_SIZE = 40
+const OPTION_ICON_SIZE = 20
 const HOVER_CLOSE_DELAY_MS = 120
 
 type PreviewTriedStatusPickerProps = {
@@ -81,10 +84,10 @@ function buttonConfig(value: TriedStatusValue) {
       return {
         icon: Check,
         label: 'Tried',
-        border: '#4A4A58',
-        bg: '#2A2A34',
-        color: '#9A98A8',
-        filled: false,
+        border: '#6A6878',
+        bg: '#3A3848',
+        color: '#E8E4DC',
+        strokeWidth: 2,
       }
     case 1:
       return {
@@ -92,8 +95,8 @@ function buttonConfig(value: TriedStatusValue) {
         label: 'Buy again',
         border: '#2A5030',
         bg: '#162010',
-        color: '#50A060',
-        filled: false,
+        color: '#70D080',
+        strokeWidth: 2.5,
       }
     case 2:
       return {
@@ -101,45 +104,47 @@ function buttonConfig(value: TriedStatusValue) {
         label: "Don't buy again",
         border: '#5A3030',
         bg: '#2A1C1C',
-        color: '#A05050',
-        filled: false,
+        color: '#F08080',
+        strokeWidth: 2,
       }
     default:
       return {
         icon: Star,
         label: 'Not set',
-        border: '#3A3848',
-        bg: '#22222C',
-        color: '#54505E',
-        filled: false,
+        border: '#5A5868',
+        bg: '#2A2A34',
+        color: '#C8C4D0',
+        strokeWidth: 2,
       }
   }
 }
 
-const panelShellStyle: CSSProperties = {
+const panelShellStyle = (colors: { pickerPanelBg: string; pickerPanelBorder: string }): CSSProperties => ({
   position: 'fixed',
   zIndex: 10000,
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
-  gap: 4,
-  padding: '6px 8px 5px',
-  background: '#1A1A22',
-  border: '1px solid #3A3848',
-  borderRadius: 8,
-  boxShadow: '0 8px 24px rgba(0,0,0,0.55)',
-}
+  gap: 6,
+  padding: '8px 10px 10px',
+  background: colors.pickerPanelBg,
+  border: `1px solid ${colors.pickerPanelBorder}`,
+  borderRadius: 10,
+  boxShadow: '0 8px 24px rgba(0,0,0,0.45)',
+})
 
 const panelOptionStyle: CSSProperties = {
   background: 'none',
   border: 'none',
-  padding: '3px 4px',
+  padding: 0,
   cursor: 'pointer',
   lineHeight: 1,
   display: 'inline-flex',
   alignItems: 'center',
   justifyContent: 'center',
-  borderRadius: 6,
+  borderRadius: '50%',
+  width: OPTION_SIZE,
+  height: OPTION_SIZE,
 }
 
 export function PreviewTriedStatusPicker({
@@ -148,6 +153,7 @@ export function PreviewTriedStatusPicker({
   review,
   onReviewChange,
 }: PreviewTriedStatusPickerProps) {
+  const { colors } = usePreviewTheme()
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [panelOpen, setPanelOpen] = useState(false)
@@ -256,7 +262,7 @@ export function PreviewTriedStatusPicker({
         onMouseEnter={openPanel}
         onMouseLeave={scheduleClose}
       >
-        <TriggerIcon className="w-5 h-5" strokeWidth={value === 1 ? 2.5 : 2} />
+        <TriggerIcon className="w-5 h-5" strokeWidth={cfg.strokeWidth} />
       </button>
 
       {mounted && panelOpen
@@ -264,11 +270,23 @@ export function PreviewTriedStatusPicker({
             <div
               role="menu"
               aria-label="Tried status options"
-              style={{ ...panelShellStyle, left: panelPosition.left, top: panelPosition.top, width: PANEL_WIDTH }}
+              style={{
+                ...panelShellStyle(colors),
+                left: panelPosition.left,
+                top: panelPosition.top,
+                width: PANEL_WIDTH,
+              }}
               onMouseEnter={cancelClose}
               onMouseLeave={scheduleClose}
             >
-              <div className="flex items-center justify-center gap-0.5 w-full">
+              <span
+                className="text-[11px] font-medium text-center w-full"
+                style={{ color: colors.pickerLabel, minHeight: 14, lineHeight: 1.2 }}
+                aria-live="polite"
+              >
+                {tooltip}
+              </span>
+              <div className="flex items-center justify-center gap-1 w-full">
                 {TRIED_OPTIONS.map((option) => {
                   const selected = value === option.value
                   const optionCfg = buttonConfig(option.value)
@@ -283,26 +301,20 @@ export function PreviewTriedStatusPicker({
                       disabled={saving}
                       style={{
                         ...panelOptionStyle,
-                        background: selected ? '#2A2A36' : 'transparent',
-                        outline: selected ? '1px solid #4A4A58' : 'none',
+                        border: `2px solid ${optionCfg.border}`,
+                        background: selected ? optionCfg.bg : 'transparent',
                         color: optionCfg.color,
+                        outline: selected ? `2px solid ${colors.pickerPanelBorder}` : 'none',
                         cursor: saving ? 'wait' : 'pointer',
                       }}
                       onMouseEnter={() => setHoveredOption(option.value)}
                       onClick={() => void setValue(option.value)}
                     >
-                      <OptionIcon className="w-4 h-4" strokeWidth={option.value === 1 ? 2.5 : 2} />
+                      <OptionIcon size={OPTION_ICON_SIZE} strokeWidth={optionCfg.strokeWidth} />
                     </button>
                   )
                 })}
               </div>
-              <span
-                className="text-[9px] text-center w-full"
-                style={{ color: '#7A7888', minHeight: 11, lineHeight: 1.2 }}
-                aria-live="polite"
-              >
-                {tooltip}
-              </span>
             </div>,
             document.body,
           )

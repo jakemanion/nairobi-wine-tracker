@@ -1,7 +1,10 @@
 'use client'
 
+import { useMemo } from 'react'
 import { Search, SlidersHorizontal } from 'lucide-react'
 import { WineFilterPanel, type SortCriterion } from '@/components/wine-filter-panel'
+import { usePreviewTheme } from '@/components/preview/preview-theme-context'
+import { buildListStateSummary } from '@/lib/preview/list-state-summary'
 import type { WineFilters } from '@/lib/wine-filters'
 
 type PreviewToolbarProps = {
@@ -46,23 +49,37 @@ export function PreviewToolbar({
   resultCount,
   totalCount,
 }: PreviewToolbarProps) {
+  const { colors, mode } = usePreviewTheme()
   const searchActive = searchQuery.trim().length > 0
   const toolsActive = toolsExpanded || activeFilterCount > 0 || searchActive
+
+  const summaryLines = useMemo(
+    () =>
+      buildListStateSummary({
+        filters,
+        searchQuery,
+        primarySort,
+        secondarySort,
+        resultCount,
+        totalCount,
+      }),
+    [filters, searchQuery, primarySort, secondarySort, resultCount, totalCount],
+  )
 
   return (
     <div
       className="rounded-lg overflow-hidden"
       style={{
-        border: `1px solid ${toolsActive ? '#4A3848' : '#3A3848'}`,
-        background: '#1A1A22',
-        boxShadow: toolsExpanded ? '0 4px 20px rgba(0,0,0,0.35)' : 'none',
+        border: `1px solid ${toolsActive ? colors.toolbarBorderActive : colors.toolbarBorder}`,
+        background: colors.toolbarBg,
+        boxShadow: toolsExpanded ? '0 4px 20px rgba(0,0,0,0.12)' : 'none',
       }}
     >
       <div className="flex items-center gap-2 p-3 flex-wrap">
         <div className="relative flex-1 min-w-[200px]">
           <Search
             className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 pointer-events-none"
-            style={{ color: '#6A6878' }}
+            style={{ color: colors.muted }}
           />
           <input
             type="search"
@@ -71,9 +88,9 @@ export function PreviewToolbar({
             aria-label="Search producer or wine name"
             className="w-full text-sm rounded-lg pl-8 pr-3 py-2 focus:outline-none"
             style={{
-              background: '#14141A',
-              border: '1px solid #3A3848',
-              color: '#EDE8E0',
+              background: colors.searchBg,
+              border: `1px solid ${colors.searchBorder}`,
+              color: colors.searchText,
               fontFamily: 'var(--font-dm-sans), sans-serif',
             }}
             onChange={(event) => onSearchQueryChange(event.target.value)}
@@ -83,9 +100,9 @@ export function PreviewToolbar({
           type="button"
           className="flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg transition-all flex-shrink-0"
           style={{
-            background: toolsExpanded ? '#2A2230' : '#14141A',
-            border: `1px solid ${activeFilterCount > 0 ? '#C93048' : '#3A3848'}`,
-            color: toolsExpanded || activeFilterCount > 0 ? '#EDE8E0' : '#8A8898',
+            background: toolsExpanded ? colors.searchBg : colors.buttonBg,
+            border: `1px solid ${activeFilterCount > 0 ? '#C93048' : colors.buttonBorder}`,
+            color: toolsExpanded || activeFilterCount > 0 ? colors.searchText : colors.buttonText,
             fontFamily: 'var(--font-dm-sans), sans-serif',
           }}
           aria-expanded={toolsExpanded}
@@ -100,9 +117,9 @@ export function PreviewToolbar({
             type="button"
             className="text-xs px-3 py-2 rounded-lg flex-shrink-0"
             style={{
-              background: '#14141A',
-              border: '1px solid #3A3848',
-              color: '#8A8898',
+              background: colors.buttonBg,
+              border: `1px solid ${colors.buttonBorder}`,
+              color: colors.buttonText,
               fontFamily: 'var(--font-dm-sans), sans-serif',
             }}
             onClick={() => onSearchQueryChange('')}
@@ -113,30 +130,21 @@ export function PreviewToolbar({
       </div>
 
       <div
-        className="px-3 pb-2 text-[11px]"
-        style={{ color: '#6A6878', fontFamily: 'var(--font-dm-sans), sans-serif' }}
+        className="px-3 pb-3 flex flex-col gap-1"
+        style={{ color: colors.summaryText, fontFamily: 'var(--font-dm-sans), sans-serif', fontSize: 11 }}
       >
-        Showing <strong style={{ color: '#B8B4AC' }}>{resultCount}</strong>
-        {resultCount !== totalCount ? (
-          <>
-            {' '}
-            of <strong style={{ color: '#B8B4AC' }}>{totalCount}</strong>
-          </>
-        ) : null}{' '}
-        wines
-        {searchActive ? (
-          <>
-            {' '}
-            matching &ldquo;{searchQuery.trim()}&rdquo;
-          </>
-        ) : null}
+        {summaryLines.map((line) => (
+          <p key={line} style={{ margin: 0, lineHeight: 1.45 }}>
+            {line}
+          </p>
+        ))}
       </div>
 
       {toolsExpanded ? (
-        <div style={{ borderTop: '1px solid #2E2E3A' }}>
+        <div style={{ borderTop: `1px solid ${colors.toolbarBorder}` }}>
           <WineFilterPanel
             embedded
-            theme="dark"
+            theme={mode}
             expanded
             onExpandedChange={onToolsExpandedChange}
             filters={filters}

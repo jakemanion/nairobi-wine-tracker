@@ -9,10 +9,14 @@ import {
 import { createPortal } from 'react-dom'
 import { Bookmark, BookmarkCheck, Crown, Star, X } from 'lucide-react'
 import type { WineReview } from '@/components/wine-table'
-import { saveReviewWishlistField, type TriedStatusValue, type WishlistValue } from '@/lib/reviews'
+import { saveReviewWishlistField, type WishlistValue } from '@/lib/reviews'
+import type { PreviewThemeMode } from '@/lib/preview/preview-colors'
+import { usePreviewTheme } from '@/components/preview/preview-theme-context'
 
-const PANEL_WIDTH = 200
-const PANEL_HEIGHT = 56
+const PANEL_WIDTH = 248
+const PANEL_HEIGHT = 88
+const OPTION_SIZE = 40
+const OPTION_ICON_SIZE = 20
 const HOVER_CLOSE_DELAY_MS = 120
 
 type PreviewWishlistPickerProps = {
@@ -126,30 +130,32 @@ function buttonConfig(value: WishlistValue) {
   }
 }
 
-const panelShellStyle: CSSProperties = {
+const panelShellStyle = (colors: { pickerPanelBg: string; pickerPanelBorder: string }): CSSProperties => ({
   position: 'fixed',
   zIndex: 10000,
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
-  gap: 4,
-  padding: '6px 8px 5px',
-  background: '#1A1A22',
-  border: '1px solid #3A3848',
-  borderRadius: 8,
-  boxShadow: '0 8px 24px rgba(0,0,0,0.55)',
-}
+  gap: 6,
+  padding: '8px 10px 10px',
+  background: colors.pickerPanelBg,
+  border: `1px solid ${colors.pickerPanelBorder}`,
+  borderRadius: 10,
+  boxShadow: '0 8px 24px rgba(0,0,0,0.45)',
+})
 
 const panelOptionStyle: CSSProperties = {
   background: 'none',
   border: 'none',
-  padding: '3px 4px',
+  padding: 0,
   cursor: 'pointer',
   lineHeight: 1,
   display: 'inline-flex',
   alignItems: 'center',
   justifyContent: 'center',
-  borderRadius: 6,
+  borderRadius: '50%',
+  width: OPTION_SIZE,
+  height: OPTION_SIZE,
 }
 
 export function PreviewWishlistPicker({
@@ -158,6 +164,7 @@ export function PreviewWishlistPicker({
   review,
   onReviewChange,
 }: PreviewWishlistPickerProps) {
+  const { colors } = usePreviewTheme()
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [panelOpen, setPanelOpen] = useState(false)
@@ -274,11 +281,23 @@ export function PreviewWishlistPicker({
             <div
               role="menu"
               aria-label="Wishlist options"
-              style={{ ...panelShellStyle, left: panelPosition.left, top: panelPosition.top, width: PANEL_WIDTH }}
+              style={{
+                ...panelShellStyle(colors),
+                left: panelPosition.left,
+                top: panelPosition.top,
+                width: PANEL_WIDTH,
+              }}
               onMouseEnter={cancelClose}
               onMouseLeave={scheduleClose}
             >
-              <div className="flex items-center justify-center gap-0.5 w-full">
+              <span
+                className="text-[11px] font-medium text-center w-full"
+                style={{ color: colors.pickerLabel, minHeight: 14, lineHeight: 1.2 }}
+                aria-live="polite"
+              >
+                {tooltip}
+              </span>
+              <div className="flex items-center justify-center gap-1 w-full">
                 {WISHLIST_OPTIONS.map((option) => {
                   const selected = value === option.value
                   const optionCfg = buttonConfig(option.value)
@@ -293,28 +312,23 @@ export function PreviewWishlistPicker({
                       disabled={saving}
                       style={{
                         ...panelOptionStyle,
-                        background: selected ? '#2A2A36' : 'transparent',
-                        outline: selected ? '1px solid #4A4A58' : 'none',
+                        border: `2px solid ${optionCfg.border}`,
+                        background: selected ? optionCfg.bg : 'transparent',
                         color: optionCfg.color,
+                        outline: selected ? `2px solid ${colors.pickerPanelBorder}` : 'none',
                         cursor: saving ? 'wait' : 'pointer',
                       }}
                       onMouseEnter={() => setHoveredOption(option.value)}
                       onClick={() => void setValue(option.value)}
                     >
                       <OptionIcon
-                        className={`w-4 h-4 ${optionCfg.filled ? 'fill-current' : ''}`}
+                        size={OPTION_ICON_SIZE}
+                        className={optionCfg.filled ? 'fill-current' : undefined}
                       />
                     </button>
                   )
                 })}
               </div>
-              <span
-                className="text-[9px] text-center w-full"
-                style={{ color: '#7A7888', minHeight: 11, lineHeight: 1.2 }}
-                aria-live="polite"
-              >
-                {tooltip}
-              </span>
             </div>,
             document.body,
           )
@@ -331,13 +345,19 @@ export function PreviewWishlistPicker({
 
 export function getReviewPanelStyle(
   wishlist: WishlistValue,
-  triedStatus?: TriedStatusValue | null,
+  mode: PreviewThemeMode = 'dark',
 ): CSSProperties {
-  if (triedStatus === 2) {
-    return {
-      background: 'linear-gradient(160deg, #060608 0%, #100C14 42%, #0A0810 100%)',
-      borderLeft: '1px solid #3A2838',
+  if (mode === 'light') {
+    if (wishlist === 1) {
+      return { background: '#E8F4EA', borderLeft: '1px solid #A8D0B0' }
     }
+    if (wishlist === 2) {
+      return { background: '#ECEEF4', borderLeft: '1px solid #B8BCC8' }
+    }
+    if (wishlist === 3) {
+      return { background: '#F5EED8', borderLeft: '1px solid #D8C878' }
+    }
+    return { background: '#F5F3EF', borderLeft: '1px solid #D8D4CC' }
   }
 
   if (wishlist === 1) {

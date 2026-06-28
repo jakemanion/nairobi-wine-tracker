@@ -13,14 +13,7 @@ const dmSans = DM_Sans({
 
 export default function PreviewLayout({ children }: { children: ReactNode }) {
   return (
-    <div
-      className={`${playfair.variable} ${dmSans.variable} min-h-screen`}
-      style={{
-        fontFamily: 'var(--font-dm-sans), sans-serif',
-        background: '#14141A',
-        color: '#EDE8E0',
-      }}
-    >
+    <div className={`${playfair.variable} ${dmSans.variable} min-h-screen`}>
       {children}
     </div>
   )

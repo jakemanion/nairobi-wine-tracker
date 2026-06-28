@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { PreviewWineList } from '@/components/preview/preview-wine-list'
+import { PreviewThemeProvider } from '@/components/preview/preview-theme-context'
 import type { WineReview, WineRow } from '@/components/wine-table'
 import { createServerReadClient } from '@/lib/supabase-server'
 import { getCurrentUserId } from '@/lib/user'
@@ -113,10 +114,12 @@ export default async function PreviewPage() {
   }
 
   return (
-    <PreviewWineList
-      userId={userId}
-      userName={userName}
-      wines={attachReviews((wines ?? []) as WineRow[], (reviews ?? []) as UserReview[])}
-    />
+    <PreviewThemeProvider>
+      <PreviewWineList
+        userId={userId}
+        userName={userName}
+        wines={attachReviews((wines ?? []) as WineRow[], (reviews ?? []) as UserReview[])}
+      />
+    </PreviewThemeProvider>
   )
 }
