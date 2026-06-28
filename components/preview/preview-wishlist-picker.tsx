@@ -196,11 +196,16 @@ export function PreviewWishlistPicker({
     }
   }
 
+  function closePanel() {
+    cancelClose()
+    setPanelOpen(false)
+    setHoveredOption('none')
+  }
+
   function scheduleClose() {
     cancelClose()
     closeTimeoutRef.current = window.setTimeout(() => {
-      setPanelOpen(false)
-      setHoveredOption('none')
+      closePanel()
       closeTimeoutRef.current = null
     }, HOVER_CLOSE_DELAY_MS)
   }
@@ -288,7 +293,7 @@ export function PreviewWishlistPicker({
                 width: PANEL_WIDTH,
               }}
               onMouseEnter={cancelClose}
-              onMouseLeave={scheduleClose}
+              onMouseLeave={closePanel}
             >
               <span
                 className="text-[11px] font-medium text-center w-full"
@@ -349,32 +354,30 @@ export function getReviewPanelStyle(
 ): CSSProperties {
   if (mode === 'light') {
     if (wishlist === 1) {
-      return { background: '#E8F4EA', borderLeft: '1px solid #A8D0B0' }
+      return { background: '#C4F0CC', borderLeft: '3px solid #38A050' }
     }
     if (wishlist === 2) {
-      return { background: '#ECEEF4', borderLeft: '1px solid #B8BCC8' }
+      return { background: '#D4DAF0', borderLeft: '3px solid #7888B0' }
     }
     if (wishlist === 3) {
-      return { background: '#F5EED8', borderLeft: '1px solid #D8C878' }
+      return { background: '#FFE88A', borderLeft: '3px solid #C8A020' }
     }
     return { background: '#F5F3EF', borderLeft: '1px solid #D8D4CC' }
   }
 
   if (wishlist === 1) {
-    return { background: '#142010', borderLeft: '1px solid #2A4828' }
+    return { background: '#1E6A30', borderLeft: '3px solid #48C868' }
   }
   if (wishlist === 2) {
     return {
-      background:
-        'linear-gradient(160deg, #28292E 0%, #3E4048 40%, #2C2D34 70%, #28292E 100%)',
-      borderLeft: '1px solid #56585E',
+      background: 'linear-gradient(160deg, #4A5270 0%, #7880A0 48%, #5A6280 100%)',
+      borderLeft: '3px solid #A0A8C8',
     }
   }
   if (wishlist === 3) {
     return {
-      background:
-        'linear-gradient(160deg, #1E1A0A 0%, #4A3C10 40%, #382E0C 70%, #1E1A0A 100%)',
-      borderLeft: '1px solid #6A5C20',
+      background: 'linear-gradient(160deg, #8A6810 0%, #D0A828 48%, #A88818 100%)',
+      borderLeft: '3px solid #F0D050',
     }
   }
   return { background: '#1C1C24', borderLeft: '1px solid #2E2E3A' }

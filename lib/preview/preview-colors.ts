@@ -168,32 +168,32 @@ export function getReviewPanelTextColors(
 
   if (wishlist === 1) {
     return {
-      label: '#B8E8C0',
-      body: '#E8F4EA',
-      muted: '#98C8A0',
-      notesBg: 'rgba(0,0,0,0.35)',
-      notesBorder: '#3A5840',
-      notesText: '#F0F8F2',
+      label: '#D8FFE0',
+      body: '#F4FFF6',
+      muted: '#B0E8B8',
+      notesBg: 'rgba(0,0,0,0.25)',
+      notesBorder: '#48C868',
+      notesText: '#F8FFF8',
     }
   }
   if (wishlist === 2) {
     return {
-      label: '#D0D8E8',
-      body: '#ECEEF4',
-      muted: '#A8B0C0',
-      notesBg: 'rgba(0,0,0,0.35)',
-      notesBorder: '#5A6070',
-      notesText: '#F4F6FA',
+      label: '#E8EEFF',
+      body: '#F8FAFF',
+      muted: '#C0C8E0',
+      notesBg: 'rgba(0,0,0,0.25)',
+      notesBorder: '#A0A8C8',
+      notesText: '#FFFFFF',
     }
   }
   if (wishlist === 3) {
     return {
-      label: '#E8D890',
-      body: '#F5EED0',
-      muted: '#C8B870',
-      notesBg: 'rgba(0,0,0,0.35)',
-      notesBorder: '#6A5C20',
-      notesText: '#FFF8E8',
+      label: '#FFF8C0',
+      body: '#FFFCF0',
+      muted: '#F0E090',
+      notesBg: 'rgba(0,0,0,0.25)',
+      notesBorder: '#F0D050',
+      notesText: '#FFFCF0',
     }
   }
 

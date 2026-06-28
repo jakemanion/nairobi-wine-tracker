@@ -7,7 +7,7 @@ import {
   type CSSProperties,
 } from 'react'
 import { createPortal } from 'react-dom'
-import { Check, Star, X } from 'lucide-react'
+import { Check, X, type LucideIcon } from 'lucide-react'
 import type { WineReview } from '@/components/wine-table'
 import { usePreviewTheme } from '@/components/preview/preview-theme-context'
 import { saveReviewTriedStatusField, type TriedStatusValue } from '@/lib/reviews'
@@ -78,7 +78,17 @@ function placePanelAtCenter(rect: DOMRect) {
   return { left, top }
 }
 
-function buttonConfig(value: TriedStatusValue) {
+type TriedButtonConfig = {
+  label: string
+  border: string
+  bg: string
+  color: string
+  strokeWidth?: number
+  textLabel?: string
+  icon?: LucideIcon
+}
+
+function buttonConfig(value: TriedStatusValue): TriedButtonConfig {
   switch (value) {
     case 0:
       return {
@@ -109,14 +119,35 @@ function buttonConfig(value: TriedStatusValue) {
       }
     default:
       return {
-        icon: Star,
         label: 'Not tried',
+        textLabel: 'Not tried',
         border: '#5A5868',
         bg: '#2A2A34',
-        color: '#C8C4D0',
-        strokeWidth: 2,
+        color: '#E8E4DC',
       }
   }
+}
+
+function TriedButtonContent({ config }: { config: TriedButtonConfig }) {
+  if (config.textLabel) {
+    return (
+      <span
+        style={{
+          fontSize: 7,
+          lineHeight: 1.05,
+          fontWeight: 600,
+          textAlign: 'center',
+          padding: '0 3px',
+          fontFamily: 'var(--font-dm-sans), sans-serif',
+        }}
+      >
+        {config.textLabel}
+      </span>
+    )
+  }
+
+  const Icon = config.icon!
+  return <Icon size={OPTION_ICON_SIZE} strokeWidth={config.strokeWidth ?? 2} />
 }
 
 const panelShellStyle = (colors: { pickerPanelBg: string; pickerPanelBorder: string }): CSSProperties => ({
@@ -164,7 +195,6 @@ export function PreviewTriedStatusPicker({
   const buttonRef = useRef<HTMLButtonElement>(null)
   const value = normalizeTriedStatus(review?.tried_status)
   const cfg = buttonConfig(value)
-  const TriggerIcon = cfg.icon
 
   useEffect(() => {
     setMounted(true)
@@ -185,11 +215,16 @@ export function PreviewTriedStatusPicker({
     }
   }
 
+  function closePanel() {
+    cancelClose()
+    setPanelOpen(false)
+    setHoveredOption('none')
+  }
+
   function scheduleClose() {
     cancelClose()
     closeTimeoutRef.current = window.setTimeout(() => {
-      setPanelOpen(false)
-      setHoveredOption('none')
+      closePanel()
       closeTimeoutRef.current = null
     }, HOVER_CLOSE_DELAY_MS)
   }
@@ -262,7 +297,7 @@ export function PreviewTriedStatusPicker({
         onMouseEnter={openPanel}
         onMouseLeave={scheduleClose}
       >
-        <TriggerIcon className="w-5 h-5" strokeWidth={cfg.strokeWidth} />
+        <TriedButtonContent config={cfg} />
       </button>
 
       {mounted && panelOpen
@@ -277,7 +312,7 @@ export function PreviewTriedStatusPicker({
                 width: PANEL_WIDTH,
               }}
               onMouseEnter={cancelClose}
-              onMouseLeave={scheduleClose}
+              onMouseLeave={closePanel}
             >
               <span
                 className="text-[11px] font-medium text-center w-full"
@@ -290,7 +325,6 @@ export function PreviewTriedStatusPicker({
                 {TRIED_OPTIONS.map((option) => {
                   const selected = value === option.value
                   const optionCfg = buttonConfig(option.value)
-                  const OptionIcon = optionCfg.icon
                   return (
                     <button
                       key={option.label}
@@ -310,7 +344,7 @@ export function PreviewTriedStatusPicker({
                       onMouseEnter={() => setHoveredOption(option.value)}
                       onClick={() => void setValue(option.value)}
                     >
-                      <OptionIcon size={OPTION_ICON_SIZE} strokeWidth={optionCfg.strokeWidth} />
+                      <TriedButtonContent config={optionCfg} />
                     </button>
                   )
                 })}

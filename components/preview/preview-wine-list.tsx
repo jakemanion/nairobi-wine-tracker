@@ -82,81 +82,88 @@ export function PreviewWineList({ wines: initialWines, userId, userName }: Previ
 
   return (
     <div className="min-h-screen" style={{ background: colors.pageBg }}>
-      <header
+      <div
         className="sticky top-0 z-50"
         style={{
-          background: colors.headerBg,
+          background: colors.pageBg,
           borderBottom: `1px solid ${colors.headerBorder}`,
           boxShadow: colors.headerShadow,
         }}
       >
-        <div className="max-w-5xl mx-auto px-6 py-3 flex items-center justify-between gap-4">
-          <div className="min-w-0">
-            <h1
-              className="text-base font-semibold leading-none truncate"
-              style={{ color: colors.headerTitle, fontFamily: 'var(--font-playfair), serif' }}
-            >
-              Nairobi Wine List
-            </h1>
-            <p className="text-[10px] mt-1 truncate" style={{ color: colors.headerSub }}>
-              Preview design · {userName}
-            </p>
-          </div>
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <button
-              type="button"
-              className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg"
-              style={{
-                background: colors.buttonBg,
-                border: `1px solid ${colors.buttonBorder}`,
-                color: colors.buttonText,
-                fontFamily: 'var(--font-dm-sans), sans-serif',
-                cursor: 'pointer',
-              }}
-              aria-pressed={mode === 'light'}
-              onClick={toggleMode}
-            >
-              {mode === 'dark' ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
-              {mode === 'dark' ? 'Light mode' : 'Dark mode'}
-            </button>
-            <Link
-              href="/"
-              className="text-xs px-3 py-1.5 rounded-lg no-underline"
-              style={{
-                background: colors.buttonBg,
-                border: `1px solid ${colors.buttonBorder}`,
-                color: colors.buttonText,
-                fontFamily: 'var(--font-dm-sans), sans-serif',
-              }}
-            >
-              Classic view
-            </Link>
-          </div>
-        </div>
-      </header>
-
-      <div className="max-w-5xl mx-auto px-6 pt-4">
-        <PreviewToolbar
-          searchQuery={searchQuery}
-          onSearchQueryChange={setSearchQuery}
-          toolsExpanded={toolsExpanded}
-          onToolsExpandedChange={setToolsExpanded}
-          activeFilterCount={activeFilterCount}
-          filters={filters}
-          onFiltersChange={setFilters}
-          filterOptions={filterOptions}
-          primarySort={primarySort}
-          secondarySort={secondarySort}
-          onPrimarySortChange={setPrimarySort}
-          onSecondarySortChange={setSecondarySort}
-          ratingThenPriceActive={ratingThenPriceActive}
-          onApplyRatingThenPrice={() => {
-            setPrimarySort({ key: 'vivino_rating', dir: 'desc' })
-            setSecondarySort({ key: 'store_prices', dir: 'asc' })
+        <header
+          style={{
+            background: colors.headerBg,
+            borderBottom: `1px solid ${colors.headerBorder}`,
           }}
-          resultCount={previewWines.length}
-          totalCount={wines.length}
-        />
+        >
+          <div className="max-w-5xl mx-auto px-6 py-3 flex items-center justify-between gap-4">
+            <div className="min-w-0">
+              <h1
+                className="text-base font-semibold leading-none truncate"
+                style={{ color: colors.headerTitle, fontFamily: 'var(--font-playfair), serif' }}
+              >
+                Nairobi Wine List
+              </h1>
+              <p className="text-[10px] mt-1 truncate" style={{ color: colors.headerSub }}>
+                Preview design · {userName}
+              </p>
+            </div>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <button
+                type="button"
+                className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg"
+                style={{
+                  background: colors.buttonBg,
+                  border: `1px solid ${colors.buttonBorder}`,
+                  color: colors.buttonText,
+                  fontFamily: 'var(--font-dm-sans), sans-serif',
+                  cursor: 'pointer',
+                }}
+                aria-pressed={mode === 'light'}
+                onClick={toggleMode}
+              >
+                {mode === 'dark' ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
+                {mode === 'dark' ? 'Light mode' : 'Dark mode'}
+              </button>
+              <Link
+                href="/"
+                className="text-xs px-3 py-1.5 rounded-lg no-underline"
+                style={{
+                  background: colors.buttonBg,
+                  border: `1px solid ${colors.buttonBorder}`,
+                  color: colors.buttonText,
+                  fontFamily: 'var(--font-dm-sans), sans-serif',
+                }}
+              >
+                Classic view
+              </Link>
+            </div>
+          </div>
+        </header>
+
+        <div className="max-w-5xl mx-auto px-6 py-4">
+          <PreviewToolbar
+            searchQuery={searchQuery}
+            onSearchQueryChange={setSearchQuery}
+            toolsExpanded={toolsExpanded}
+            onToolsExpandedChange={setToolsExpanded}
+            activeFilterCount={activeFilterCount}
+            filters={filters}
+            onFiltersChange={setFilters}
+            filterOptions={filterOptions}
+            primarySort={primarySort}
+            secondarySort={secondarySort}
+            onPrimarySortChange={setPrimarySort}
+            onSecondarySortChange={setSecondarySort}
+            ratingThenPriceActive={ratingThenPriceActive}
+            onApplyRatingThenPrice={() => {
+              setPrimarySort({ key: 'vivino_rating', dir: 'desc' })
+              setSecondarySort({ key: 'store_prices', dir: 'asc' })
+            }}
+            resultCount={previewWines.length}
+            totalCount={wines.length}
+          />
+        </div>
       </div>
 
       <main className="max-w-5xl mx-auto px-6 py-5 space-y-2.5">
