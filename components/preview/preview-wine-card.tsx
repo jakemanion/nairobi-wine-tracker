@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { MapPin } from 'lucide-react'
 import type { WineReview } from '@/components/wine-table'
-import { ImageWithFallback } from '@/components/preview/image-with-fallback'
+import { PreviewBottleImage } from '@/components/preview/preview-bottle-image'
 import {
   getReviewPanelStyle,
   PreviewWishlistPicker,
@@ -15,13 +15,18 @@ import {
   type PreviewWineCardData,
 } from '@/lib/preview/wine-card-model'
 import { saveReviewField } from '@/lib/reviews'
-import type { WishlistValue } from '@/lib/reviews'
+import type { TriedStatusValue, WishlistValue } from '@/lib/reviews'
 
 type PreviewWineCardProps = {
   wine: PreviewWineCardData
   userId: string
   review?: WineReview | null
   onReviewChange: (review: WineReview | null) => void
+}
+
+function normalizeTriedStatus(value: number | null | undefined): TriedStatusValue {
+  if (value === 0 || value === 1 || value === 2) return value
+  return null
 }
 
 function normalizeWishlist(value: number | null | undefined): WishlistValue {
@@ -123,6 +128,7 @@ function RatingSlider({
 
 export function PreviewWineCard({ wine, userId, review, onReviewChange }: PreviewWineCardProps) {
   const wishlist = normalizeWishlist(review?.wishlist)
+  const triedStatus = normalizeTriedStatus(review?.tried_status)
   const isIgnored = wishlist === 0
   const minPrice = lowestPrice(wine.prices)
   const ribbon = colourRibbonStyle(wine.colour)
@@ -208,7 +214,7 @@ export function PreviewWineCard({ wine, userId, review, onReviewChange }: Previe
 
   return (
     <div
-      className="relative flex overflow-hidden transition-opacity duration-300"
+      className="relative flex items-stretch overflow-hidden transition-opacity duration-300"
       style={{
         background: '#222228',
         border: '1px solid #343440',
@@ -252,14 +258,10 @@ export function PreviewWineCard({ wine, userId, review, onReviewChange }: Previe
       </div>
 
       <div
-        className="w-[68px] flex-shrink-0 flex items-center justify-center py-2 px-1.5"
+        className="w-[96px] flex-shrink-0 self-stretch relative min-h-[112px]"
         style={{ background: '#1A1A20' }}
       >
-        <ImageWithFallback
-          src={wine.image ?? undefined}
-          alt={wine.name}
-          className="h-28 w-full object-contain"
-        />
+        <PreviewBottleImage src={wine.image} alt={wine.name} />
       </div>
 
       <div
@@ -344,7 +346,7 @@ export function PreviewWineCard({ wine, userId, review, onReviewChange }: Previe
 
       <div
         className="flex-shrink-0 px-3.5 py-2.5 flex flex-col gap-2 transition-colors duration-300"
-        style={{ width: '44%', ...getReviewPanelStyle(wishlist) }}
+        style={{ width: '44%', ...getReviewPanelStyle(wishlist, triedStatus) }}
       >
         <div className="flex items-center gap-2">
           <PreviewWishlistPicker

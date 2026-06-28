@@ -9,7 +9,7 @@ import {
 import { createPortal } from 'react-dom'
 import { Bookmark, BookmarkCheck, Crown, Star, X } from 'lucide-react'
 import type { WineReview } from '@/components/wine-table'
-import { saveReviewWishlistField, type WishlistValue } from '@/lib/reviews'
+import { saveReviewWishlistField, type TriedStatusValue, type WishlistValue } from '@/lib/reviews'
 
 const PANEL_WIDTH = 200
 const PANEL_HEIGHT = 56
@@ -329,7 +329,17 @@ export function PreviewWishlistPicker({
   )
 }
 
-export function getReviewPanelStyle(wishlist: WishlistValue): CSSProperties {
+export function getReviewPanelStyle(
+  wishlist: WishlistValue,
+  triedStatus?: TriedStatusValue | null,
+): CSSProperties {
+  if (triedStatus === 2) {
+    return {
+      background: 'linear-gradient(160deg, #060608 0%, #100C14 42%, #0A0810 100%)',
+      borderLeft: '1px solid #3A2838',
+    }
+  }
+
   if (wishlist === 1) {
     return { background: '#142010', borderLeft: '1px solid #2A4828' }
   }
