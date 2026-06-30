@@ -1,5 +1,10 @@
 import { DM_Sans, Playfair_Display } from 'next/font/google'
+import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
+
+export const metadata: Metadata = {
+  title: 'WineDiviner: Nairobi',
+}
 
 const playfair = Playfair_Display({
   subsets: ['latin'],

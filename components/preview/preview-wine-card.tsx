@@ -6,6 +6,7 @@ import type { WineReview } from '@/components/wine-table'
 import { PreviewBottleImage } from '@/components/preview/preview-bottle-image'
 import {
   getReviewPanelStyle,
+  getWishlistAccentColor,
   PreviewWishlistPicker,
 } from '@/components/preview/preview-wishlist-picker'
 import { PreviewTriedStatusPicker } from '@/components/preview/preview-tried-status-picker'
@@ -220,7 +221,7 @@ function RatingSlider({
   onCommit: (v: number) => void
 }) {
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-1 min-w-0 w-full">
       <input
         type="range"
         min={0}
@@ -228,14 +229,14 @@ function RatingSlider({
         step={0.1}
         value={value}
         disabled={disabled}
-        className="flex-1 h-1 cursor-pointer disabled:opacity-50"
+        className="flex-1 min-w-0 h-1 cursor-pointer disabled:opacity-50"
         style={{ accentColor: '#C93048' }}
         onChange={(e) => onChange(parseFloat(e.target.value))}
         onMouseUp={(e) => onCommit(parseFloat((e.target as HTMLInputElement).value))}
         onTouchEnd={(e) => onCommit(parseFloat((e.target as HTMLInputElement).value))}
       />
       <span
-        className="text-xs font-bold w-7 text-right tabular-nums"
+        className="text-[10px] font-bold w-6 flex-shrink-0 text-right tabular-nums"
         style={{ color: valueColor, fontFamily: 'var(--font-dm-sans), sans-serif' }}
       >
         {value.toFixed(1)}
@@ -261,6 +262,15 @@ export function PreviewWineCard({
   const panelText = getReviewPanelTextColors(mode, wishlist)
   const ratingLabelColor = ratingInactive ? panelText.muted : panelText.label
   const ratingValueColor = ratingInactive ? panelText.muted : panelText.body
+  const wishlistAccent = getWishlistAccentColor(wishlist, mode)
+  const infoOnDark = mode === 'light'
+  const infoProducer = infoOnDark ? '#F08090' : colors.producer
+  const infoWineName = infoOnDark ? '#F5F2EC' : colors.wineName
+  const infoMuted = infoOnDark ? '#C8C4D0' : colors.muted
+  const infoGrapeBg = infoOnDark ? 'rgba(255,255,255,0.08)' : colors.grapeBg
+  const infoGrapeBorder = infoOnDark ? 'rgba(255,255,255,0.12)' : colors.grapeBorder
+  const infoGrapeText = infoOnDark ? '#E8E4DC' : colors.grapeText
+  const priceAmountColor = '#FFFFFF'
 
   const [ratingDraft, setRatingDraft] = useState(review?.overall_score ?? 0)
   const [notesDraft, setNotesDraft] = useState(review?.tasting_notes ?? '')
@@ -346,7 +356,7 @@ export function PreviewWineCard({
       className="relative flex items-stretch overflow-hidden transition-opacity duration-300"
       style={{
         background: colors.cardBg,
-        border: `1px solid ${colors.cardBorder}`,
+        border: `3px solid ${wishlistAccent}`,
         borderRadius: '0 12px 12px 12px',
         boxShadow: isDimmed ? 'none' : colors.cardShadow,
         opacity: isDimmed ? 0.4 : 1,
@@ -383,29 +393,33 @@ export function PreviewWineCard({
 
       <div
         className="flex-1 min-w-0 px-3.5 py-2.5 flex flex-col justify-between gap-1.5"
-        style={{ borderRight: `1px solid ${colors.infoBorder}` }}
+        style={{
+          background: colors.wineInfoBg,
+          boxShadow: colors.wineInfoSheen,
+          borderRight: `1px solid ${colors.infoBorder}`,
+        }}
       >
         <div className="flex items-start gap-2.5">
           <VivinoCircle rating={wine.vivinoRating} url={wine.vivinoUrl} />
           <div className="flex-1 min-w-0 flex flex-col gap-1.5 pt-0.5">
             <p
               className="text-[9px] font-semibold uppercase tracking-[0.14em] leading-none"
-              style={{ color: colors.producer, fontFamily: 'var(--font-dm-sans), sans-serif' }}
+              style={{ color: infoProducer, fontFamily: 'var(--font-dm-sans), sans-serif' }}
             >
               {wine.producer}
             </p>
             <h3
               className="text-sm font-semibold leading-snug"
-              style={{ color: colors.wineName, fontFamily: 'var(--font-playfair), serif' }}
+              style={{ color: infoWineName, fontFamily: 'var(--font-playfair), serif' }}
             >
               {wine.name}
             </h3>
 
             <div className="flex items-center gap-1">
-              <MapPin className="w-3 h-3 flex-shrink-0" style={{ color: colors.muted }} />
+              <MapPin className="w-3 h-3 flex-shrink-0" style={{ color: infoMuted }} />
               <span
                 className="text-[11px] truncate"
-                style={{ color: colors.muted, fontFamily: 'var(--font-dm-sans), sans-serif' }}
+                style={{ color: infoMuted, fontFamily: 'var(--font-dm-sans), sans-serif' }}
               >
                 {wine.region} · {wine.country}
               </span>
@@ -418,9 +432,9 @@ export function PreviewWineCard({
                     key={grape}
                     className="text-[10px] px-1.5 py-0.5 rounded"
                     style={{
-                      background: colors.grapeBg,
-                      border: `1px solid ${colors.grapeBorder}`,
-                      color: colors.grapeText,
+                      background: infoGrapeBg,
+                      border: `1px solid ${infoGrapeBorder}`,
+                      color: infoGrapeText,
                       fontFamily: 'var(--font-dm-sans), sans-serif',
                     }}
                   >
@@ -434,21 +448,21 @@ export function PreviewWineCard({
               {wine.prices.length > 0 ? (
                 wine.prices.map((listing) => {
                   const isLowest = minPrice != null && listing.price === minPrice
-                  const priceStyle = {
+                  const linkStyle = {
                     fontFamily: 'var(--font-dm-sans), sans-serif',
-                    color: isLowest
-                      ? mode === 'light'
-                        ? colors.wineName
-                        : '#FFFFFF'
-                      : colors.priceMuted,
-                    fontWeight: isLowest ? 700 : 400,
+                    textDecoration: 'none',
                   } as const
                   const content = (
                     <>
-                      <span style={{ color: isLowest ? priceStyle.color : colors.priceShop }}>
-                        {listing.shop}:{' '}
+                      <span style={{ color: colors.priceShop }}>{listing.shop}: </span>
+                      <span
+                        style={{
+                          color: priceAmountColor,
+                          fontWeight: isLowest ? 700 : 500,
+                        }}
+                      >
+                        {formatPrice(listing.price)}
                       </span>
-                      {formatPrice(listing.price)}
                     </>
                   )
 
@@ -459,8 +473,8 @@ export function PreviewWineCard({
                         href={listing.url}
                         target="_blank"
                         rel="noreferrer"
-                        className="text-[11px] no-underline hover:underline"
-                        style={priceStyle}
+                        className="text-[11px] hover:underline"
+                        style={linkStyle}
                       >
                         {content}
                       </a>
@@ -468,13 +482,13 @@ export function PreviewWineCard({
                   }
 
                   return (
-                    <span key={listing.shop} className="text-[11px]" style={priceStyle}>
+                    <span key={listing.shop} className="text-[11px]" style={linkStyle}>
                       {content}
                     </span>
                   )
                 })
               ) : (
-                <span className="text-[11px]" style={{ color: colors.priceMuted }}>
+                <span className="text-[11px]" style={{ color: infoMuted }}>
                   No listings
                 </span>
               )}
@@ -484,10 +498,10 @@ export function PreviewWineCard({
       </div>
 
       <div
-        className="flex-shrink-0 px-3 py-2.5 flex flex-col gap-2 transition-colors duration-300"
+        className="flex-shrink-0 px-2.5 py-2.5 flex flex-col gap-2 transition-colors duration-300 min-w-0"
         style={{ width: '29.33%', ...getReviewPanelStyle(wishlist, mode) }}
       >
-        <div className="flex items-end gap-2">
+        <div className="flex items-end justify-center gap-2">
           <div className="flex flex-col items-center gap-1 flex-shrink-0">
             <p
               className="text-[9px] uppercase tracking-wider leading-none"
@@ -516,24 +530,24 @@ export function PreviewWineCard({
               onReviewChange={onReviewChange}
             />
           </div>
-          <div
-            className="flex-1 min-w-0 transition-opacity duration-200"
-            style={{ opacity: ratingInactive ? 0.45 : 1 }}
+        </div>
+        <div
+          className="w-full min-w-0 transition-opacity duration-200"
+          style={{ opacity: ratingInactive ? 0.45 : 1 }}
+        >
+          <p
+            className="text-[9px] uppercase tracking-wider mb-1"
+            style={{ color: ratingLabelColor, fontFamily: 'var(--font-dm-sans), sans-serif' }}
           >
-            <p
-              className="text-[9px] uppercase tracking-wider mb-1"
-              style={{ color: ratingLabelColor, fontFamily: 'var(--font-dm-sans), sans-serif' }}
-            >
-              My Rating
-            </p>
-            <RatingSlider
-              value={ratingDraft}
-              disabled={savingRating || ratingInactive}
-              valueColor={ratingValueColor}
-              onChange={setRatingDraft}
-              onCommit={(v) => void saveRating(v)}
-            />
-          </div>
+            My Rating
+          </p>
+          <RatingSlider
+            value={ratingDraft}
+            disabled={savingRating || ratingInactive}
+            valueColor={ratingValueColor}
+            onChange={setRatingDraft}
+            onCommit={(v) => void saveRating(v)}
+          />
         </div>
 
         <textarea

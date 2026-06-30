@@ -104,7 +104,7 @@ export function PreviewWineList({ wines: initialWines, userId, userName }: Previ
                 className="text-base font-semibold leading-none truncate"
                 style={{ color: colors.headerTitle, fontFamily: 'var(--font-playfair), serif' }}
               >
-                Nairobi Wine List
+                WineDiviner: Nairobi
               </h1>
               <p className="text-[10px] mt-1 truncate" style={{ color: colors.headerSub }}>
                 Preview design · {userName}
