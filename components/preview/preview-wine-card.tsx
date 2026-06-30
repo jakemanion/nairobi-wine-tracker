@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { MapPin } from 'lucide-react'
+import { ExternalLink, MapPin } from 'lucide-react'
 import type { WineReview } from '@/components/wine-table'
 import { PreviewBottleImage } from '@/components/preview/preview-bottle-image'
 import {
@@ -111,6 +111,7 @@ function getVivinoScoreLabel(rating: number | null): string {
   if (rating > 4.2) return 'Very highly rated'
   if (rating >= 4) return 'Highly rated'
   if (rating >= 3.8 && rating <= 3.9) return 'Well rated'
+  if (rating >= 3.7 && rating < 3.8) return 'Decent if priced well'
   return ''
 }
 
@@ -120,16 +121,23 @@ function VivinoCircle({ rating, url }: { rating: number | null; url: string | nu
   const style = VIVINO_TIER_STYLES[tier]
   const scoreLabel = getVivinoScoreLabel(rating)
   const isMatte = tier === 'grey' || tier === 'none'
+  const isLink = Boolean(url)
 
-  const circle = (
-    <div className="group/vivino flex flex-col items-center flex-shrink-0" style={{ width: 44 }}>
+  const content = (
+    <div
+      className={`group/vivino flex flex-col items-center flex-shrink-0 ${isLink ? 'cursor-pointer' : ''}`}
+      style={{ width: 44 }}
+    >
       <div className="relative flex flex-col items-center">
         <div
-          className="w-11 h-11 rounded-full flex items-center justify-center"
+          className={`w-11 h-11 rounded-full flex items-center justify-center transition-all duration-200 ${
+            isLink ? 'group-hover/vivino:brightness-110 group-hover/vivino:shadow-lg' : ''
+          }`}
           style={{
             background: style.background,
             border: `2.5px solid ${style.border}`,
             boxShadow: isMatte ? 'none' : '0 2px 10px rgba(0,0,0,0.45)',
+            outline: isLink ? '1px solid transparent' : undefined,
           }}
         >
           <span
@@ -155,27 +163,23 @@ function VivinoCircle({ rating, url }: { rating: number | null; url: string | nu
             )}
           </span>
         </div>
-        {url ? (
-          <span
-            className="absolute left-1/2 -translate-x-1/2 top-full mt-0.5 z-10 text-[7px] font-semibold leading-tight text-center opacity-0 group-hover/vivino:opacity-100 transition-opacity duration-200 pointer-events-none rounded px-1.5 py-0.5 max-w-[72px]"
-            style={{
-              color: '#F4F2F8',
-              background: 'rgba(12, 12, 16, 0.92)',
-              border: '1px solid rgba(255,255,255,0.12)',
-              fontFamily: 'var(--font-dm-sans), sans-serif',
-            }}
-          >
-            View on Vivino
-          </span>
-        ) : null}
       </div>
+      {isLink ? (
+        <span
+          className="mt-0.5 flex items-center gap-0.5 text-[8px] font-semibold leading-none underline-offset-2 group-hover/vivino:underline"
+          style={{ color: style.label, fontFamily: 'var(--font-dm-sans), sans-serif' }}
+        >
+          Vivino
+          <ExternalLink className="w-2.5 h-2.5 flex-shrink-0" aria-hidden />
+        </span>
+      ) : null}
       {scoreLabel ? (
         <p
-          className="mt-1 text-[7px] font-medium text-center leading-tight"
+          className="mt-1 text-[9px] font-medium text-center leading-snug"
           style={{
             color: style.text,
             fontFamily: 'var(--font-dm-sans), sans-serif',
-            maxWidth: 52,
+            maxWidth: 60,
           }}
         >
           {scoreLabel}
@@ -186,13 +190,20 @@ function VivinoCircle({ rating, url }: { rating: number | null; url: string | nu
 
   if (url) {
     return (
-      <a href={url} target="_blank" rel="noreferrer" className="flex-shrink-0 no-underline">
-        {circle}
+      <a
+        href={url}
+        target="_blank"
+        rel="noreferrer"
+        className="flex-shrink-0 no-underline text-inherit"
+        title="View on Vivino"
+        aria-label="View on Vivino"
+      >
+        {content}
       </a>
     )
   }
 
-  return circle
+  return content
 }
 
 function RatingSlider({
@@ -423,18 +434,42 @@ export function PreviewWineCard({
               {wine.prices.length > 0 ? (
                 wine.prices.map((listing) => {
                   const isLowest = minPrice != null && listing.price === minPrice
-                  return (
-                    <span
-                      key={listing.shop}
-                      className="text-[11px]"
-                      style={{
-                        fontFamily: 'var(--font-dm-sans), sans-serif',
-                        color: isLowest ? colors.priceLow : colors.priceMuted,
-                        fontWeight: isLowest ? 700 : 400,
-                      }}
-                    >
-                      <span style={{ color: colors.priceShop }}>{listing.shop}: </span>
+                  const priceStyle = {
+                    fontFamily: 'var(--font-dm-sans), sans-serif',
+                    color: isLowest
+                      ? mode === 'light'
+                        ? colors.wineName
+                        : '#FFFFFF'
+                      : colors.priceMuted,
+                    fontWeight: isLowest ? 700 : 400,
+                  } as const
+                  const content = (
+                    <>
+                      <span style={{ color: isLowest ? priceStyle.color : colors.priceShop }}>
+                        {listing.shop}:{' '}
+                      </span>
                       {formatPrice(listing.price)}
+                    </>
+                  )
+
+                  if (listing.url) {
+                    return (
+                      <a
+                        key={listing.shop}
+                        href={listing.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-[11px] no-underline hover:underline"
+                        style={priceStyle}
+                      >
+                        {content}
+                      </a>
+                    )
+                  }
+
+                  return (
+                    <span key={listing.shop} className="text-[11px]" style={priceStyle}>
+                      {content}
                     </span>
                   )
                 })
@@ -449,8 +484,8 @@ export function PreviewWineCard({
       </div>
 
       <div
-        className="flex-shrink-0 px-3.5 py-2.5 flex flex-col gap-2 transition-colors duration-300"
-        style={{ width: '44%', ...getReviewPanelStyle(wishlist, mode) }}
+        className="flex-shrink-0 px-3 py-2.5 flex flex-col gap-2 transition-colors duration-300"
+        style={{ width: '29.33%', ...getReviewPanelStyle(wishlist, mode) }}
       >
         <div className="flex items-end gap-2">
           <div className="flex flex-col items-center gap-1 flex-shrink-0">

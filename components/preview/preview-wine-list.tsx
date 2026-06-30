@@ -22,6 +22,8 @@ import { createWineSearchIndex, normalizeSearchText } from '@/lib/wine-search'
 
 type DisplayWineRow = WineRow & { valueScore: number | null }
 
+const PREVIEW_CONTENT_MAX_WIDTH = '54.625rem'
+
 type PreviewWineListProps = {
   wines: WineRow[]
   userId: string
@@ -96,7 +98,7 @@ export function PreviewWineList({ wines: initialWines, userId, userName }: Previ
             borderBottom: `1px solid ${colors.headerBorder}`,
           }}
         >
-          <div className="max-w-5xl mx-auto px-6 py-3 flex items-center justify-between gap-4">
+          <div className="mx-auto px-6 py-3 flex items-center justify-between gap-4" style={{ maxWidth: PREVIEW_CONTENT_MAX_WIDTH }}>
             <div className="min-w-0">
               <h1
                 className="text-base font-semibold leading-none truncate"
@@ -141,7 +143,7 @@ export function PreviewWineList({ wines: initialWines, userId, userName }: Previ
           </div>
         </header>
 
-        <div className="max-w-5xl mx-auto px-6 py-4">
+        <div className="mx-auto px-6 py-4" style={{ maxWidth: PREVIEW_CONTENT_MAX_WIDTH }}>
           <PreviewToolbar
             searchQuery={searchQuery}
             onSearchQueryChange={setSearchQuery}
@@ -166,7 +168,7 @@ export function PreviewWineList({ wines: initialWines, userId, userName }: Previ
         </div>
       </div>
 
-      <main className="max-w-5xl mx-auto px-6 py-5 space-y-2.5">
+      <main className="mx-auto px-6 py-5 space-y-2.5" style={{ maxWidth: PREVIEW_CONTENT_MAX_WIDTH }}>
         {previewWines.length === 0 ? (
           <p className="text-center text-sm py-12" style={{ color: colors.emptyText }}>
             No wines match your search or filters.

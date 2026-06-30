@@ -15,7 +15,7 @@ export type PreviewWineCardData = {
   grapes: string[]
   vivinoRating: number | null
   vivinoUrl: string | null
-  prices: Array<{ shop: string; price: number }>
+  prices: Array<{ shop: string; price: number; url: string | null }>
   image: string | null
 }
 
@@ -72,9 +72,13 @@ export function toPreviewWineCard(wine: WineRow): PreviewWineCardData {
       const price = parseListingPrice(listing.current_price_ksh)
       const shop = listing.stores?.name?.trim()
       if (price == null || !shop) return null
-      return { shop, price }
+      return {
+        shop,
+        price,
+        url: listing.store_product_url?.trim() || null,
+      }
     })
-    .filter((row): row is { shop: string; price: number } => row != null)
+    .filter((row): row is { shop: string; price: number; url: string | null } => row != null)
 
   return {
     id: String(wine.id),
