@@ -60,37 +60,65 @@ function formatPrice(value: number): string {
   return value.toLocaleString('en-KE', { maximumFractionDigits: 0 })
 }
 
-function VivinoCircle({ rating, url }: { rating: number; url: string | null }) {
-  const inner = (
-    <div
-      className="w-10 h-10 rounded-full flex-shrink-0 flex flex-col items-center justify-center"
-      style={{
-        background: 'linear-gradient(135deg, #3A2808, #6A4A14)',
-        border: '2px solid #7A5A18',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.5)',
-      }}
-    >
-      <span
-        className="text-[12px] font-bold leading-none tabular-nums"
-        style={{ color: '#D4A840', fontFamily: 'var(--font-dm-sans), sans-serif' }}
+function VivinoCircle({ rating, url }: { rating: number | null; url: string | null }) {
+  const hasRating = rating != null
+
+  const circle = (
+    <div className="group/vivino relative flex flex-col items-center flex-shrink-0 pb-1">
+      <div
+        className="rounded-full flex items-center justify-center transition-all duration-200 ease-out w-11 h-11 group-hover/vivino:w-[52px] group-hover/vivino:h-[52px]"
+        style={{
+          background: hasRating
+            ? 'linear-gradient(145deg, #503408 0%, #9A7018 55%, #6A5010 100%)'
+            : 'linear-gradient(145deg, #2A2A32 0%, #40404C 55%, #32323C 100%)',
+          border: hasRating ? '2.5px solid #C89828' : '2px solid #5E5E6A',
+          boxShadow: '0 2px 10px rgba(0,0,0,0.45)',
+        }}
       >
-        {rating.toFixed(1)}
-      </span>
-      <span className="text-[7px] leading-none" style={{ color: '#907040' }}>
-        vivino
-      </span>
+        <span
+          className={`font-bold text-center leading-none transition-all duration-200 ${
+            hasRating
+              ? 'tabular-nums text-[15px] group-hover/vivino:text-[18px]'
+              : 'text-[7px] group-hover/vivino:text-[7.5px] px-1'
+          }`}
+          style={{
+            color: hasRating ? '#FFD878' : '#A8A4B0',
+            fontFamily: 'var(--font-dm-sans), sans-serif',
+            letterSpacing: hasRating ? '-0.03em' : '0.02em',
+            lineHeight: hasRating ? 1 : 1.15,
+          }}
+        >
+          {hasRating ? (
+            rating.toFixed(1)
+          ) : (
+            <>
+              No
+              <br />
+              rating
+            </>
+          )}
+        </span>
+      </div>
+      {hasRating ? (
+        <span
+          className="absolute -bottom-0 left-1/2 -translate-x-1/2 text-[8px] font-semibold uppercase tracking-[0.12em] opacity-0 group-hover/vivino:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap"
+          style={{ color: '#C8A040', fontFamily: 'var(--font-dm-sans), sans-serif' }}
+        >
+          vivino
+        </span>
+      ) : null}
     </div>
   )
 
-  if (url) {
+  if (url && hasRating) {
     return (
-      <a href={url} target="_blank" rel="noreferrer" className="flex-shrink-0">
-        {inner}
+      <a href={url} target="_blank" rel="noreferrer" className="flex-shrink-0 no-underline">
+        {circle}
       </a>
     )
   }
 
-  return inner
+  return circle
 }
 
 function RatingSlider({
@@ -272,7 +300,8 @@ export function PreviewWineCard({
         className="flex-1 min-w-0 px-3.5 py-2.5 flex flex-col justify-between gap-1.5"
         style={{ borderRight: `1px solid ${colors.infoBorder}` }}
       >
-        <div className="flex items-start gap-2">
+        <div className="flex items-start gap-2.5">
+          <VivinoCircle rating={wine.vivinoRating} url={wine.vivinoUrl} />
           <div className="flex-1 min-w-0 pt-0.5">
             <p
               className="text-[9px] font-semibold uppercase tracking-[0.14em] leading-none mb-0.5"
@@ -287,9 +316,6 @@ export function PreviewWineCard({
               {wine.name}
             </h3>
           </div>
-          {wine.vivinoRating != null ? (
-            <VivinoCircle rating={wine.vivinoRating} url={wine.vivinoUrl} />
-          ) : null}
         </div>
 
         <div className="flex items-center gap-1">
@@ -352,19 +378,35 @@ export function PreviewWineCard({
         className="flex-shrink-0 px-3.5 py-2.5 flex flex-col gap-2 transition-colors duration-300"
         style={{ width: '44%', ...getReviewPanelStyle(wishlist, mode) }}
       >
-        <div className="flex items-center gap-2">
-          <PreviewWishlistPicker
-            wineId={wine.id}
-            userId={userId}
-            review={review}
-            onReviewChange={onReviewChange}
-          />
-          <PreviewTriedStatusPicker
-            wineId={wine.id}
-            userId={userId}
-            review={review}
-            onReviewChange={onReviewChange}
-          />
+        <div className="flex items-end gap-2">
+          <div className="flex flex-col items-center gap-1 flex-shrink-0">
+            <p
+              className="text-[9px] uppercase tracking-wider leading-none"
+              style={{ color: panelText.label, fontFamily: 'var(--font-dm-sans), sans-serif' }}
+            >
+              Wishlist
+            </p>
+            <PreviewWishlistPicker
+              wineId={wine.id}
+              userId={userId}
+              review={review}
+              onReviewChange={onReviewChange}
+            />
+          </div>
+          <div className="flex flex-col items-center gap-1 flex-shrink-0">
+            <p
+              className="text-[9px] uppercase tracking-wider leading-none"
+              style={{ color: panelText.label, fontFamily: 'var(--font-dm-sans), sans-serif' }}
+            >
+              Tried
+            </p>
+            <PreviewTriedStatusPicker
+              wineId={wine.id}
+              userId={userId}
+              review={review}
+              onReviewChange={onReviewChange}
+            />
+          </div>
           <div
             className="flex-1 min-w-0 transition-opacity duration-200"
             style={{ opacity: ratingInactive ? 0.45 : 1 }}
