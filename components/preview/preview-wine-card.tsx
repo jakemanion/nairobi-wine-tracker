@@ -60,32 +60,77 @@ function formatPrice(value: number): string {
   return value.toLocaleString('en-KE', { maximumFractionDigits: 0 })
 }
 
+type VivinoTier = 'gold' | 'silver' | 'bronze' | 'grey' | 'none'
+
+function getVivinoTier(rating: number | null): VivinoTier {
+  if (rating == null) return 'none'
+  if (rating >= 4) return 'gold'
+  if (rating >= 3.8) return 'silver'
+  if (rating >= 3.7) return 'bronze'
+  return 'grey'
+}
+
+const VIVINO_TIER_STYLES: Record<
+  VivinoTier,
+  { background: string; border: string; text: string; label: string }
+> = {
+  gold: {
+    background: 'linear-gradient(145deg, #5A3C08 0%, #B88820 52%, #7A580C 100%)',
+    border: '#F0C840',
+    text: '#FFF8E0',
+    label: '#F0D060',
+  },
+  silver: {
+    background: 'linear-gradient(145deg, #383C48 0%, #9098A8 52%, #585E6C 100%)',
+    border: '#D8E0EC',
+    text: '#FFFFFF',
+    label: '#C8D0DC',
+  },
+  bronze: {
+    background: 'linear-gradient(145deg, #4A2C10 0%, #A87038 52%, #704820 100%)',
+    border: '#E0A060',
+    text: '#FFF0E0',
+    label: '#E8B878',
+  },
+  grey: {
+    background: 'linear-gradient(145deg, #2C2C34 0%, #505058 52%, #3A3A42 100%)',
+    border: '#9A9AA4',
+    text: '#F4F2F8',
+    label: '#B0ACB8',
+  },
+  none: {
+    background: 'linear-gradient(145deg, #2C2C34 0%, #505058 52%, #3A3A42 100%)',
+    border: '#9A9AA4',
+    text: '#E8E6EE',
+    label: '#B0ACB8',
+  },
+}
+
 function VivinoCircle({ rating, url }: { rating: number | null; url: string | null }) {
   const hasRating = rating != null
+  const tier = getVivinoTier(rating)
+  const style = VIVINO_TIER_STYLES[tier]
 
   const circle = (
     <div className="group/vivino relative flex flex-col items-center flex-shrink-0 pb-1">
       <div
-        className="rounded-full flex items-center justify-center transition-all duration-200 ease-out w-11 h-11 group-hover/vivino:w-[52px] group-hover/vivino:h-[52px]"
+        className="w-11 h-11 rounded-full flex items-center justify-center"
         style={{
-          background: hasRating
-            ? 'linear-gradient(145deg, #503408 0%, #9A7018 55%, #6A5010 100%)'
-            : 'linear-gradient(145deg, #2A2A32 0%, #40404C 55%, #32323C 100%)',
-          border: hasRating ? '2.5px solid #C89828' : '2px solid #5E5E6A',
+          background: style.background,
+          border: `2.5px solid ${style.border}`,
           boxShadow: '0 2px 10px rgba(0,0,0,0.45)',
         }}
       >
         <span
-          className={`font-bold text-center leading-none transition-all duration-200 ${
-            hasRating
-              ? 'tabular-nums text-[15px] group-hover/vivino:text-[18px]'
-              : 'text-[7px] group-hover/vivino:text-[7.5px] px-1'
+          className={`font-bold text-center leading-none ${
+            hasRating ? 'tabular-nums text-[15px]' : 'text-[7px] px-1'
           }`}
           style={{
-            color: hasRating ? '#FFD878' : '#A8A4B0',
+            color: style.text,
             fontFamily: 'var(--font-dm-sans), sans-serif',
             letterSpacing: hasRating ? '-0.03em' : '0.02em',
             lineHeight: hasRating ? 1 : 1.15,
+            textShadow: '0 1px 2px rgba(0,0,0,0.55)',
           }}
         >
           {hasRating ? (
@@ -102,7 +147,7 @@ function VivinoCircle({ rating, url }: { rating: number | null; url: string | nu
       {hasRating ? (
         <span
           className="absolute -bottom-0 left-1/2 -translate-x-1/2 text-[8px] font-semibold uppercase tracking-[0.12em] opacity-0 group-hover/vivino:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap"
-          style={{ color: '#C8A040', fontFamily: 'var(--font-dm-sans), sans-serif' }}
+          style={{ color: style.label, fontFamily: 'var(--font-dm-sans), sans-serif' }}
         >
           vivino
         </span>
@@ -110,7 +155,7 @@ function VivinoCircle({ rating, url }: { rating: number | null; url: string | nu
     </div>
   )
 
-  if (url && hasRating) {
+  if (url) {
     return (
       <a href={url} target="_blank" rel="noreferrer" className="flex-shrink-0 no-underline">
         {circle}
@@ -302,9 +347,9 @@ export function PreviewWineCard({
       >
         <div className="flex items-start gap-2.5">
           <VivinoCircle rating={wine.vivinoRating} url={wine.vivinoUrl} />
-          <div className="flex-1 min-w-0 pt-0.5">
+          <div className="flex-1 min-w-0 flex flex-col gap-1.5 pt-0.5">
             <p
-              className="text-[9px] font-semibold uppercase tracking-[0.14em] leading-none mb-0.5"
+              className="text-[9px] font-semibold uppercase tracking-[0.14em] leading-none"
               style={{ color: colors.producer, fontFamily: 'var(--font-dm-sans), sans-serif' }}
             >
               {wine.producer}
@@ -315,62 +360,62 @@ export function PreviewWineCard({
             >
               {wine.name}
             </h3>
-          </div>
-        </div>
 
-        <div className="flex items-center gap-1">
-          <MapPin className="w-3 h-3 flex-shrink-0" style={{ color: colors.muted }} />
-          <span
-            className="text-[11px] truncate"
-            style={{ color: colors.muted, fontFamily: 'var(--font-dm-sans), sans-serif' }}
-          >
-            {wine.region} · {wine.country}
-          </span>
-        </div>
-
-        {wine.grapes.length > 0 ? (
-          <div className="flex flex-wrap gap-1">
-            {wine.grapes.map((grape) => (
+            <div className="flex items-center gap-1">
+              <MapPin className="w-3 h-3 flex-shrink-0" style={{ color: colors.muted }} />
               <span
-                key={grape}
-                className="text-[10px] px-1.5 py-0.5 rounded"
-                style={{
-                  background: colors.grapeBg,
-                  border: `1px solid ${colors.grapeBorder}`,
-                  color: colors.grapeText,
-                  fontFamily: 'var(--font-dm-sans), sans-serif',
-                }}
+                className="text-[11px] truncate"
+                style={{ color: colors.muted, fontFamily: 'var(--font-dm-sans), sans-serif' }}
               >
-                {grape}
+                {wine.region} · {wine.country}
               </span>
-            ))}
-          </div>
-        ) : null}
+            </div>
 
-        <div className="flex flex-wrap gap-x-3 gap-y-0.5">
-          {wine.prices.length > 0 ? (
-            wine.prices.map((listing) => {
-              const isLowest = minPrice != null && listing.price === minPrice
-              return (
-                <span
-                  key={listing.shop}
-                  className="text-[11px]"
-                  style={{
-                    fontFamily: 'var(--font-dm-sans), sans-serif',
-                    color: isLowest ? colors.priceLow : colors.priceMuted,
-                    fontWeight: isLowest ? 700 : 400,
-                  }}
-                >
-                  <span style={{ color: colors.priceShop }}>{listing.shop}: </span>
-                  {formatPrice(listing.price)}
+            {wine.grapes.length > 0 ? (
+              <div className="flex flex-wrap gap-1">
+                {wine.grapes.map((grape) => (
+                  <span
+                    key={grape}
+                    className="text-[10px] px-1.5 py-0.5 rounded"
+                    style={{
+                      background: colors.grapeBg,
+                      border: `1px solid ${colors.grapeBorder}`,
+                      color: colors.grapeText,
+                      fontFamily: 'var(--font-dm-sans), sans-serif',
+                    }}
+                  >
+                    {grape}
+                  </span>
+                ))}
+              </div>
+            ) : null}
+
+            <div className="flex flex-wrap gap-x-3 gap-y-0.5">
+              {wine.prices.length > 0 ? (
+                wine.prices.map((listing) => {
+                  const isLowest = minPrice != null && listing.price === minPrice
+                  return (
+                    <span
+                      key={listing.shop}
+                      className="text-[11px]"
+                      style={{
+                        fontFamily: 'var(--font-dm-sans), sans-serif',
+                        color: isLowest ? colors.priceLow : colors.priceMuted,
+                        fontWeight: isLowest ? 700 : 400,
+                      }}
+                    >
+                      <span style={{ color: colors.priceShop }}>{listing.shop}: </span>
+                      {formatPrice(listing.price)}
+                    </span>
+                  )
+                })
+              ) : (
+                <span className="text-[11px]" style={{ color: colors.priceMuted }}>
+                  No listings
                 </span>
-              )
-            })
-          ) : (
-            <span className="text-[11px]" style={{ color: colors.priceMuted }}>
-              No listings
-            </span>
-          )}
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
