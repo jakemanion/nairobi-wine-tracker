@@ -93,9 +93,9 @@ const dark: PreviewColors = {
   previewShellBg: '#1A1A22',
   previewShellBorder: '#4A4858',
   wineInfoBg:
-    'linear-gradient(168deg, #0c0608 0%, #1a0a10 22%, #2a1218 48%, #1e0c14 72%, #100608 100%)',
+    'linear-gradient(168deg, #060608 0%, #121214 24%, #2a2a30 48%, #1c1c20 72%, #08080a 100%)',
   wineInfoSheen:
-    'inset 0 1px 0 rgba(255,255,255,0.07), inset 0 -12px 32px rgba(0,0,0,0.35), inset 4px 0 20px rgba(0,0,0,0.2)',
+    'inset 0 1px 0 rgba(255,255,255,0.14), inset 0 -1px 0 rgba(255,255,255,0.05), inset 12px 0 32px rgba(255,255,255,0.04), inset -4px 0 16px rgba(0,0,0,0.25)',
 }
 
 const light: PreviewColors = {
@@ -143,9 +143,9 @@ const light: PreviewColors = {
   previewShellBg: '#FFFFFF',
   previewShellBorder: '#D8D4CC',
   wineInfoBg:
-    'linear-gradient(168deg, #1e1014 0%, #321820 30%, #421c24 50%, #2a1218 75%, #180c10 100%)',
+    'linear-gradient(168deg, #0a0a0c 0%, #161618 24%, #2c2c32 48%, #1a1a1e 72%, #08080a 100%)',
   wineInfoSheen:
-    'inset 0 1px 0 rgba(255,255,255,0.08), inset 0 -10px 28px rgba(0,0,0,0.3), inset 4px 0 16px rgba(0,0,0,0.15)',
+    'inset 0 1px 0 rgba(255,255,255,0.14), inset 0 -1px 0 rgba(255,255,255,0.05), inset 12px 0 32px rgba(255,255,255,0.04), inset -4px 0 16px rgba(0,0,0,0.2)',
 }
 
 export function getPreviewColors(mode: PreviewThemeMode): PreviewColors {
