@@ -93,64 +93,93 @@ const VIVINO_TIER_STYLES: Record<
     label: '#E8B878',
   },
   grey: {
-    background: 'linear-gradient(145deg, #2C2C34 0%, #505058 52%, #3A3A42 100%)',
-    border: '#9A9AA4',
-    text: '#F4F2F8',
-    label: '#B0ACB8',
+    background: '#2A2A2E',
+    border: '#4A4A50',
+    text: '#D0CED4',
+    label: '#98949E',
   },
   none: {
-    background: 'linear-gradient(145deg, #2C2C34 0%, #505058 52%, #3A3A42 100%)',
-    border: '#9A9AA4',
-    text: '#E8E6EE',
-    label: '#B0ACB8',
+    background: '#2A2A2E',
+    border: '#4A4A50',
+    text: '#D0CED4',
+    label: '#98949E',
   },
+}
+
+function getVivinoScoreLabel(rating: number | null): string {
+  if (rating == null) return ''
+  if (rating > 4.2) return 'Very highly rated'
+  if (rating >= 4) return 'Highly rated'
+  if (rating >= 3.8 && rating <= 3.9) return 'Well rated'
+  return ''
 }
 
 function VivinoCircle({ rating, url }: { rating: number | null; url: string | null }) {
   const hasRating = rating != null
   const tier = getVivinoTier(rating)
   const style = VIVINO_TIER_STYLES[tier]
+  const scoreLabel = getVivinoScoreLabel(rating)
+  const isMatte = tier === 'grey' || tier === 'none'
 
   const circle = (
-    <div className="group/vivino relative flex flex-col items-center flex-shrink-0 pb-1">
-      <div
-        className="w-11 h-11 rounded-full flex items-center justify-center"
-        style={{
-          background: style.background,
-          border: `2.5px solid ${style.border}`,
-          boxShadow: '0 2px 10px rgba(0,0,0,0.45)',
-        }}
-      >
-        <span
-          className={`font-bold text-center leading-none ${
-            hasRating ? 'tabular-nums text-[15px]' : 'text-[7px] px-1'
-          }`}
+    <div className="group/vivino flex flex-col items-center flex-shrink-0" style={{ width: 44 }}>
+      <div className="relative flex flex-col items-center">
+        <div
+          className="w-11 h-11 rounded-full flex items-center justify-center"
+          style={{
+            background: style.background,
+            border: `2.5px solid ${style.border}`,
+            boxShadow: isMatte ? 'none' : '0 2px 10px rgba(0,0,0,0.45)',
+          }}
+        >
+          <span
+            className={`font-bold text-center leading-none ${
+              hasRating ? 'tabular-nums text-[15px]' : 'text-[7px] px-1'
+            }`}
+            style={{
+              color: style.text,
+              fontFamily: 'var(--font-dm-sans), sans-serif',
+              letterSpacing: hasRating ? '-0.03em' : '0.02em',
+              lineHeight: hasRating ? 1 : 1.15,
+              textShadow: isMatte ? 'none' : '0 1px 2px rgba(0,0,0,0.55)',
+            }}
+          >
+            {hasRating ? (
+              rating.toFixed(1)
+            ) : (
+              <>
+                No
+                <br />
+                rating
+              </>
+            )}
+          </span>
+        </div>
+        {url ? (
+          <span
+            className="absolute left-1/2 -translate-x-1/2 top-full mt-0.5 z-10 text-[7px] font-semibold leading-tight text-center opacity-0 group-hover/vivino:opacity-100 transition-opacity duration-200 pointer-events-none rounded px-1.5 py-0.5 max-w-[72px]"
+            style={{
+              color: '#F4F2F8',
+              background: 'rgba(12, 12, 16, 0.92)',
+              border: '1px solid rgba(255,255,255,0.12)',
+              fontFamily: 'var(--font-dm-sans), sans-serif',
+            }}
+          >
+            View on Vivino
+          </span>
+        ) : null}
+      </div>
+      {scoreLabel ? (
+        <p
+          className="mt-1 text-[7px] font-medium text-center leading-tight"
           style={{
             color: style.text,
             fontFamily: 'var(--font-dm-sans), sans-serif',
-            letterSpacing: hasRating ? '-0.03em' : '0.02em',
-            lineHeight: hasRating ? 1 : 1.15,
-            textShadow: '0 1px 2px rgba(0,0,0,0.55)',
+            maxWidth: 52,
           }}
         >
-          {hasRating ? (
-            rating.toFixed(1)
-          ) : (
-            <>
-              No
-              <br />
-              rating
-            </>
-          )}
-        </span>
-      </div>
-      {hasRating ? (
-        <span
-          className="absolute -bottom-0 left-1/2 -translate-x-1/2 text-[8px] font-semibold uppercase tracking-[0.12em] opacity-0 group-hover/vivino:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap"
-          style={{ color: style.label, fontFamily: 'var(--font-dm-sans), sans-serif' }}
-        >
-          vivino
-        </span>
+          {scoreLabel}
+        </p>
       ) : null}
     </div>
   )
