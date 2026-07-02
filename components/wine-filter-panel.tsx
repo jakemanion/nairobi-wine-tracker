@@ -386,21 +386,29 @@ export function WineFilterPanel({
                   ))}
                 </select>
               </label>
-              <label style={fieldLabelStyle}>
+              <div style={{ ...fieldLabelStyle, gridColumn: '1 / -1' }}>
                 <span>Region</span>
-                <select
-                  value={filters.region}
-                  style={controlStyle}
-                  onChange={(event) => updateFilters({ region: event.target.value })}
-                >
-                  <option value="">All</option>
-                  {filterOptions.regions.map((region) => (
-                    <option key={region} value={region}>
-                      {region}
-                    </option>
-                  ))}
-                </select>
-              </label>
+                <div style={checkboxGroupStyle}>
+                  {filterOptions.regions.length === 0 ? (
+                    <span style={{ color: styles.mutedText }}>No regions in list</span>
+                  ) : (
+                    filterOptions.regions.map((region) => (
+                      <label key={region} style={checkboxRowStyle}>
+                        <input
+                          type="checkbox"
+                          checked={filters.regions.includes(region)}
+                          onChange={() =>
+                            updateFilters({
+                              regions: toggleArrayValue(filters.regions, region),
+                            })
+                          }
+                        />
+                        <span>{region}</span>
+                      </label>
+                    ))
+                  )}
+                </div>
+              </div>
               <div style={{ ...fieldLabelStyle, gridColumn: '1 / -1' }}>
                 <span>Grapes</span>
                 <div style={checkboxGroupStyle}>

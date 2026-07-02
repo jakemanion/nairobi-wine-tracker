@@ -18,7 +18,7 @@ export type WineFilters = {
   grapes: string[]
   producer: string
   country: string
-  region: string
+  regions: string[]
 }
 
 export const EMPTY_WINE_FILTERS: WineFilters = {
@@ -34,7 +34,7 @@ export const EMPTY_WINE_FILTERS: WineFilters = {
   grapes: [],
   producer: '',
   country: '',
-  region: '',
+  regions: [],
 }
 
 export const BEST_UNDER_PRICE_PRESETS = [1500, 2000, 3000, 4000, 5000] as const
@@ -155,7 +155,7 @@ export function countActiveFilters(filters: WineFilters): number {
   if (filters.grapes.length > 0) count += 1
   if (filters.producer.trim()) count += 1
   if (filters.country.trim()) count += 1
-  if (filters.region.trim()) count += 1
+  if (filters.regions.length > 0) count += 1
   if (filters.hideUnwanted) count += 1
   if (filters.disabledStores.length > 0) count += 1
   return count
@@ -168,7 +168,6 @@ export function filterWines<T extends WineRow>(wines: T[], filters: WineFilters)
   const vivinoMax = parseBound(filters.vivinoMax)
   const producerFilter = filters.producer.trim()
   const countryFilter = filters.country.trim()
-  const regionFilter = filters.region.trim()
   const selectedGrapes = filters.grapes.map((grape) => grape.toLowerCase())
 
   return wines.filter((wine) => {
@@ -221,7 +220,10 @@ export function filterWines<T extends WineRow>(wines: T[], filters: WineFilters)
 
     if (producerFilter && (wine.producer?.trim() ?? '') !== producerFilter) return false
     if (countryFilter && (wine.country?.trim() ?? '') !== countryFilter) return false
-    if (regionFilter && (wine.region?.trim() ?? '') !== regionFilter) return false
+    if (filters.regions.length > 0) {
+      const wineRegion = wine.region?.trim() ?? ''
+      if (!filters.regions.includes(wineRegion)) return false
+    }
 
     return true
   })

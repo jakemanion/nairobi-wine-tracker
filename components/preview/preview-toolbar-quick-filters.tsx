@@ -5,7 +5,7 @@ import {
   BEST_UNDER_PRICE_PRESETS,
   type WineFilters,
 } from '@/lib/wine-filters'
-import { PreviewGrapeMultiSelect } from '@/components/preview/preview-grape-multi-select'
+import { PreviewFilterMultiSelect } from '@/components/preview/preview-filter-multi-select'
 import type { PreviewColors } from '@/lib/preview/preview-colors'
 import type { SortCriterion } from '@/components/wine-filter-panel'
 
@@ -21,6 +21,7 @@ type PreviewToolbarQuickFiltersProps = {
   onFiltersChange: (filters: WineFilters) => void
   stores: string[]
   grapes: string[]
+  regions: string[]
   priceBounds: PriceBounds | null
   primarySort: SortCriterion
   onPrimarySortChange: (next: SortCriterion) => void
@@ -163,6 +164,7 @@ export function PreviewToolbarQuickFilters({
   onFiltersChange,
   stores,
   grapes,
+  regions,
   priceBounds,
   primarySort,
   onPrimarySortChange,
@@ -307,11 +309,24 @@ export function PreviewToolbarQuickFilters({
           </span>
         </label>
 
-        <PreviewGrapeMultiSelect
+        <PreviewFilterMultiSelect
           colors={colors}
+          label="Grapes"
+          emptyMessage="No grapes in list"
+          clearLabel="Clear grapes"
           options={grapes}
           selected={filters.grapes}
           onChange={(next) => updateFilters({ grapes: next })}
+        />
+
+        <PreviewFilterMultiSelect
+          colors={colors}
+          label="Regions"
+          emptyMessage="No regions in list"
+          clearLabel="Clear regions"
+          options={regions}
+          selected={filters.regions}
+          onChange={(next) => updateFilters({ regions: next })}
         />
       </div>
 

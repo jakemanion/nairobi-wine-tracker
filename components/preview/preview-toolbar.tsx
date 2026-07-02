@@ -167,6 +167,7 @@ export function PreviewToolbar({
             onFiltersChange={onFiltersChange}
             stores={filterOptions.stores}
             grapes={filterOptions.grapes}
+            regions={filterOptions.regions}
             priceBounds={priceBounds}
             primarySort={primarySort}
             onPrimarySortChange={onPrimarySortChange}
