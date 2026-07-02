@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import { ClearShortlistButton } from '@/components/clear-shortlist-button'
+import { ShowShortlistOnlyButton } from '@/components/show-shortlist-only-button'
 import { PreviewToolbar } from '@/components/preview/preview-toolbar'
 import { PreviewWineCard } from '@/components/preview/preview-wine-card'
 import { usePreviewTheme } from '@/components/preview/preview-theme-context'
@@ -61,18 +62,27 @@ export function PreviewWineList({ wines: initialWines, userId, userName }: Previ
   const [searchQuery, setSearchQuery] = useState('')
   const [primarySort, setPrimarySort] = useState<SortCriterion>({ key: 'winery', dir: 'asc' })
   const [secondarySort, setSecondarySort] = useState<SortCriterion>({ key: 'none', dir: 'asc' })
+  const [shortlistOnly, setShortlistOnly] = useState(false)
 
   const filterOptions = useMemo(() => collectFilterOptions(wines), [wines])
   const priceBounds = useMemo(() => computeListPriceBounds(wines), [wines])
   const activeFilterCount = useMemo(() => countActiveFilters(filters), [filters])
 
-  const filtered = useMemo(() => filterWines(wines, filters), [wines, filters])
+  const shortlistedWines = useMemo(
+    () => wines.filter((wine) => wine.review?.shortlist === 1),
+    [wines],
+  )
+
+  const filtered = useMemo(() => {
+    if (shortlistOnly) return shortlistedWines
+    return filterWines(wines, filters)
+  }, [wines, filters, shortlistOnly, shortlistedWines])
   const searchIndex = useMemo(() => createWineSearchIndex(filtered), [filtered])
 
   const searched = useMemo(() => {
-    if (!hasActiveWineSearch(searchQuery)) return filtered
+    if (shortlistOnly || !hasActiveWineSearch(searchQuery)) return filtered
     return searchWinesFromIndex(searchIndex, searchQuery)
-  }, [filtered, searchIndex, searchQuery])
+  }, [filtered, searchIndex, searchQuery, shortlistOnly])
 
   const sorted = useMemo(() => {
     if (hasActiveWineSearch(searchQuery)) return searched
@@ -116,6 +126,11 @@ export function PreviewWineList({ wines: initialWines, userId, userName }: Previ
               </p>
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
+              <ShowShortlistOnlyButton
+                active={shortlistOnly}
+                theme={mode}
+                onChange={setShortlistOnly}
+              />
               <ClearShortlistButton
                 userId={userId}
                 theme={mode}
@@ -145,7 +160,7 @@ export function PreviewWineList({ wines: initialWines, userId, userName }: Previ
               setSecondarySort({ key: 'store_prices', dir: 'asc' })
             }}
             resultCount={previewWines.length}
-            totalCount={wines.length}
+            totalCount={shortlistOnly ? shortlistedWines.length : wines.length}
             priceBounds={priceBounds}
           />
         </div>
@@ -154,7 +169,7 @@ export function PreviewWineList({ wines: initialWines, userId, userName }: Previ
       <main className="mx-auto px-6 py-5 space-y-2.5" style={{ maxWidth: PREVIEW_CONTENT_MAX_WIDTH }}>
         {previewWines.length === 0 ? (
           <p className="text-center text-sm py-12" style={{ color: colors.emptyText }}>
-            No wines match your search or filters.
+            {shortlistOnly ? 'No wines on your shortlist.' : 'No wines match your search or filters.'}
           </p>
         ) : (
           previewWines.map((wine, index) => {
