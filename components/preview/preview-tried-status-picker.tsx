@@ -74,20 +74,20 @@ function buildOptimisticReview(
   }
 }
 
-const PANEL_GAP = 0
+const PANEL_OVERLAP = 28
 
-function placePanelAboveAnchor(rect: DOMRect) {
+function placePanelAboveButton(rect: DOMRect) {
   const centerX = rect.left + rect.width / 2
 
   let left = centerX - PANEL_WIDTH / 2
-  let top = rect.top - PANEL_HEIGHT - PANEL_GAP
+  let top = rect.top - PANEL_HEIGHT + PANEL_OVERLAP
 
   if (left < 12) left = 12
   if (left + PANEL_WIDTH > window.innerWidth - 12) {
     left = window.innerWidth - PANEL_WIDTH - 12
   }
   if (top < 12) {
-    top = rect.bottom + PANEL_GAP
+    top = rect.bottom - PANEL_OVERLAP
   }
   if (top + PANEL_HEIGHT > window.innerHeight - 12) {
     top = window.innerHeight - PANEL_HEIGHT - 12
@@ -194,6 +194,7 @@ export function PreviewTriedStatusPicker({
   const [mounted, setMounted] = useState(false)
   const closeTimeoutRef = useRef<number | null>(null)
   const anchorRef = useRef<HTMLDivElement>(null)
+  const buttonRef = useRef<HTMLButtonElement>(null)
   const value = normalizeTriedStatus(review?.tried_status)
   const cfg = buttonConfig(value)
   const wishlistForPanel =
@@ -238,8 +239,8 @@ export function PreviewTriedStatusPicker({
   function openPanel() {
     if (saving) return
     cancelClose()
-    if (!panelOpen && anchorRef.current) {
-      setPanelPosition(placePanelAboveAnchor(anchorRef.current.getBoundingClientRect()))
+    if (!panelOpen && buttonRef.current) {
+      setPanelPosition(placePanelAboveButton(buttonRef.current.getBoundingClientRect()))
     }
     setPanelOpen(true)
   }
@@ -290,6 +291,7 @@ export function PreviewTriedStatusPicker({
         {getTriedStateLabel(value)}
       </p>
       <button
+        ref={buttonRef}
         type="button"
         title={cfg.label}
         aria-label={`Tried: ${cfg.label}`}

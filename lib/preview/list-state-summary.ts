@@ -1,5 +1,6 @@
 import type { SortCriterion, SortFieldKey } from '@/components/wine-filter-panel'
 import type { WineFilters } from '@/lib/wine-filters'
+import { formatRegionFilterLabel } from '@/lib/wine-filters'
 
 const SORT_LABELS: Record<SortFieldKey, string> = {
   winery: 'Producer',
@@ -77,7 +78,11 @@ export function buildListStateSummary({
   if (filters.vivinoMax.trim()) filterParts.push(`Vivino up to ${filters.vivinoMax}`)
   if (filters.producer.trim()) filterParts.push(`producer: ${filters.producer}`)
   if (filters.country.trim()) filterParts.push(`country: ${filters.country}`)
-  if (filters.regions.length > 0) filterParts.push(`regions: ${filters.regions.join(', ')}`)
+  if (filters.regions.length > 0) {
+    filterParts.push(
+      `regions: ${filters.regions.map((value) => formatRegionFilterLabel(value)).join(', ')}`,
+    )
+  }
   if (filters.grapes.length > 0) filterParts.push(`grapes: ${filters.grapes.join(', ')}`)
   if (filters.stores.length > 0) filterParts.push(`stores: ${filters.stores.join(', ')}`)
   if (filters.wishlist.length > 0) {

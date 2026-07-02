@@ -7,27 +7,38 @@ import {
   type CSSProperties,
 } from 'react'
 import { createPortal } from 'react-dom'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, X } from 'lucide-react'
 import type { PreviewColors } from '@/lib/preview/preview-colors'
 
-const PANEL_MAX_HEIGHT = 220
+const PANEL_MAX_HEIGHT = 260
 const PANEL_WIDTH = 280
 const PANEL_GAP = 4
+
+export type FilterMultiSelectOption = {
+  value: string
+  label: string
+}
+
+export type FilterMultiSelectGroup = {
+  label: string
+  options: FilterMultiSelectOption[]
+}
 
 type PreviewFilterMultiSelectProps = {
   colors: PreviewColors
   label: string
   emptyMessage: string
-  clearLabel: string
-  options: string[]
+  options?: string[]
+  groups?: FilterMultiSelectGroup[]
   selected: string[]
   onChange: (selected: string[]) => void
+  formatSelectedLabel?: (value: string) => string
 }
 
-function toggleOption(selected: string[], option: string): string[] {
-  return selected.includes(option)
-    ? selected.filter((item) => item !== option)
-    : [...selected, option]
+function toggleOption(selected: string[], value: string): string[] {
+  return selected.includes(value)
+    ? selected.filter((item) => item !== value)
+    : [...selected, value]
 }
 
 function placePanelBelowTrigger(rect: DOMRect) {
@@ -47,14 +58,25 @@ function placePanelBelowTrigger(rect: DOMRect) {
   return { left, top }
 }
 
+function flatOptions(
+  options: string[] | undefined,
+  groups: FilterMultiSelectGroup[] | undefined,
+): FilterMultiSelectOption[] {
+  if (groups?.length) {
+    return groups.flatMap((group) => group.options)
+  }
+  return (options ?? []).map((option) => ({ value: option, label: option }))
+}
+
 export function PreviewFilterMultiSelect({
   colors,
   label,
   emptyMessage,
-  clearLabel,
   options,
+  groups,
   selected,
   onChange,
+  formatSelectedLabel,
 }: PreviewFilterMultiSelectProps) {
   const [open, setOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
@@ -62,6 +84,9 @@ export function PreviewFilterMultiSelect({
   const rootRef = useRef<HTMLDivElement>(null)
   const panelRef = useRef<HTMLDivElement>(null)
   const triggerRef = useRef<HTMLButtonElement>(null)
+
+  const allOptions = flatOptions(options, groups)
+  const labelForValue = formatSelectedLabel ?? ((value: string) => value)
 
   useEffect(() => {
     setMounted(true)
@@ -97,7 +122,7 @@ export function PreviewFilterMultiSelect({
     selected.length === 0
       ? label
       : selected.length === 1
-        ? selected[0]
+        ? labelForValue(selected[0])
         : `${label} (${selected.length})`
 
   const panelStyle: CSSProperties = {
@@ -126,11 +151,45 @@ export function PreviewFilterMultiSelect({
     cursor: 'pointer',
   }
 
+  const groupHeadingStyle: CSSProperties = {
+    padding: '8px 10px 4px',
+    fontSize: 10,
+    fontWeight: 600,
+    letterSpacing: '0.06em',
+    textTransform: 'uppercase',
+    color: colors.muted,
+    fontFamily: 'var(--font-dm-sans), sans-serif',
+  }
+
   function toggleOpen() {
     if (!open && triggerRef.current) {
       setPanelPosition(placePanelBelowTrigger(triggerRef.current.getBoundingClientRect()))
     }
     setOpen((current) => !current)
+  }
+
+  function renderOption(option: FilterMultiSelectOption, indent = false) {
+    const checked = selected.includes(option.value)
+    return (
+      <label
+        key={option.value}
+        role="option"
+        aria-selected={checked}
+        style={{
+          ...optionStyle,
+          paddingLeft: indent ? 22 : 10,
+          background: checked ? 'rgba(201, 48, 72, 0.08)' : 'transparent',
+        }}
+      >
+        <input
+          type="checkbox"
+          checked={checked}
+          className="accent-[#C93048]"
+          onChange={() => onChange(toggleOption(selected, option.value))}
+        />
+        <span className="truncate">{option.label}</span>
+      </label>
+    )
   }
 
   return (
@@ -140,7 +199,7 @@ export function PreviewFilterMultiSelect({
         type="button"
         aria-haspopup="listbox"
         aria-expanded={open}
-        className="flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg flex-shrink-0"
+        className="flex items-center gap-1 text-xs pl-3 pr-2 py-2 rounded-lg flex-shrink-0"
         style={{
           background: selected.length > 0 ? colors.searchBg : colors.buttonBg,
           border: `1px solid ${selected.length > 0 ? '#C93048' : colors.buttonBorder}`,
@@ -148,18 +207,40 @@ export function PreviewFilterMultiSelect({
           fontFamily: 'var(--font-dm-sans), sans-serif',
           cursor: 'pointer',
           whiteSpace: 'nowrap',
-          maxWidth: 180,
+          maxWidth: 200,
         }}
         onClick={toggleOpen}
       >
         <span className="truncate">{triggerLabel}</span>
+        {selected.length > 0 ? (
+          <span
+            role="button"
+            tabIndex={0}
+            aria-label={`Clear ${label}`}
+            className="inline-flex items-center justify-center rounded-sm flex-shrink-0 hover:opacity-80"
+            style={{ color: colors.muted }}
+            onClick={(event) => {
+              event.stopPropagation()
+              onChange([])
+            }}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault()
+                event.stopPropagation()
+                onChange([])
+              }
+            }}
+          >
+            <X className="w-3.5 h-3.5" />
+          </span>
+        ) : null}
         <ChevronDown className="w-3.5 h-3.5 flex-shrink-0" />
       </button>
 
       {mounted && open
         ? createPortal(
             <div ref={panelRef} role="listbox" aria-multiselectable style={panelStyle}>
-              {options.length === 0 ? (
+              {allOptions.length === 0 ? (
                 <p
                   className="m-0 px-3 py-1"
                   style={{
@@ -170,47 +251,16 @@ export function PreviewFilterMultiSelect({
                 >
                   {emptyMessage}
                 </p>
+              ) : groups?.length ? (
+                groups.map((group) => (
+                  <div key={group.label}>
+                    <div style={groupHeadingStyle}>{group.label}</div>
+                    {group.options.map((option, index) => renderOption(option, index > 0))}
+                  </div>
+                ))
               ) : (
-                options.map((option) => {
-                  const checked = selected.includes(option)
-                  return (
-                    <label
-                      key={option}
-                      role="option"
-                      aria-selected={checked}
-                      style={{
-                        ...optionStyle,
-                        background: checked ? 'rgba(201, 48, 72, 0.08)' : 'transparent',
-                      }}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={checked}
-                        className="accent-[#C93048]"
-                        onChange={() => onChange(toggleOption(selected, option))}
-                      />
-                      <span className="truncate">{option}</span>
-                    </label>
-                  )
-                })
+                allOptions.map((option) => renderOption(option))
               )}
-              {selected.length > 0 ? (
-                <button
-                  type="button"
-                  className="w-full text-left px-3 py-1.5 border-t mt-1"
-                  style={{
-                    fontSize: 11,
-                    color: colors.muted,
-                    fontFamily: 'var(--font-dm-sans), sans-serif',
-                    borderColor: colors.searchBorder,
-                    background: 'transparent',
-                    cursor: 'pointer',
-                  }}
-                  onClick={() => onChange([])}
-                >
-                  {clearLabel}
-                </button>
-              ) : null}
             </div>,
             document.body,
           )

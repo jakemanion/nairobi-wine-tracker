@@ -3,6 +3,9 @@
 import type { CSSProperties } from 'react'
 import {
   EMPTY_WINE_FILTERS,
+  countryFilterValue,
+  regionFilterValue,
+  type RegionFilterGroup,
   type TriedStatusFilterValue,
   type WineFilters,
   type WishlistFilterValue,
@@ -258,6 +261,7 @@ type WineFilterPanelProps = {
     producers: string[]
     countries: string[]
     regions: string[]
+    regionGroups: RegionFilterGroup[]
   }
   activeFilterCount: number
   primarySort: SortCriterion
@@ -387,24 +391,51 @@ export function WineFilterPanel({
                 </select>
               </label>
               <div style={{ ...fieldLabelStyle, gridColumn: '1 / -1' }}>
-                <span>Region</span>
+                <span>Regions</span>
                 <div style={checkboxGroupStyle}>
-                  {filterOptions.regions.length === 0 ? (
+                  {filterOptions.regionGroups.length === 0 ? (
                     <span style={{ color: styles.mutedText }}>No regions in list</span>
                   ) : (
-                    filterOptions.regions.map((region) => (
-                      <label key={region} style={checkboxRowStyle}>
-                        <input
-                          type="checkbox"
-                          checked={filters.regions.includes(region)}
-                          onChange={() =>
-                            updateFilters({
-                              regions: toggleArrayValue(filters.regions, region),
-                            })
-                          }
-                        />
-                        <span>{region}</span>
-                      </label>
+                    filterOptions.regionGroups.map((group) => (
+                      <div key={group.country} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                        <span style={{ fontWeight: 600, color: styles.mutedText, fontSize: 12 }}>
+                          {group.country}
+                        </span>
+                        <label style={{ ...checkboxRowStyle, paddingLeft: 4 }}>
+                          <input
+                            type="checkbox"
+                            checked={filters.regions.includes(countryFilterValue(group.country))}
+                            onChange={() =>
+                              updateFilters({
+                                regions: toggleArrayValue(
+                                  filters.regions,
+                                  countryFilterValue(group.country),
+                                ),
+                              })
+                            }
+                          />
+                          <span>{group.country}</span>
+                        </label>
+                        {group.regions.map((region) => (
+                          <label key={region} style={{ ...checkboxRowStyle, paddingLeft: 20 }}>
+                            <input
+                              type="checkbox"
+                              checked={filters.regions.includes(
+                                regionFilterValue(group.country, region),
+                              )}
+                              onChange={() =>
+                                updateFilters({
+                                  regions: toggleArrayValue(
+                                    filters.regions,
+                                    regionFilterValue(group.country, region),
+                                  ),
+                                })
+                              }
+                            />
+                            <span>{region}</span>
+                          </label>
+                        ))}
+                      </div>
                     ))
                   )}
                 </div>

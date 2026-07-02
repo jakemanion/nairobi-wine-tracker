@@ -105,6 +105,95 @@ function normalizeTriedStatus(value: number | null | undefined): TriedStatusFilt
   return 'unset'
 }
 
+export type RegionFilterGroup = {
+  country: string
+  regions: string[]
+}
+
+const COUNTRY_FILTER_PREFIX = 'country:'
+const REGION_FILTER_PREFIX = 'region:'
+
+export function countryFilterValue(country: string): string {
+  return `${COUNTRY_FILTER_PREFIX}${country}`
+}
+
+export function regionFilterValue(country: string, region: string): string {
+  return `${REGION_FILTER_PREFIX}${country}|${region}`
+}
+
+export function parseRegionFilterValue(
+  value: string,
+): { kind: 'country'; country: string } | { kind: 'region'; country: string; region: string } | null {
+  if (value.startsWith(COUNTRY_FILTER_PREFIX)) {
+    return { kind: 'country', country: value.slice(COUNTRY_FILTER_PREFIX.length) }
+  }
+  if (value.startsWith(REGION_FILTER_PREFIX)) {
+    const rest = value.slice(REGION_FILTER_PREFIX.length)
+    const separator = rest.indexOf('|')
+    if (separator === -1) return null
+    const country = rest.slice(0, separator)
+    const region = rest.slice(separator + 1)
+    if (!country || !region) return null
+    return { kind: 'region', country, region }
+  }
+  return null
+}
+
+export function formatRegionFilterLabel(value: string): string {
+  const parsed = parseRegionFilterValue(value)
+  if (!parsed) return value
+  if (parsed.kind === 'country') return parsed.country
+  return parsed.region
+}
+
+function wineMatchesRegionFilters(wine: WineRow, selected: string[]): boolean {
+  const wineCountry = wine.country?.trim() ?? ''
+  const wineRegion = wine.region?.trim() ?? ''
+
+  return selected.some((value) => {
+    const parsed = parseRegionFilterValue(value)
+    if (!parsed) return false
+    if (parsed.kind === 'country') return wineCountry === parsed.country
+    return wineCountry === parsed.country && wineRegion === parsed.region
+  })
+}
+
+export function buildRegionFilterGroups(
+  regionGroups: RegionFilterGroup[],
+): Array<{ label: string; options: Array<{ value: string; label: string }> }> {
+  return regionGroups.map((group) => ({
+    label: group.country,
+    options: [
+      { value: countryFilterValue(group.country), label: group.country },
+      ...group.regions.map((region) => ({
+        value: regionFilterValue(group.country, region),
+        label: region,
+      })),
+    ],
+  }))
+}
+
+export function collectRegionGroups(wines: WineRow[]): RegionFilterGroup[] {
+  const map = new Map<string, Set<string>>()
+
+  for (const wine of wines) {
+    const country = wine.country?.trim()
+    if (!country) continue
+    if (!map.has(country)) map.set(country, new Set())
+    const region = wine.region?.trim()
+    if (region) map.get(country)!.add(region)
+  }
+
+  const sortAlpha = (a: string, b: string) => a.localeCompare(b, undefined, { sensitivity: 'base' })
+
+  return [...map.entries()]
+    .sort(([a], [b]) => sortAlpha(a, b))
+    .map(([country, regions]) => ({
+      country,
+      regions: [...regions].sort(sortAlpha),
+    }))
+}
+
 export function collectFilterOptions(wines: WineRow[]) {
   const stores = new Set<string>()
   const producers = new Set<string>()
@@ -140,6 +229,7 @@ export function collectFilterOptions(wines: WineRow[]) {
     countries: [...countries].sort(sortAlpha),
     regions: [...regions].sort(sortAlpha),
     grapes: [...grapes].sort(sortAlpha),
+    regionGroups: collectRegionGroups(wines),
   }
 }
 
@@ -221,8 +311,7 @@ export function filterWines<T extends WineRow>(wines: T[], filters: WineFilters)
     if (producerFilter && (wine.producer?.trim() ?? '') !== producerFilter) return false
     if (countryFilter && (wine.country?.trim() ?? '') !== countryFilter) return false
     if (filters.regions.length > 0) {
-      const wineRegion = wine.region?.trim() ?? ''
-      if (!filters.regions.includes(wineRegion)) return false
+      if (!wineMatchesRegionFilters(wine, filters.regions)) return false
     }
 
     return true

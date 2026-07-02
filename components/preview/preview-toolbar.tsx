@@ -4,7 +4,7 @@ import { Search, SlidersHorizontal } from 'lucide-react'
 import { PreviewToolbarQuickFilters } from '@/components/preview/preview-toolbar-quick-filters'
 import { WineFilterPanel, type SortCriterion } from '@/components/wine-filter-panel'
 import { usePreviewTheme } from '@/components/preview/preview-theme-context'
-import type { WineFilters } from '@/lib/wine-filters'
+import type { RegionFilterGroup, WineFilters } from '@/lib/wine-filters'
 
 function buildResultCountText(resultCount: number, totalCount: number): string {
   return resultCount === totalCount
@@ -26,6 +26,7 @@ type PreviewToolbarProps = {
     producers: string[]
     countries: string[]
     regions: string[]
+    regionGroups: RegionFilterGroup[]
   }
   primarySort: SortCriterion
   secondarySort: SortCriterion
@@ -167,7 +168,7 @@ export function PreviewToolbar({
             onFiltersChange={onFiltersChange}
             stores={filterOptions.stores}
             grapes={filterOptions.grapes}
-            regions={filterOptions.regions}
+            regionGroups={filterOptions.regionGroups}
             priceBounds={priceBounds}
             primarySort={primarySort}
             onPrimarySortChange={onPrimarySortChange}

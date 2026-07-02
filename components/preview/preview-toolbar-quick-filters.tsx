@@ -3,11 +3,14 @@
 import type { CSSProperties } from 'react'
 import {
   BEST_UNDER_PRICE_PRESETS,
+  buildRegionFilterGroups,
+  formatRegionFilterLabel,
+  type RegionFilterGroup,
   type WineFilters,
 } from '@/lib/wine-filters'
 import { PreviewFilterMultiSelect } from '@/components/preview/preview-filter-multi-select'
 import type { PreviewColors } from '@/lib/preview/preview-colors'
-import type { SortCriterion } from '@/components/wine-filter-panel'
+import type { SortCriterion, SortFieldKey } from '@/components/wine-filter-panel'
 
 type PriceBounds = {
   min: number
@@ -21,7 +24,7 @@ type PreviewToolbarQuickFiltersProps = {
   onFiltersChange: (filters: WineFilters) => void
   stores: string[]
   grapes: string[]
-  regions: string[]
+  regionGroups: RegionFilterGroup[]
   priceBounds: PriceBounds | null
   primarySort: SortCriterion
   onPrimarySortChange: (next: SortCriterion) => void
@@ -87,6 +90,22 @@ function isBestUnderActive(filters: WineFilters, primarySort: SortCriterion, pri
 const PRODUCER_SORT: SortCriterion = { key: 'winery', dir: 'asc' }
 const PRICE_SLIDER_STEPS = 1000
 const MEDIAN_SLIDER_POSITION = Math.round((2 / 3) * PRICE_SLIDER_STEPS)
+
+const QUICK_SORT_OPTIONS: Array<{ key: SortFieldKey; label: string; dir: 'asc' | 'desc' }> = [
+  { key: 'winery', label: 'Producer', dir: 'asc' },
+  { key: 'wine_name', label: 'Name', dir: 'asc' },
+  { key: 'store_prices', label: 'Price', dir: 'asc' },
+  { key: 'value_score', label: 'value', dir: 'desc' },
+  { key: 'vivino_rating', label: 'Rating', dir: 'desc' },
+]
+
+function isQuickSortActive(
+  primarySort: SortCriterion,
+  key: SortFieldKey,
+  dir: 'asc' | 'desc',
+): boolean {
+  return primarySort.key === key && primarySort.dir === dir
+}
 
 function sliderValueStyle(colors: PreviewColors): CSSProperties {
   return {
@@ -164,7 +183,7 @@ export function PreviewToolbarQuickFilters({
   onFiltersChange,
   stores,
   grapes,
-  regions,
+  regionGroups,
   priceBounds,
   primarySort,
   onPrimarySortChange,
@@ -187,13 +206,18 @@ export function PreviewToolbarQuickFilters({
   const vivinoMinValue = filters.vivinoMin.trim() ? parseFloat(filters.vivinoMin) : 0
   const vivinoMinAll = !filters.vivinoMin.trim() || vivinoMinValue <= 0
 
-  const valueSortActive =
-    primarySort.key === 'value_score' && primarySort.dir === 'desc'
-  const vivinoSortActive =
-    primarySort.key === 'vivino_rating' && primarySort.dir === 'desc'
-
   function updateFilters(patch: Partial<WineFilters>) {
     onFiltersChange({ ...filters, ...patch })
+  }
+
+  function applyQuickSort(key: SortFieldKey, dir: 'asc' | 'desc') {
+    if (isQuickSortActive(primarySort, key, dir)) {
+      onPrimarySortChange(PRODUCER_SORT)
+      onSecondarySortChange({ key: 'none', dir: 'asc' })
+      return
+    }
+    onPrimarySortChange({ key, dir })
+    onSecondarySortChange({ key: 'none', dir: 'asc' })
   }
 
   function applyBestUnder(price: number) {
@@ -210,39 +234,21 @@ export function PreviewToolbarQuickFilters({
   return (
     <div className="flex flex-col gap-2.5 px-3 pb-3">
       <div className="flex flex-wrap items-center gap-2">
-        <button
-          type="button"
-          aria-pressed={valueSortActive}
-          style={chipStyle(colors, valueSortActive)}
-          onClick={() => {
-            if (valueSortActive) {
-              onPrimarySortChange(PRODUCER_SORT)
-              onSecondarySortChange({ key: 'none', dir: 'asc' })
-              return
-            }
-            onPrimarySortChange({ key: 'value_score', dir: 'desc' })
-            onSecondarySortChange({ key: 'none', dir: 'asc' })
-          }}
-        >
-          Sort by value
-        </button>
-
-        <button
-          type="button"
-          aria-pressed={vivinoSortActive}
-          style={chipStyle(colors, vivinoSortActive)}
-          onClick={() => {
-            if (vivinoSortActive) {
-              onPrimarySortChange(PRODUCER_SORT)
-              onSecondarySortChange({ key: 'none', dir: 'asc' })
-              return
-            }
-            onPrimarySortChange({ key: 'vivino_rating', dir: 'desc' })
-            onSecondarySortChange({ key: 'none', dir: 'asc' })
-          }}
-        >
-          Sort by Rating
-        </button>
+        <span style={sliderLabelStyle(colors)}>Sort</span>
+        {QUICK_SORT_OPTIONS.map((option) => {
+          const active = isQuickSortActive(primarySort, option.key, option.dir)
+          return (
+            <button
+              key={option.key}
+              type="button"
+              aria-pressed={active}
+              style={chipStyle(colors, active)}
+              onClick={() => applyQuickSort(option.key, option.dir)}
+            >
+              {option.label}
+            </button>
+          )
+        })}
 
         <span style={sliderLabelStyle(colors)}>Best wines under:</span>
         {BEST_UNDER_PRICE_PRESETS.map((price) => (
@@ -313,7 +319,6 @@ export function PreviewToolbarQuickFilters({
           colors={colors}
           label="Grapes"
           emptyMessage="No grapes in list"
-          clearLabel="Clear grapes"
           options={grapes}
           selected={filters.grapes}
           onChange={(next) => updateFilters({ grapes: next })}
@@ -323,9 +328,9 @@ export function PreviewToolbarQuickFilters({
           colors={colors}
           label="Regions"
           emptyMessage="No regions in list"
-          clearLabel="Clear regions"
-          options={regions}
+          groups={buildRegionFilterGroups(regionGroups)}
           selected={filters.regions}
+          formatSelectedLabel={formatRegionFilterLabel}
           onChange={(next) => updateFilters({ regions: next })}
         />
       </div>
