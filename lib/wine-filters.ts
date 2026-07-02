@@ -39,7 +39,9 @@ export const EMPTY_WINE_FILTERS: WineFilters = {
 
 export const BEST_UNDER_PRICE_PRESETS = [1500, 2000, 3000, 4000, 5000] as const
 
-export function computeListPriceBounds(wines: WineRow[]): { min: number; max: number } | null {
+export function computeListPriceBounds(
+  wines: WineRow[],
+): { min: number; max: number; median: number } | null {
   let min: number | null = null
   let max: number | null = null
 
@@ -54,8 +56,29 @@ export function computeListPriceBounds(wines: WineRow[]): { min: number; max: nu
 
   const roundedMax = Math.ceil(max / 100) * 100
   const roundedMin = Math.floor(min / 100) * 100
+  const median = computeMedianPrice(wines)
 
-  return { min: roundedMin, max: roundedMax }
+  return { min: roundedMin, max: roundedMax, median }
+}
+
+function collectWinePrices(wines: WineRow[]): number[] {
+  const prices: number[] = []
+  for (const wine of wines) {
+    const price = minWinePriceKES(wine.store_listings)
+    if (price != null) prices.push(price)
+  }
+  return prices
+}
+
+function computeMedianPrice(wines: WineRow[]): number {
+  const prices = collectWinePrices(wines).sort((a, b) => a - b)
+  if (prices.length === 0) return 1000
+
+  const mid = Math.floor(prices.length / 2)
+  const median =
+    prices.length % 2 === 0 ? (prices[mid - 1] + prices[mid]) / 2 : prices[mid]
+
+  return Math.round(median / 100) * 100
 }
 
 function parseBound(raw: string): number | null {

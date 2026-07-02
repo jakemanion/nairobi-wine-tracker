@@ -56,7 +56,7 @@ export function ClearShortlistButton({
       onClick={() => void handleClear()}
     >
       <ListChecks className="w-3.5 h-3.5" strokeWidth={2} />
-      Clear shortlist
+      Clear Shortlist
     </button>
   )
 }

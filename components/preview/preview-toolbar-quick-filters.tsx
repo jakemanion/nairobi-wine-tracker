@@ -8,12 +8,18 @@ import {
 import type { PreviewColors } from '@/lib/preview/preview-colors'
 import type { SortCriterion } from '@/components/wine-filter-panel'
 
+type PriceBounds = {
+  min: number
+  max: number
+  median: number
+}
+
 type PreviewToolbarQuickFiltersProps = {
   colors: PreviewColors
   filters: WineFilters
   onFiltersChange: (filters: WineFilters) => void
   stores: string[]
-  priceBounds: { min: number; max: number } | null
+  priceBounds: PriceBounds | null
   primarySort: SortCriterion
   onPrimarySortChange: (next: SortCriterion) => void
   onSecondarySortChange: (next: SortCriterion) => void
@@ -46,6 +52,18 @@ function sliderLabelStyle(colors: PreviewColors): CSSProperties {
   }
 }
 
+function sliderGroupStyle(colors: PreviewColors, variant: 'price' | 'rating'): CSSProperties {
+  return {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+    padding: '6px 10px',
+    borderRadius: 6,
+    background: variant === 'price' ? colors.searchBg : colors.buttonBg,
+    border: `1px solid ${variant === 'price' ? colors.searchBorder : colors.buttonBorder}`,
+  }
+}
+
 function toggleStore(
   disabledStores: string[],
   store: string,
@@ -65,6 +83,7 @@ function isBestUnderActive(filters: WineFilters, primarySort: SortCriterion, pri
 
 const PRODUCER_SORT: SortCriterion = { key: 'winery', dir: 'asc' }
 const PRICE_SLIDER_STEPS = 1000
+const MEDIAN_SLIDER_POSITION = Math.round((2 / 3) * PRICE_SLIDER_STEPS)
 
 function sliderValueStyle(colors: PreviewColors): CSSProperties {
   return {
@@ -77,42 +96,63 @@ function sliderValueStyle(colors: PreviewColors): CSSProperties {
   }
 }
 
-function priceLogMin(min: number): number {
-  return Math.log10(Math.max(min, 100))
+function logPrice(value: number): number {
+  return Math.log10(Math.max(value, 100))
 }
 
-function priceLogMax(max: number): number {
-  return Math.log10(max)
+function interpolateLogPrice(low: number, high: number, t: number): number {
+  const logLow = logPrice(low)
+  const logHigh = logPrice(high)
+  return Math.pow(10, logLow + t * (logHigh - logLow))
+}
+
+function inverseLogT(price: number, low: number, high: number): number {
+  const logLow = logPrice(low)
+  const logHigh = logPrice(high)
+  const logPriceValue = logPrice(price)
+  if (logHigh === logLow) return 0
+  return (logPriceValue - logLow) / (logHigh - logLow)
 }
 
 function maxPriceToSliderPosition(
   priceMax: string,
   min: number,
+  median: number,
   max: number,
 ): number {
   if (!priceMax.trim()) return PRICE_SLIDER_STEPS
   const price = parseFloat(priceMax)
   if (!Number.isFinite(price)) return PRICE_SLIDER_STEPS
 
-  const logMin = priceLogMin(min)
-  const logMax = priceLogMax(max)
-  const logPrice = Math.log10(Math.max(price, 100))
-  const t = (logPrice - logMin) / (logMax - logMin)
-  return Math.round(Math.min(1, Math.max(0, t)) * PRICE_SLIDER_STEPS)
+  if (price <= median) {
+    const t = inverseLogT(price, min, median)
+    return Math.round(Math.min(1, Math.max(0, t)) * MEDIAN_SLIDER_POSITION)
+  }
+
+  const t = inverseLogT(price, median, max)
+  return Math.round(
+    MEDIAN_SLIDER_POSITION + Math.min(1, Math.max(0, t)) * (PRICE_SLIDER_STEPS - MEDIAN_SLIDER_POSITION),
+  )
 }
 
 function sliderPositionToMaxPrice(
   position: number,
   min: number,
+  median: number,
   max: number,
 ): number | null {
   if (position >= PRICE_SLIDER_STEPS) return null
 
-  const logMin = priceLogMin(min)
-  const logMax = priceLogMax(max)
-  const t = position / PRICE_SLIDER_STEPS
-  const raw = Math.pow(10, logMin + t * (logMax - logMin))
-  return Math.max(min, Math.round(raw / 100) * 100)
+  if (position <= MEDIAN_SLIDER_POSITION) {
+    const t = MEDIAN_SLIDER_POSITION === 0 ? 0 : position / MEDIAN_SLIDER_POSITION
+    const raw = interpolateLogPrice(min, median, t)
+    return Math.max(min, Math.round(raw / 100) * 100)
+  }
+
+  const span = PRICE_SLIDER_STEPS - MEDIAN_SLIDER_POSITION
+  const t = span === 0 ? 1 : (position - MEDIAN_SLIDER_POSITION) / span
+  const raw = interpolateLogPrice(median, max, t)
+  return Math.max(median, Math.round(raw / 100) * 100)
 }
 
 export function PreviewToolbarQuickFilters({
@@ -126,6 +166,7 @@ export function PreviewToolbarQuickFilters({
   onSecondarySortChange,
 }: PreviewToolbarQuickFiltersProps) {
   const priceMinBound = priceBounds?.min ?? 100
+  const priceMedianBound = priceBounds?.median ?? 2000
   const priceMaxBound = priceBounds?.max ?? 10000
   const priceMaxValue = filters.priceMax.trim()
     ? Math.min(parseFloat(filters.priceMax), priceMaxBound)
@@ -134,6 +175,7 @@ export function PreviewToolbarQuickFilters({
   const priceSliderPosition = maxPriceToSliderPosition(
     filters.priceMax,
     priceMinBound,
+    priceMedianBound,
     priceMaxBound,
   )
 
@@ -196,7 +238,10 @@ export function PreviewToolbarQuickFilters({
         >
           Sort by Rating
         </button>
+      </div>
 
+      <div className="flex flex-wrap items-center gap-1.5">
+        <span style={sliderLabelStyle(colors)}>Best wines under:</span>
         {BEST_UNDER_PRICE_PRESETS.map((price) => (
           <button
             key={price}
@@ -210,9 +255,9 @@ export function PreviewToolbarQuickFilters({
         ))}
       </div>
 
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+      <div className="flex flex-wrap items-center gap-2">
         <span style={sliderLabelStyle(colors)}>Filters:</span>
-        <label className="flex items-center gap-2 flex-none">
+        <label className="flex-none" style={sliderGroupStyle(colors, 'price')}>
           <span style={sliderLabelStyle(colors)}>Highest price</span>
           <input
             type="range"
@@ -226,6 +271,7 @@ export function PreviewToolbarQuickFilters({
               const nextPrice = sliderPositionToMaxPrice(
                 Number(event.target.value),
                 priceMinBound,
+                priceMedianBound,
                 priceMaxBound,
               )
               updateFilters({ priceMax: nextPrice == null ? '' : String(nextPrice) })
@@ -236,7 +282,7 @@ export function PreviewToolbarQuickFilters({
           </span>
         </label>
 
-        <label className="flex items-center gap-2 flex-none">
+        <label className="flex-none" style={sliderGroupStyle(colors, 'rating')}>
           <span style={sliderLabelStyle(colors)}>Lowest rating</span>
           <input
             type="range"

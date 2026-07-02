@@ -34,7 +34,7 @@ type PreviewToolbarProps = {
   onApplyRatingThenPrice: () => void
   resultCount: number
   totalCount: number
-  priceBounds: { min: number; max: number } | null
+  priceBounds: { min: number; max: number; median: number } | null
 }
 
 export function PreviewToolbar({
@@ -70,59 +70,96 @@ export function PreviewToolbar({
         boxShadow: toolsExpanded ? '0 4px 20px rgba(0,0,0,0.12)' : 'none',
       }}
     >
-      <div className="flex items-center gap-2 p-3 flex-wrap">
-        <div className="relative w-[17rem] flex-shrink-0">
-          <Search
-            className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 pointer-events-none"
-            style={{ color: colors.muted }}
-          />
-          <input
-            type="search"
-            value={searchQuery}
-            maxLength={8}
-            placeholder="Search…"
-            aria-label="Search producer or wine name"
-            className="w-full text-sm rounded-md pl-7 pr-2 py-1 focus:outline-none"
-            style={{
-              background: colors.searchBg,
-              border: `1px solid ${colors.searchBorder}`,
-              color: colors.searchText,
-              fontFamily: 'var(--font-dm-sans), sans-serif',
-            }}
-            onChange={(event) => onSearchQueryChange(event.target.value)}
-          />
-        </div>
-        <button
-          type="button"
-          className="flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg transition-all flex-shrink-0"
-          style={{
-            background: toolsExpanded ? colors.searchBg : colors.buttonBg,
-            border: `1px solid ${activeFilterCount > 0 ? '#C93048' : colors.buttonBorder}`,
-            color: toolsExpanded || activeFilterCount > 0 ? colors.searchText : colors.buttonText,
-            fontFamily: 'var(--font-dm-sans), sans-serif',
-          }}
-          aria-expanded={toolsExpanded}
-          onClick={() => onToolsExpandedChange(!toolsExpanded)}
-        >
-          <SlidersHorizontal className="w-3.5 h-3.5" />
-          Filter &amp; sort
-          {activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}
-        </button>
-        {searchActive ? (
+      <div className="flex items-center gap-2 p-3 flex-wrap justify-between">
+        <div className="flex items-center gap-2 flex-wrap min-w-0">
+          <div className="relative w-[17rem] flex-shrink-0">
+            <Search
+              className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 pointer-events-none"
+              style={{ color: colors.muted }}
+            />
+            <input
+              type="search"
+              value={searchQuery}
+              maxLength={8}
+              placeholder="Search…"
+              aria-label="Search producer or wine name"
+              className="w-full text-sm rounded-md pl-7 pr-2 py-1 focus:outline-none"
+              style={{
+                background: colors.searchBg,
+                border: `1px solid ${colors.searchBorder}`,
+                color: colors.searchText,
+                fontFamily: 'var(--font-dm-sans), sans-serif',
+              }}
+              onChange={(event) => onSearchQueryChange(event.target.value)}
+            />
+          </div>
           <button
             type="button"
-            className="text-xs px-3 py-2 rounded-lg flex-shrink-0"
+            className="flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg transition-all flex-shrink-0"
             style={{
-              background: colors.buttonBg,
-              border: `1px solid ${colors.buttonBorder}`,
-              color: colors.buttonText,
+              background: toolsExpanded ? colors.searchBg : colors.buttonBg,
+              border: `1px solid ${activeFilterCount > 0 ? '#C93048' : colors.buttonBorder}`,
+              color: toolsExpanded || activeFilterCount > 0 ? colors.searchText : colors.buttonText,
               fontFamily: 'var(--font-dm-sans), sans-serif',
             }}
-            onClick={() => onSearchQueryChange('')}
+            aria-expanded={toolsExpanded}
+            onClick={() => onToolsExpandedChange(!toolsExpanded)}
           >
-            Clear search
+            <SlidersHorizontal className="w-3.5 h-3.5" />
+            More filters
+            {activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}
           </button>
-        ) : null}
+          {searchActive ? (
+            <button
+              type="button"
+              className="text-xs px-3 py-2 rounded-lg flex-shrink-0"
+              style={{
+                background: colors.buttonBg,
+                border: `1px solid ${colors.buttonBorder}`,
+                color: colors.buttonText,
+                fontFamily: 'var(--font-dm-sans), sans-serif',
+              }}
+              onClick={() => onSearchQueryChange('')}
+            >
+              Clear search
+            </button>
+          ) : null}
+        </div>
+
+        <div className="flex items-center gap-2 flex-shrink-0 ml-auto">
+          <p
+            className="m-0 truncate"
+            title={resultCountText}
+            style={{
+              color: colors.summaryText,
+              fontFamily: 'var(--font-dm-sans), sans-serif',
+              fontSize: 11,
+              lineHeight: 1.3,
+            }}
+          >
+            {resultCountText}
+          </p>
+          <button
+            type="button"
+            aria-pressed={filters.hideUnwanted}
+            className="flex-shrink-0"
+            style={{
+              padding: '4px 8px',
+              fontSize: 11,
+              lineHeight: 1.2,
+              borderRadius: 6,
+              cursor: 'pointer',
+              fontFamily: 'var(--font-dm-sans), sans-serif',
+              background: filters.hideUnwanted ? colors.searchBg : colors.buttonBg,
+              border: `1px solid ${filters.hideUnwanted ? '#C93048' : colors.buttonBorder}`,
+              color: filters.hideUnwanted ? colors.searchText : colors.buttonText,
+              whiteSpace: 'nowrap',
+            }}
+            onClick={() => onFiltersChange({ ...filters, hideUnwanted: !filters.hideUnwanted })}
+          >
+            {filters.hideUnwanted ? 'Hide unwanted' : 'Show unwanted'}
+          </button>
+        </div>
       </div>
 
       {!toolsExpanded ? (
@@ -160,41 +197,6 @@ export function PreviewToolbar({
           />
         </div>
       ) : null}
-
-      <div className="px-3 py-2.5 flex items-center justify-between gap-3 min-w-0 border-t" style={{ borderColor: colors.toolbarBorder }}>
-        <p
-          className="m-0 truncate"
-          title={resultCountText}
-          style={{
-            color: colors.summaryText,
-            fontFamily: 'var(--font-dm-sans), sans-serif',
-            fontSize: 11,
-            lineHeight: 1.3,
-          }}
-        >
-          {resultCountText}
-        </p>
-        <button
-            type="button"
-            aria-pressed={filters.hideUnwanted}
-            className="flex-shrink-0"
-            style={{
-              padding: '4px 8px',
-              fontSize: 11,
-              lineHeight: 1.2,
-              borderRadius: 6,
-              cursor: 'pointer',
-              fontFamily: 'var(--font-dm-sans), sans-serif',
-              background: filters.hideUnwanted ? colors.searchBg : colors.buttonBg,
-              border: `1px solid ${filters.hideUnwanted ? '#C93048' : colors.buttonBorder}`,
-              color: filters.hideUnwanted ? colors.searchText : colors.buttonText,
-              whiteSpace: 'nowrap',
-            }}
-            onClick={() => onFiltersChange({ ...filters, hideUnwanted: !filters.hideUnwanted })}
-          >
-            {filters.hideUnwanted ? 'Hide unwanted' : 'Show unwanted'}
-          </button>
-      </div>
     </div>
   )
 }
