@@ -93,6 +93,12 @@ function wishlistIcon(value: WishlistValue, size: number, color: string): ReactN
   }
 }
 
+export const WISHLISTED_BUTTON_STYLE = {
+  border: '#2A5030',
+  bg: '#162010',
+  color: '#50A060',
+} as const
+
 function buttonConfig(value: WishlistValue): WishlistButtonConfig {
   switch (value) {
     case 0:
@@ -106,10 +112,10 @@ function buttonConfig(value: WishlistValue): WishlistButtonConfig {
     case 1:
       return {
         label: 'Wishlist',
-        border: '#2A5030',
-        bg: '#162010',
-        color: '#50A060',
-        renderIcon: (size) => wishlistIcon(1, size, '#50A060'),
+        border: WISHLISTED_BUTTON_STYLE.border,
+        bg: WISHLISTED_BUTTON_STYLE.bg,
+        color: WISHLISTED_BUTTON_STYLE.color,
+        renderIcon: (size) => wishlistIcon(1, size, WISHLISTED_BUTTON_STYLE.color),
       }
     case 2:
       return {

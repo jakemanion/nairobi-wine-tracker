@@ -3,7 +3,9 @@
 import { useState } from 'react'
 import { ListChecks } from 'lucide-react'
 import type { WineReview } from '@/components/wine-table'
-import { saveReviewShortlistField, type ShortlistValue } from '@/lib/reviews'
+import { WISHLISTED_BUTTON_STYLE } from '@/components/preview/preview-wishlist-picker'
+
+const SHORTLIST_TOOLTIP = 'Shortlist for your next buy'
 
 type PreviewShortlistButtonProps = {
   wineId: string
@@ -44,8 +46,9 @@ export function PreviewShortlistButton({
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const shortlisted = normalizeShortlist(review?.shortlist) === 1
-  const label = shortlisted ? 'shortlisted' : 'shortlist'
-  const accent = shortlisted ? '#50A060' : '#9894A4'
+  const label = shortlisted ? 'SHORTLISTED' : 'SHORTLIST'
+  const inactiveColor = '#9894A4'
+  const activeStyle = WISHLISTED_BUTTON_STYLE
 
   async function toggle() {
     if (saving) return
@@ -79,29 +82,37 @@ export function PreviewShortlistButton({
   return (
     <div className="flex flex-col items-center gap-1 flex-shrink-0">
       <p
-        className="text-[8px] tracking-wider leading-tight text-center max-w-[54px]"
-        style={{ color: accent, fontFamily: 'var(--font-dm-sans), sans-serif' }}
+        className="text-[8px] uppercase tracking-wider leading-tight text-center max-w-[54px]"
+        style={{
+          color: shortlisted ? activeStyle.color : inactiveColor,
+          fontFamily: 'var(--font-dm-sans), sans-serif',
+        }}
       >
         {label}
       </p>
       <button
         type="button"
-        title={shortlisted ? 'Remove from shortlist' : 'Add to shortlist'}
-        aria-label={shortlisted ? 'Remove from shortlist' : 'Add to shortlist'}
+        title={SHORTLIST_TOOLTIP}
+        aria-label={SHORTLIST_TOOLTIP}
         aria-pressed={shortlisted}
         disabled={saving}
         className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-105 flex-shrink-0"
         style={{
-          border: `2px solid ${shortlisted ? '#2A5030' : '#3A3848'}`,
-          background: shortlisted ? '#162010' : '#22222C',
-          color: accent,
+          border: `2px solid ${shortlisted ? activeStyle.border : '#3A3848'}`,
+          background: shortlisted ? activeStyle.bg : '#22222C',
+          color: shortlisted ? activeStyle.color : inactiveColor,
           boxShadow: '0 2px 8px rgba(0,0,0,0.4)',
           opacity: saving ? 0.5 : 1,
           cursor: saving ? 'wait' : 'pointer',
         }}
         onClick={() => void toggle()}
       >
-        <ListChecks className={`w-5 h-5 ${shortlisted ? 'fill-current' : ''}`} strokeWidth={2} />
+        <ListChecks
+          className={shortlisted ? 'fill-current' : undefined}
+          size={20}
+          strokeWidth={2}
+          style={{ color: shortlisted ? activeStyle.color : inactiveColor }}
+        />
       </button>
       {error ? (
         <span className="text-[9px] text-center" style={{ color: '#c05050', maxWidth: 72, lineHeight: 1.2 }}>
