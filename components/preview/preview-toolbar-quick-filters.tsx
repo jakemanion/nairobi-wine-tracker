@@ -165,15 +165,6 @@ export function PreviewToolbarQuickFilters({
       <div className="flex flex-wrap items-center gap-2">
         <button
           type="button"
-          aria-pressed={filters.hideUnwanted}
-          style={chipStyle(colors, filters.hideUnwanted)}
-          onClick={() => updateFilters({ hideUnwanted: !filters.hideUnwanted })}
-        >
-          {filters.hideUnwanted ? 'Hiding unwanted' : 'Hide unwanted'}
-        </button>
-
-        <button
-          type="button"
           aria-pressed={valueSortActive}
           style={chipStyle(colors, valueSortActive)}
           onClick={() => {
@@ -186,7 +177,7 @@ export function PreviewToolbarQuickFilters({
             onSecondarySortChange({ key: 'none', dir: 'asc' })
           }}
         >
-          Sort: value
+          Sort by value
         </button>
 
         <button
@@ -203,21 +194,34 @@ export function PreviewToolbarQuickFilters({
             onSecondarySortChange({ key: 'none', dir: 'asc' })
           }}
         >
-          Sort: Vivino
+          Sort by Rating
         </button>
+
+        {BEST_UNDER_PRICE_PRESETS.map((price) => (
+          <button
+            key={price}
+            type="button"
+            aria-pressed={isBestUnderActive(filters, primarySort, price)}
+            style={chipStyle(colors, isBestUnderActive(filters, primarySort, price))}
+            onClick={() => applyBestUnder(price)}
+          >
+            {price.toLocaleString()}
+          </button>
+        ))}
       </div>
 
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+        <span style={sliderLabelStyle(colors)}>Filters:</span>
         <label className="flex items-center gap-2 flex-none">
-          <span style={sliderLabelStyle(colors)}>Max price</span>
+          <span style={sliderLabelStyle(colors)}>Highest price</span>
           <input
             type="range"
             min={0}
             max={PRICE_SLIDER_STEPS}
             step={1}
             value={priceSliderPosition}
-            aria-label="Maximum price"
-            className="w-[60px] flex-none accent-[#C93048]"
+            aria-label="Highest price"
+            className="w-[120px] flex-none accent-[#C93048]"
             onChange={(event) => {
               const nextPrice = sliderPositionToMaxPrice(
                 Number(event.target.value),
@@ -233,15 +237,15 @@ export function PreviewToolbarQuickFilters({
         </label>
 
         <label className="flex items-center gap-2 flex-none">
-          <span style={sliderLabelStyle(colors)}>Vivino min</span>
+          <span style={sliderLabelStyle(colors)}>Lowest rating</span>
           <input
             type="range"
             min={0}
             max={5}
             step={0.1}
             value={vivinoMinAll ? 0 : vivinoMinValue}
-            aria-label="Minimum Vivino score"
-            className="w-[60px] flex-none accent-[#C93048]"
+            aria-label="Lowest rating"
+            className="w-[120px] flex-none accent-[#C93048]"
             onChange={(event) => {
               const next = Number(event.target.value)
               if (next <= 0) {
@@ -281,21 +285,6 @@ export function PreviewToolbarQuickFilters({
           })}
         </div>
       ) : null}
-
-      <div className="flex flex-wrap items-center gap-1.5">
-        <span style={sliderLabelStyle(colors)}>Best under:</span>
-        {BEST_UNDER_PRICE_PRESETS.map((price) => (
-          <button
-            key={price}
-            type="button"
-            aria-pressed={isBestUnderActive(filters, primarySort, price)}
-            style={chipStyle(colors, isBestUnderActive(filters, primarySort, price))}
-            onClick={() => applyBestUnder(price)}
-          >
-            Best under {price.toLocaleString()}
-          </button>
-        ))}
-      </div>
     </div>
   )
 }

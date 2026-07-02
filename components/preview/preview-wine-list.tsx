@@ -1,8 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import Link from 'next/link'
-import { Moon, Sun } from 'lucide-react'
+import { ClearShortlistButton } from '@/components/clear-shortlist-button'
 import { PreviewToolbar } from '@/components/preview/preview-toolbar'
 import { PreviewWineCard } from '@/components/preview/preview-wine-card'
 import { usePreviewTheme } from '@/components/preview/preview-theme-context'
@@ -53,7 +52,7 @@ function clearShortlistFromWines(wines: DisplayWineRow[]): DisplayWineRow[] {
 }
 
 export function PreviewWineList({ wines: initialWines, userId, userName }: PreviewWineListProps) {
-  const { colors, mode, toggleMode } = usePreviewTheme()
+  const { colors, mode } = usePreviewTheme()
   const [wines, setWines] = useState<DisplayWineRow[]>(() =>
     initialWines.map(withComputedValueScore),
   )
@@ -117,34 +116,11 @@ export function PreviewWineList({ wines: initialWines, userId, userName }: Previ
               </p>
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
-              <button
-                type="button"
-                className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg"
-                style={{
-                  background: colors.buttonBg,
-                  border: `1px solid ${colors.buttonBorder}`,
-                  color: colors.buttonText,
-                  fontFamily: 'var(--font-dm-sans), sans-serif',
-                  cursor: 'pointer',
-                }}
-                aria-pressed={mode === 'light'}
-                onClick={toggleMode}
-              >
-                {mode === 'dark' ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
-                {mode === 'dark' ? 'Light mode' : 'Dark mode'}
-              </button>
-              <Link
-                href="/"
-                className="text-xs px-3 py-1.5 rounded-lg no-underline"
-                style={{
-                  background: colors.buttonBg,
-                  border: `1px solid ${colors.buttonBorder}`,
-                  color: colors.buttonText,
-                  fontFamily: 'var(--font-dm-sans), sans-serif',
-                }}
-              >
-                Classic view
-              </Link>
+              <ClearShortlistButton
+                userId={userId}
+                theme={mode}
+                onCleared={() => setWines((current) => clearShortlistFromWines(current))}
+              />
             </div>
           </div>
         </header>
@@ -168,8 +144,6 @@ export function PreviewWineList({ wines: initialWines, userId, userName }: Previ
               setPrimarySort({ key: 'vivino_rating', dir: 'desc' })
               setSecondarySort({ key: 'store_prices', dir: 'asc' })
             }}
-            userId={userId}
-            onShortlistCleared={() => setWines((current) => clearShortlistFromWines(current))}
             resultCount={previewWines.length}
             totalCount={wines.length}
             priceBounds={priceBounds}

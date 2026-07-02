@@ -1,7 +1,6 @@
 'use client'
 
 import type { CSSProperties } from 'react'
-import { ClearShortlistButton } from '@/components/clear-shortlist-button'
 import {
   EMPTY_WINE_FILTERS,
   type TriedStatusFilterValue,
@@ -586,18 +585,6 @@ export function WineFilterPanel({
             >
               Clear filters
             </button>
-            {userId && onShortlistCleared ? (
-              <ClearShortlistButton
-                userId={userId}
-                theme={theme}
-                onCleared={onShortlistCleared}
-                style={{
-                  padding: '6px 12px',
-                  fontSize: 14,
-                  borderRadius: 4,
-                }}
-              />
-            ) : null}
           </div>
     </div>
   )

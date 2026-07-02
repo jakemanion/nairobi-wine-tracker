@@ -1,13 +1,16 @@
 'use client'
 
-import { useMemo } from 'react'
 import { Search, SlidersHorizontal } from 'lucide-react'
-import { ClearShortlistButton } from '@/components/clear-shortlist-button'
 import { PreviewToolbarQuickFilters } from '@/components/preview/preview-toolbar-quick-filters'
 import { WineFilterPanel, type SortCriterion } from '@/components/wine-filter-panel'
 import { usePreviewTheme } from '@/components/preview/preview-theme-context'
-import { buildListStateSummary } from '@/lib/preview/list-state-summary'
 import type { WineFilters } from '@/lib/wine-filters'
+
+function buildResultCountText(resultCount: number, totalCount: number): string {
+  return resultCount === totalCount
+    ? `Showing all ${resultCount} wines`
+    : `Showing ${resultCount} of ${totalCount} wines`
+}
 
 type PreviewToolbarProps = {
   searchQuery: string
@@ -29,8 +32,6 @@ type PreviewToolbarProps = {
   onSecondarySortChange: (next: SortCriterion) => void
   ratingThenPriceActive: boolean
   onApplyRatingThenPrice: () => void
-  userId: string
-  onShortlistCleared: () => void
   resultCount: number
   totalCount: number
   priceBounds: { min: number; max: number } | null
@@ -51,8 +52,6 @@ export function PreviewToolbar({
   onSecondarySortChange,
   ratingThenPriceActive,
   onApplyRatingThenPrice,
-  userId,
-  onShortlistCleared,
   resultCount,
   totalCount,
   priceBounds,
@@ -60,19 +59,7 @@ export function PreviewToolbar({
   const { colors, mode } = usePreviewTheme()
   const searchActive = searchQuery.trim().length > 0
   const toolsActive = toolsExpanded || activeFilterCount > 0 || searchActive
-
-  const summaryText = useMemo(
-    () =>
-      buildListStateSummary({
-        filters,
-        searchQuery,
-        primarySort,
-        secondarySort,
-        resultCount,
-        totalCount,
-      }),
-    [filters, searchQuery, primarySort, secondarySort, resultCount, totalCount],
-  )
+  const resultCountText = buildResultCountText(resultCount, totalCount)
 
   return (
     <div
@@ -84,7 +71,7 @@ export function PreviewToolbar({
       }}
     >
       <div className="flex items-center gap-2 p-3 flex-wrap">
-        <div className="relative w-[8.5rem] flex-shrink-0">
+        <div className="relative w-[17rem] flex-shrink-0">
           <Search
             className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 pointer-events-none"
             style={{ color: colors.muted }}
@@ -136,26 +123,6 @@ export function PreviewToolbar({
             Clear search
           </button>
         ) : null}
-        <ClearShortlistButton
-          userId={userId}
-          theme={mode}
-          onCleared={onShortlistCleared}
-        />
-      </div>
-
-      <div className="px-3 pb-2.5 flex justify-center min-w-0">
-        <p
-          className="m-0 w-full text-center truncate"
-          title={summaryText}
-          style={{
-            color: colors.summaryText,
-            fontFamily: 'var(--font-dm-sans), sans-serif',
-            fontSize: 11,
-            lineHeight: 1.3,
-          }}
-        >
-          {summaryText}
-        </p>
       </div>
 
       {!toolsExpanded ? (
@@ -190,11 +157,44 @@ export function PreviewToolbar({
             onSecondarySortChange={onSecondarySortChange}
             ratingThenPriceActive={ratingThenPriceActive}
             onApplyRatingThenPrice={onApplyRatingThenPrice}
-            userId={userId}
-            onShortlistCleared={onShortlistCleared}
           />
         </div>
       ) : null}
+
+      <div className="px-3 py-2.5 flex items-center justify-between gap-3 min-w-0 border-t" style={{ borderColor: colors.toolbarBorder }}>
+        <p
+          className="m-0 truncate"
+          title={resultCountText}
+          style={{
+            color: colors.summaryText,
+            fontFamily: 'var(--font-dm-sans), sans-serif',
+            fontSize: 11,
+            lineHeight: 1.3,
+          }}
+        >
+          {resultCountText}
+        </p>
+        <button
+            type="button"
+            aria-pressed={filters.hideUnwanted}
+            className="flex-shrink-0"
+            style={{
+              padding: '4px 8px',
+              fontSize: 11,
+              lineHeight: 1.2,
+              borderRadius: 6,
+              cursor: 'pointer',
+              fontFamily: 'var(--font-dm-sans), sans-serif',
+              background: filters.hideUnwanted ? colors.searchBg : colors.buttonBg,
+              border: `1px solid ${filters.hideUnwanted ? '#C93048' : colors.buttonBorder}`,
+              color: filters.hideUnwanted ? colors.searchText : colors.buttonText,
+              whiteSpace: 'nowrap',
+            }}
+            onClick={() => onFiltersChange({ ...filters, hideUnwanted: !filters.hideUnwanted })}
+          >
+            {filters.hideUnwanted ? 'Hide unwanted' : 'Show unwanted'}
+          </button>
+      </div>
     </div>
   )
 }
