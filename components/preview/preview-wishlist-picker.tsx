@@ -163,18 +163,21 @@ function buildOptimisticReview(
   }
 }
 
-function placePanelAtCenter(rect: DOMRect) {
+const PANEL_GAP = 8
+
+function placePanelAboveAnchor(rect: DOMRect) {
   const centerX = rect.left + rect.width / 2
-  const centerY = rect.top + rect.height / 2
 
   let left = centerX - PANEL_WIDTH / 2
-  let top = centerY - PANEL_HEIGHT / 2
+  let top = rect.top - PANEL_HEIGHT - PANEL_GAP
 
   if (left < 12) left = 12
   if (left + PANEL_WIDTH > window.innerWidth - 12) {
     left = window.innerWidth - PANEL_WIDTH - 12
   }
-  if (top < 12) top = 12
+  if (top < 12) {
+    top = rect.bottom + PANEL_GAP
+  }
   if (top + PANEL_HEIGHT > window.innerHeight - 12) {
     top = window.innerHeight - PANEL_HEIGHT - 12
   }
@@ -224,7 +227,7 @@ export function PreviewWishlistPicker({
   const [hoveredOption, setHoveredOption] = useState<WishlistValue | 'none'>('none')
   const [mounted, setMounted] = useState(false)
   const closeTimeoutRef = useRef<number | null>(null)
-  const buttonRef = useRef<HTMLButtonElement>(null)
+  const anchorRef = useRef<HTMLDivElement>(null)
   const value = normalizeWishlist(review?.wishlist)
   const cfg = buttonConfig(value)
   const panelText = getReviewPanelTextColors(mode, value)
@@ -265,8 +268,8 @@ export function PreviewWishlistPicker({
   function openPanel() {
     if (saving) return
     cancelClose()
-    if (!panelOpen && buttonRef.current) {
-      setPanelPosition(placePanelAtCenter(buttonRef.current.getBoundingClientRect()))
+    if (!panelOpen && anchorRef.current) {
+      setPanelPosition(placePanelAboveAnchor(anchorRef.current.getBoundingClientRect()))
     }
     setPanelOpen(true)
   }
@@ -309,7 +312,7 @@ export function PreviewWishlistPicker({
       : (WISHLIST_OPTIONS.find((o) => o.value === hoveredOption)?.tooltip ?? '')
 
   return (
-    <div className="flex flex-col items-center gap-1 flex-shrink-0">
+    <div ref={anchorRef} className="flex flex-col items-center gap-1 flex-shrink-0">
       <p
         className="text-[8px] uppercase tracking-wider leading-tight text-center max-w-[54px]"
         style={{ color: panelText.label, fontFamily: 'var(--font-dm-sans), sans-serif' }}
@@ -317,7 +320,6 @@ export function PreviewWishlistPicker({
         {getWishlistStateLabel(value)}
       </p>
       <button
-        ref={buttonRef}
         type="button"
         title={cfg.label}
         aria-label={`Wishlist: ${cfg.label}`}

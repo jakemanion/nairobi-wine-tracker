@@ -142,22 +142,18 @@ export function PreviewToolbar({
           <button
             type="button"
             aria-pressed={filters.hideUnwanted}
-            className="flex-shrink-0"
+            className="flex items-center text-xs px-3 py-2 rounded-lg flex-shrink-0"
             style={{
-              padding: '4px 8px',
-              fontSize: 11,
-              lineHeight: 1.2,
-              borderRadius: 6,
-              cursor: 'pointer',
-              fontFamily: 'var(--font-dm-sans), sans-serif',
               background: filters.hideUnwanted ? colors.searchBg : colors.buttonBg,
               border: `1px solid ${filters.hideUnwanted ? '#C93048' : colors.buttonBorder}`,
               color: filters.hideUnwanted ? colors.searchText : colors.buttonText,
+              fontFamily: 'var(--font-dm-sans), sans-serif',
+              cursor: 'pointer',
               whiteSpace: 'nowrap',
             }}
             onClick={() => onFiltersChange({ ...filters, hideUnwanted: !filters.hideUnwanted })}
           >
-            {filters.hideUnwanted ? 'Hide unwanted' : 'Show unwanted'}
+            {filters.hideUnwanted ? 'Show unwanted' : 'Hide unwanted'}
           </button>
         </div>
       </div>

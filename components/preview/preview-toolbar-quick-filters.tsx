@@ -238,9 +238,7 @@ export function PreviewToolbarQuickFilters({
         >
           Sort by Rating
         </button>
-      </div>
 
-      <div className="flex flex-wrap items-center gap-1.5">
         <span style={sliderLabelStyle(colors)}>Best wines under:</span>
         {BEST_UNDER_PRICE_PRESETS.map((price) => (
           <button
