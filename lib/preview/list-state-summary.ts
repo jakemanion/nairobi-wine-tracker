@@ -90,6 +90,10 @@ export function buildListStateSummary({
       `tried: ${filters.triedStatus.map((v) => TRIED_LABELS[String(v)]).join(', ')}`,
     )
   }
+  if (filters.hideUnwanted) filterParts.push('hiding unwanted')
+  if (filters.disabledStores.length > 0) {
+    filterParts.push(`shops hidden: ${filters.disabledStores.join(', ')}`)
+  }
 
   if (filterParts.length > 0) {
     parts.push(`Filters: ${filterParts.join('; ')}`)

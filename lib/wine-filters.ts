@@ -13,6 +13,8 @@ export type WineFilters = {
   wishlist: WishlistFilterValue[]
   triedStatus: TriedStatusFilterValue[]
   stores: string[]
+  disabledStores: string[]
+  hideUnwanted: boolean
   grapes: string
   producer: string
   country: string
@@ -27,10 +29,33 @@ export const EMPTY_WINE_FILTERS: WineFilters = {
   wishlist: [],
   triedStatus: [],
   stores: [],
+  disabledStores: [],
+  hideUnwanted: false,
   grapes: '',
   producer: '',
   country: '',
   region: '',
+}
+
+export const BEST_UNDER_PRICE_PRESETS = [1500, 2000, 3000, 4000, 5000] as const
+
+export function computeListPriceBounds(wines: WineRow[]): { min: number; max: number } | null {
+  let min: number | null = null
+  let max: number | null = null
+
+  for (const wine of wines) {
+    const price = minWinePriceKES(wine.store_listings)
+    if (price == null) continue
+    min = min == null ? price : Math.min(min, price)
+    max = max == null ? price : Math.max(max, price)
+  }
+
+  if (min == null || max == null) return null
+
+  const roundedMax = Math.ceil(max / 100) * 100
+  const roundedMin = Math.floor(min / 100) * 100
+
+  return { min: roundedMin, max: roundedMax }
 }
 
 function parseBound(raw: string): number | null {
@@ -102,6 +127,8 @@ export function countActiveFilters(filters: WineFilters): number {
   if (filters.producer.trim()) count += 1
   if (filters.country.trim()) count += 1
   if (filters.region.trim()) count += 1
+  if (filters.hideUnwanted) count += 1
+  if (filters.disabledStores.length > 0) count += 1
   return count
 }
 
@@ -141,6 +168,19 @@ export function filterWines<T extends WineRow>(wines: T[], filters: WineFilters)
           .filter(Boolean) as string[],
       )
       if (!filters.stores.some((store) => wineStores.has(store))) return false
+    }
+
+    if (filters.disabledStores.length > 0) {
+      const wineStores = (wine.store_listings ?? [])
+        .map((listing) => listing.stores?.name?.trim())
+        .filter(Boolean) as string[]
+      if (wineStores.some((store) => filters.disabledStores.includes(store))) {
+        return false
+      }
+    }
+
+    if (filters.hideUnwanted) {
+      if (wine.review?.wishlist === 0 || wine.review?.tried_status === 2) return false
     }
 
     if (grapesQuery) {

@@ -12,6 +12,7 @@ import { sortWines } from '@/components/wine-table'
 import { withComputedValueScore } from '@/lib/calculate-value-score'
 import {
   collectFilterOptions,
+  computeListPriceBounds,
   countActiveFilters,
   EMPTY_WINE_FILTERS,
   filterWines,
@@ -63,6 +64,7 @@ export function PreviewWineList({ wines: initialWines, userId, userName }: Previ
   const [secondarySort, setSecondarySort] = useState<SortCriterion>({ key: 'none', dir: 'asc' })
 
   const filterOptions = useMemo(() => collectFilterOptions(wines), [wines])
+  const priceBounds = useMemo(() => computeListPriceBounds(wines), [wines])
   const activeFilterCount = useMemo(() => countActiveFilters(filters), [filters])
 
   const filtered = useMemo(() => filterWines(wines, filters), [wines, filters])
@@ -170,6 +172,7 @@ export function PreviewWineList({ wines: initialWines, userId, userName }: Previ
             onShortlistCleared={() => setWines((current) => clearShortlistFromWines(current))}
             resultCount={previewWines.length}
             totalCount={wines.length}
+            priceBounds={priceBounds}
           />
         </div>
       </div>

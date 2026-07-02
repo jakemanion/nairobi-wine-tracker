@@ -3,6 +3,7 @@
 import { useMemo } from 'react'
 import { Search, SlidersHorizontal } from 'lucide-react'
 import { ClearShortlistButton } from '@/components/clear-shortlist-button'
+import { PreviewToolbarQuickFilters } from '@/components/preview/preview-toolbar-quick-filters'
 import { WineFilterPanel, type SortCriterion } from '@/components/wine-filter-panel'
 import { usePreviewTheme } from '@/components/preview/preview-theme-context'
 import { buildListStateSummary } from '@/lib/preview/list-state-summary'
@@ -32,6 +33,7 @@ type PreviewToolbarProps = {
   onShortlistCleared: () => void
   resultCount: number
   totalCount: number
+  priceBounds: { min: number; max: number } | null
 }
 
 export function PreviewToolbar({
@@ -53,6 +55,7 @@ export function PreviewToolbar({
   onShortlistCleared,
   resultCount,
   totalCount,
+  priceBounds,
 }: PreviewToolbarProps) {
   const { colors, mode } = usePreviewTheme()
   const searchActive = searchQuery.trim().length > 0
@@ -81,17 +84,18 @@ export function PreviewToolbar({
       }}
     >
       <div className="flex items-center gap-2 p-3 flex-wrap">
-        <div className="relative flex-1 min-w-[200px]">
+        <div className="relative w-[8.5rem] flex-shrink-0">
           <Search
-            className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 pointer-events-none"
+            className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 pointer-events-none"
             style={{ color: colors.muted }}
           />
           <input
             type="search"
             value={searchQuery}
-            placeholder="Search producer or wine name…"
+            maxLength={8}
+            placeholder="Search…"
             aria-label="Search producer or wine name"
-            className="w-full text-sm rounded-lg pl-8 pr-3 py-2 focus:outline-none"
+            className="w-full text-sm rounded-md pl-7 pr-2 py-1 focus:outline-none"
             style={{
               background: colors.searchBg,
               border: `1px solid ${colors.searchBorder}`,
@@ -153,6 +157,21 @@ export function PreviewToolbar({
           {summaryText}
         </p>
       </div>
+
+      {!toolsExpanded ? (
+        <div style={{ borderTop: `1px solid ${colors.toolbarBorder}` }}>
+          <PreviewToolbarQuickFilters
+            colors={colors}
+            filters={filters}
+            onFiltersChange={onFiltersChange}
+            stores={filterOptions.stores}
+            priceBounds={priceBounds}
+            primarySort={primarySort}
+            onPrimarySortChange={onPrimarySortChange}
+            onSecondarySortChange={onSecondarySortChange}
+          />
+        </div>
+      ) : null}
 
       {toolsExpanded ? (
         <div style={{ borderTop: `1px solid ${colors.toolbarBorder}` }}>
