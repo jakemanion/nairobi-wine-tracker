@@ -63,6 +63,58 @@ function isBestUnderActive(filters: WineFilters, primarySort: SortCriterion, pri
   )
 }
 
+const PRODUCER_SORT: SortCriterion = { key: 'winery', dir: 'asc' }
+const PRICE_SLIDER_STEPS = 1000
+
+function sliderValueStyle(colors: PreviewColors): CSSProperties {
+  return {
+    fontSize: 11,
+    color: colors.searchText,
+    fontFamily: 'var(--font-dm-sans), sans-serif',
+    minWidth: 32,
+    textAlign: 'right',
+    fontVariantNumeric: 'tabular-nums',
+  }
+}
+
+function priceLogMin(min: number): number {
+  return Math.log10(Math.max(min, 100))
+}
+
+function priceLogMax(max: number): number {
+  return Math.log10(max)
+}
+
+function maxPriceToSliderPosition(
+  priceMax: string,
+  min: number,
+  max: number,
+): number {
+  if (!priceMax.trim()) return PRICE_SLIDER_STEPS
+  const price = parseFloat(priceMax)
+  if (!Number.isFinite(price)) return PRICE_SLIDER_STEPS
+
+  const logMin = priceLogMin(min)
+  const logMax = priceLogMax(max)
+  const logPrice = Math.log10(Math.max(price, 100))
+  const t = (logPrice - logMin) / (logMax - logMin)
+  return Math.round(Math.min(1, Math.max(0, t)) * PRICE_SLIDER_STEPS)
+}
+
+function sliderPositionToMaxPrice(
+  position: number,
+  min: number,
+  max: number,
+): number | null {
+  if (position >= PRICE_SLIDER_STEPS) return null
+
+  const logMin = priceLogMin(min)
+  const logMax = priceLogMax(max)
+  const t = position / PRICE_SLIDER_STEPS
+  const raw = Math.pow(10, logMin + t * (logMax - logMin))
+  return Math.max(min, Math.round(raw / 100) * 100)
+}
+
 export function PreviewToolbarQuickFilters({
   colors,
   filters,
@@ -73,11 +125,17 @@ export function PreviewToolbarQuickFilters({
   onPrimarySortChange,
   onSecondarySortChange,
 }: PreviewToolbarQuickFiltersProps) {
+  const priceMinBound = priceBounds?.min ?? 100
   const priceMaxBound = priceBounds?.max ?? 10000
   const priceMaxValue = filters.priceMax.trim()
     ? Math.min(parseFloat(filters.priceMax), priceMaxBound)
-  : priceMaxBound
+    : priceMaxBound
   const priceMaxAll = !filters.priceMax.trim() || priceMaxValue >= priceMaxBound
+  const priceSliderPosition = maxPriceToSliderPosition(
+    filters.priceMax,
+    priceMinBound,
+    priceMaxBound,
+  )
 
   const vivinoMinValue = filters.vivinoMin.trim() ? parseFloat(filters.vivinoMin) : 0
   const vivinoMinAll = !filters.vivinoMin.trim() || vivinoMinValue <= 0
@@ -119,6 +177,11 @@ export function PreviewToolbarQuickFilters({
           aria-pressed={valueSortActive}
           style={chipStyle(colors, valueSortActive)}
           onClick={() => {
+            if (valueSortActive) {
+              onPrimarySortChange(PRODUCER_SORT)
+              onSecondarySortChange({ key: 'none', dir: 'asc' })
+              return
+            }
             onPrimarySortChange({ key: 'value_score', dir: 'desc' })
             onSecondarySortChange({ key: 'none', dir: 'asc' })
           }}
@@ -131,6 +194,11 @@ export function PreviewToolbarQuickFilters({
           aria-pressed={vivinoSortActive}
           style={chipStyle(colors, vivinoSortActive)}
           onClick={() => {
+            if (vivinoSortActive) {
+              onPrimarySortChange(PRODUCER_SORT)
+              onSecondarySortChange({ key: 'none', dir: 'asc' })
+              return
+            }
             onPrimarySortChange({ key: 'vivino_rating', dir: 'desc' })
             onSecondarySortChange({ key: 'none', dir: 'asc' })
           }}
@@ -139,34 +207,33 @@ export function PreviewToolbarQuickFilters({
         </button>
       </div>
 
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-        <label className="flex items-center gap-2 min-w-[180px] flex-1">
-          <span style={sliderLabelStyle(colors)}>
-            {priceMaxAll ? 'Max price: All' : `Max price: ${Math.round(priceMaxValue)}`}
-          </span>
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+        <label className="flex items-center gap-2 flex-none">
+          <span style={sliderLabelStyle(colors)}>Max price</span>
           <input
             type="range"
-            min={priceBounds?.min ?? 0}
-            max={priceMaxBound}
-            step={100}
-            value={priceMaxAll ? priceMaxBound : priceMaxValue}
+            min={0}
+            max={PRICE_SLIDER_STEPS}
+            step={1}
+            value={priceSliderPosition}
             aria-label="Maximum price"
-            className="flex-1 min-w-[80px] accent-[#C93048]"
+            className="w-[60px] flex-none accent-[#C93048]"
             onChange={(event) => {
-              const next = Number(event.target.value)
-              if (next >= priceMaxBound) {
-                updateFilters({ priceMax: '' })
-                return
-              }
-              updateFilters({ priceMax: String(next) })
+              const nextPrice = sliderPositionToMaxPrice(
+                Number(event.target.value),
+                priceMinBound,
+                priceMaxBound,
+              )
+              updateFilters({ priceMax: nextPrice == null ? '' : String(nextPrice) })
             }}
           />
+          <span style={sliderValueStyle(colors)}>
+            {priceMaxAll ? 'All' : Math.round(priceMaxValue).toLocaleString()}
+          </span>
         </label>
 
-        <label className="flex items-center gap-2 min-w-[180px] flex-1">
-          <span style={sliderLabelStyle(colors)}>
-            {vivinoMinAll ? 'Vivino min: Any' : `Vivino min: ${vivinoMinValue.toFixed(1)}`}
-          </span>
+        <label className="flex items-center gap-2 flex-none">
+          <span style={sliderLabelStyle(colors)}>Vivino min</span>
           <input
             type="range"
             min={0}
@@ -174,7 +241,7 @@ export function PreviewToolbarQuickFilters({
             step={0.1}
             value={vivinoMinAll ? 0 : vivinoMinValue}
             aria-label="Minimum Vivino score"
-            className="flex-1 min-w-[80px] accent-[#C93048]"
+            className="w-[60px] flex-none accent-[#C93048]"
             onChange={(event) => {
               const next = Number(event.target.value)
               if (next <= 0) {
@@ -184,6 +251,9 @@ export function PreviewToolbarQuickFilters({
               updateFilters({ vivinoMin: next.toFixed(1) })
             }}
           />
+          <span style={sliderValueStyle(colors)}>
+            {vivinoMinAll ? 'Any' : vivinoMinValue.toFixed(1)}
+          </span>
         </label>
       </div>
 
