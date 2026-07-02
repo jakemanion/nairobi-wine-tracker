@@ -24,6 +24,15 @@ export function normalizeGrapeVarieties(value: unknown): string | null {
   return formatted || null
 }
 
+export function listGrapeVarieties(value: unknown): string[] {
+  const formatted = formatGrapeVarieties(value)
+  if (!formatted) return []
+  return formatted
+    .split(',')
+    .map((grape) => grape.trim())
+    .filter(Boolean)
+}
+
 export function parseGrapeVarietiesInput(raw: string | null): string | null {
   if (!raw?.trim()) return null
   return normalizeGrapeVarieties(raw.trim())

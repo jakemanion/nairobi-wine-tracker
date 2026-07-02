@@ -5,6 +5,7 @@ import {
   BEST_UNDER_PRICE_PRESETS,
   type WineFilters,
 } from '@/lib/wine-filters'
+import { PreviewGrapeMultiSelect } from '@/components/preview/preview-grape-multi-select'
 import type { PreviewColors } from '@/lib/preview/preview-colors'
 import type { SortCriterion } from '@/components/wine-filter-panel'
 
@@ -19,6 +20,7 @@ type PreviewToolbarQuickFiltersProps = {
   filters: WineFilters
   onFiltersChange: (filters: WineFilters) => void
   stores: string[]
+  grapes: string[]
   priceBounds: PriceBounds | null
   primarySort: SortCriterion
   onPrimarySortChange: (next: SortCriterion) => void
@@ -52,15 +54,15 @@ function sliderLabelStyle(colors: PreviewColors): CSSProperties {
   }
 }
 
-function sliderGroupStyle(colors: PreviewColors, variant: 'price' | 'rating'): CSSProperties {
+function sliderGroupStyle(colors: PreviewColors): CSSProperties {
   return {
     display: 'flex',
     alignItems: 'center',
     gap: 8,
     padding: '6px 10px',
     borderRadius: 6,
-    background: variant === 'price' ? colors.searchBg : colors.buttonBg,
-    border: `1px solid ${variant === 'price' ? colors.searchBorder : colors.buttonBorder}`,
+    background: colors.searchBg,
+    border: `1px solid ${colors.searchBorder}`,
   }
 }
 
@@ -160,6 +162,7 @@ export function PreviewToolbarQuickFilters({
   filters,
   onFiltersChange,
   stores,
+  grapes,
   priceBounds,
   primarySort,
   onPrimarySortChange,
@@ -255,7 +258,7 @@ export function PreviewToolbarQuickFilters({
 
       <div className="flex flex-wrap items-center gap-2">
         <span style={sliderLabelStyle(colors)}>Filters:</span>
-        <label className="flex-none" style={sliderGroupStyle(colors, 'price')}>
+        <label className="flex-none" style={sliderGroupStyle(colors)}>
           <span style={sliderLabelStyle(colors)}>Highest price</span>
           <input
             type="range"
@@ -280,7 +283,7 @@ export function PreviewToolbarQuickFilters({
           </span>
         </label>
 
-        <label className="flex-none" style={sliderGroupStyle(colors, 'rating')}>
+        <label className="flex-none" style={sliderGroupStyle(colors)}>
           <span style={sliderLabelStyle(colors)}>Lowest rating</span>
           <input
             type="range"
@@ -303,6 +306,13 @@ export function PreviewToolbarQuickFilters({
             {vivinoMinAll ? 'Any' : vivinoMinValue.toFixed(1)}
           </span>
         </label>
+
+        <PreviewGrapeMultiSelect
+          colors={colors}
+          options={grapes}
+          selected={filters.grapes}
+          onChange={(next) => updateFilters({ grapes: next })}
+        />
       </div>
 
       {stores.length > 0 ? (

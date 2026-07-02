@@ -1,5 +1,5 @@
 import { minWinePriceKES } from '@/lib/calculate-value-score'
-import { formatGrapeVarieties } from '@/lib/grape-varieties'
+import { listGrapeVarieties } from '@/lib/grape-varieties'
 import type { WineRow } from '@/components/wine-table'
 
 export type WishlistFilterValue = 'unset' | 0 | 1 | 2 | 3
@@ -15,7 +15,7 @@ export type WineFilters = {
   stores: string[]
   disabledStores: string[]
   hideUnwanted: boolean
-  grapes: string
+  grapes: string[]
   producer: string
   country: string
   region: string
@@ -31,7 +31,7 @@ export const EMPTY_WINE_FILTERS: WineFilters = {
   stores: [],
   disabledStores: [],
   hideUnwanted: false,
-  grapes: '',
+  grapes: [],
   producer: '',
   country: '',
   region: '',
@@ -110,6 +110,7 @@ export function collectFilterOptions(wines: WineRow[]) {
   const producers = new Set<string>()
   const countries = new Set<string>()
   const regions = new Set<string>()
+  const grapes = new Set<string>()
 
   for (const wine of wines) {
     const producer = wine.producer?.trim()
@@ -120,6 +121,10 @@ export function collectFilterOptions(wines: WineRow[]) {
 
     const region = wine.region?.trim()
     if (region) regions.add(region)
+
+    for (const grape of listGrapeVarieties(wine.grape_varieties)) {
+      grapes.add(grape)
+    }
 
     for (const listing of wine.store_listings ?? []) {
       const name = listing.stores?.name?.trim()
@@ -134,6 +139,7 @@ export function collectFilterOptions(wines: WineRow[]) {
     producers: [...producers].sort(sortAlpha),
     countries: [...countries].sort(sortAlpha),
     regions: [...regions].sort(sortAlpha),
+    grapes: [...grapes].sort(sortAlpha),
   }
 }
 
@@ -146,7 +152,7 @@ export function countActiveFilters(filters: WineFilters): number {
   if (filters.wishlist.length > 0) count += 1
   if (filters.triedStatus.length > 0) count += 1
   if (filters.stores.length > 0) count += 1
-  if (filters.grapes.trim()) count += 1
+  if (filters.grapes.length > 0) count += 1
   if (filters.producer.trim()) count += 1
   if (filters.country.trim()) count += 1
   if (filters.region.trim()) count += 1
@@ -160,10 +166,10 @@ export function filterWines<T extends WineRow>(wines: T[], filters: WineFilters)
   const priceMax = parseBound(filters.priceMax)
   const vivinoMin = parseBound(filters.vivinoMin)
   const vivinoMax = parseBound(filters.vivinoMax)
-  const grapesQuery = filters.grapes.trim().toLowerCase()
   const producerFilter = filters.producer.trim()
   const countryFilter = filters.country.trim()
   const regionFilter = filters.region.trim()
+  const selectedGrapes = filters.grapes.map((grape) => grape.toLowerCase())
 
   return wines.filter((wine) => {
     const price = minWinePriceKES(wine.store_listings)
@@ -206,9 +212,11 @@ export function filterWines<T extends WineRow>(wines: T[], filters: WineFilters)
       if (wine.review?.wishlist === 0 || wine.review?.tried_status === 2) return false
     }
 
-    if (grapesQuery) {
-      const grapes = formatGrapeVarieties(wine.grape_varieties).toLowerCase()
-      if (!grapes.includes(grapesQuery)) return false
+    if (selectedGrapes.length > 0) {
+      const wineGrapes = new Set(
+        listGrapeVarieties(wine.grape_varieties).map((grape) => grape.toLowerCase()),
+      )
+      if (!selectedGrapes.some((grape) => wineGrapes.has(grape))) return false
     }
 
     if (producerFilter && (wine.producer?.trim() ?? '') !== producerFilter) return false

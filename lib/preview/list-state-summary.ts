@@ -78,7 +78,7 @@ export function buildListStateSummary({
   if (filters.producer.trim()) filterParts.push(`producer: ${filters.producer}`)
   if (filters.country.trim()) filterParts.push(`country: ${filters.country}`)
   if (filters.region.trim()) filterParts.push(`region: ${filters.region}`)
-  if (filters.grapes.trim()) filterParts.push(`grapes contain “${filters.grapes.trim()}”`)
+  if (filters.grapes.length > 0) filterParts.push(`grapes: ${filters.grapes.join(', ')}`)
   if (filters.stores.length > 0) filterParts.push(`stores: ${filters.stores.join(', ')}`)
   if (filters.wishlist.length > 0) {
     filterParts.push(

@@ -254,6 +254,7 @@ type WineFilterPanelProps = {
   onFiltersChange: (filters: WineFilters) => void
   filterOptions: {
     stores: string[]
+    grapes: string[]
     producers: string[]
     countries: string[]
     regions: string[]
@@ -400,16 +401,29 @@ export function WineFilterPanel({
                   ))}
                 </select>
               </label>
-              <label style={fieldLabelStyle}>
+              <div style={{ ...fieldLabelStyle, gridColumn: '1 / -1' }}>
                 <span>Grapes</span>
-                <input
-                  type="text"
-                  placeholder="Contains…"
-                  value={filters.grapes}
-                  style={controlStyle}
-                  onChange={(event) => updateFilters({ grapes: event.target.value })}
-                />
-              </label>
+                <div style={checkboxGroupStyle}>
+                  {filterOptions.grapes.length === 0 ? (
+                    <span style={{ color: styles.mutedText }}>No grapes in list</span>
+                  ) : (
+                    filterOptions.grapes.map((grape) => (
+                      <label key={grape} style={checkboxRowStyle}>
+                        <input
+                          type="checkbox"
+                          checked={filters.grapes.includes(grape)}
+                          onChange={() =>
+                            updateFilters({
+                              grapes: toggleArrayValue(filters.grapes, grape),
+                            })
+                          }
+                        />
+                        <span>{grape}</span>
+                      </label>
+                    ))
+                  )}
+                </div>
+              </div>
               <div style={{ ...fieldLabelStyle, gridColumn: '1 / -1' }}>
                 <span>Store</span>
                 <div style={checkboxGroupStyle}>

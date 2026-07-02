@@ -163,7 +163,7 @@ function buildOptimisticReview(
   }
 }
 
-const PANEL_GAP = 8
+const PANEL_GAP = 0
 
 function placePanelAboveAnchor(rect: DOMRect) {
   const centerX = rect.left + rect.width / 2
