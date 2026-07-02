@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { ListChecks } from 'lucide-react'
 import type { WineReview } from '@/components/wine-table'
 import { WISHLISTED_BUTTON_STYLE } from '@/components/preview/preview-wishlist-picker'
+import { saveReviewShortlistField, type ShortlistValue } from '@/lib/reviews'
 
 const SHORTLIST_TOOLTIP = 'Shortlist for your next buy'
 
