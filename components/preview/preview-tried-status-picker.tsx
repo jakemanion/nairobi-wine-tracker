@@ -7,9 +7,10 @@ import {
   type CSSProperties,
 } from 'react'
 import { createPortal } from 'react-dom'
-import { Check, X, type LucideIcon } from 'lucide-react'
+import { Check, CircleHelp, ThumbsDown, ThumbsUp, type LucideIcon } from 'lucide-react'
 import type { WineReview } from '@/components/wine-table'
 import { usePreviewTheme } from '@/components/preview/preview-theme-context'
+import { getReviewPanelTextColors } from '@/lib/preview/preview-colors'
 import { saveReviewTriedStatusField, type TriedStatusValue } from '@/lib/reviews'
 
 const PANEL_WIDTH = 208
@@ -39,6 +40,19 @@ const TRIED_OPTIONS: Array<{
 function normalizeTriedStatus(value: number | null | undefined): TriedStatusValue {
   if (value === 0 || value === 1 || value === 2) return value
   return null
+}
+
+export function getTriedStateLabel(value: TriedStatusValue): string {
+  switch (value) {
+    case 0:
+      return 'TRIED'
+    case 1:
+      return 'BUY AGAIN'
+    case 2:
+      return 'PASS'
+    default:
+      return 'TRIED?'
+  }
 }
 
 function buildOptimisticReview(
@@ -84,7 +98,6 @@ type TriedButtonConfig = {
   bg: string
   color: string
   strokeWidth?: number
-  textLabel?: string
   icon?: LucideIcon
 }
 
@@ -101,16 +114,16 @@ function buttonConfig(value: TriedStatusValue): TriedButtonConfig {
       }
     case 1:
       return {
-        icon: Check,
+        icon: ThumbsUp,
         label: 'Buy again',
         border: '#2A5030',
         bg: '#162010',
         color: '#70D080',
-        strokeWidth: 2.5,
+        strokeWidth: 2,
       }
     case 2:
       return {
-        icon: X,
+        icon: ThumbsDown,
         label: "Don't buy again",
         border: '#5A3030',
         bg: '#2A1C1C',
@@ -119,33 +132,17 @@ function buttonConfig(value: TriedStatusValue): TriedButtonConfig {
       }
     default:
       return {
+        icon: CircleHelp,
         label: 'Not tried',
-        textLabel: 'Not tried',
         border: '#5A5868',
         bg: '#2A2A34',
         color: '#E8E4DC',
+        strokeWidth: 2,
       }
   }
 }
 
 function TriedButtonContent({ config }: { config: TriedButtonConfig }) {
-  if (config.textLabel) {
-    return (
-      <span
-        style={{
-          fontSize: 7,
-          lineHeight: 1.05,
-          fontWeight: 600,
-          textAlign: 'center',
-          padding: '0 3px',
-          fontFamily: 'var(--font-dm-sans), sans-serif',
-        }}
-      >
-        {config.textLabel}
-      </span>
-    )
-  }
-
   const Icon = config.icon!
   return <Icon size={OPTION_ICON_SIZE} strokeWidth={config.strokeWidth ?? 2} />
 }
@@ -184,7 +181,7 @@ export function PreviewTriedStatusPicker({
   review,
   onReviewChange,
 }: PreviewTriedStatusPickerProps) {
-  const { colors } = usePreviewTheme()
+  const { colors, mode } = usePreviewTheme()
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [panelOpen, setPanelOpen] = useState(false)
@@ -195,6 +192,11 @@ export function PreviewTriedStatusPicker({
   const buttonRef = useRef<HTMLButtonElement>(null)
   const value = normalizeTriedStatus(review?.tried_status)
   const cfg = buttonConfig(value)
+  const wishlistForPanel =
+    review?.wishlist === 0 || review?.wishlist === 1 || review?.wishlist === 2 || review?.wishlist === 3
+      ? review.wishlist
+      : null
+  const panelText = getReviewPanelTextColors(mode, wishlistForPanel)
 
   useEffect(() => {
     setMounted(true)
@@ -277,6 +279,12 @@ export function PreviewTriedStatusPicker({
 
   return (
     <div className="flex flex-col items-center gap-1 flex-shrink-0">
+      <p
+        className="text-[8px] uppercase tracking-wider leading-tight text-center max-w-[54px]"
+        style={{ color: panelText.label, fontFamily: 'var(--font-dm-sans), sans-serif' }}
+      >
+        {getTriedStateLabel(value)}
+      </p>
       <button
         ref={buttonRef}
         type="button"

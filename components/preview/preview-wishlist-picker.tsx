@@ -7,10 +7,12 @@ import {
   type CSSProperties,
 } from 'react'
 import { createPortal } from 'react-dom'
-import { Bookmark, BookmarkCheck, Crown, Star, X } from 'lucide-react'
+import { Bookmark, Sparkles, X } from 'lucide-react'
+import type { ReactNode } from 'react'
 import type { WineReview } from '@/components/wine-table'
 import { saveReviewWishlistField, type WishlistValue } from '@/lib/reviews'
 import type { PreviewThemeMode } from '@/lib/preview/preview-colors'
+import { getReviewPanelTextColors } from '@/lib/preview/preview-colors'
 import { usePreviewTheme } from '@/components/preview/preview-theme-context'
 
 const PANEL_WIDTH = 248
@@ -41,6 +43,122 @@ const WISHLIST_OPTIONS: Array<{
 function normalizeWishlist(value: number | null | undefined): WishlistValue {
   if (value === 0 || value === 1 || value === 2 || value === 3) return value
   return null
+}
+
+export function getWishlistStateLabel(value: WishlistValue): string {
+  switch (value) {
+    case 0:
+      return 'SKIP'
+    case 1:
+      return 'WISHLISTED'
+    case 2:
+      return 'TREAT'
+    case 3:
+      return 'SPLURGE'
+    default:
+      return 'WISHLIST'
+  }
+}
+
+type WishlistButtonConfig = {
+  label: string
+  border: string
+  bg: string
+  color: string
+  renderIcon: (size: number) => ReactNode
+}
+
+function wishlistIcon(value: WishlistValue, size: number, color: string): ReactNode {
+  switch (value) {
+    case 0:
+      return (
+        <span className="relative inline-flex items-center justify-center" style={{ color }}>
+          <Bookmark size={size} strokeWidth={2} />
+          <X
+            size={Math.round(size * 0.72)}
+            strokeWidth={2.5}
+            className="absolute"
+            style={{ transform: 'rotate(-14deg)' }}
+          />
+        </span>
+      )
+    case 1:
+      return <Bookmark size={size} strokeWidth={2} className="fill-current" style={{ color }} />
+    case 2:
+      return (
+        <span className="relative inline-flex" style={{ color: '#D8E0F0' }}>
+          <Bookmark size={size} strokeWidth={2} className="fill-current" style={{ color: '#B8C0D8' }} />
+          <Sparkles
+            size={Math.max(8, Math.round(size * 0.42))}
+            className="absolute -top-0.5 -right-1"
+            style={{ color: '#F0F4FF' }}
+          />
+        </span>
+      )
+    case 3:
+      return (
+        <span className="relative inline-flex" style={{ color: '#F8E8A0' }}>
+          <Bookmark size={size} strokeWidth={2} className="fill-current" style={{ color: '#E8C840' }} />
+          <Sparkles
+            size={Math.max(7, Math.round(size * 0.38))}
+            className="absolute -top-1 -right-0.5"
+            style={{ color: '#FFF4C0' }}
+          />
+          <Sparkles
+            size={Math.max(6, Math.round(size * 0.3))}
+            className="absolute -bottom-0.5 -left-0.5"
+            style={{ color: '#FFF4C0' }}
+          />
+        </span>
+      )
+    default:
+      return <Bookmark size={size} strokeWidth={2} style={{ color }} />
+  }
+}
+
+function buttonConfig(value: WishlistValue): WishlistButtonConfig {
+  switch (value) {
+    case 0:
+      return {
+        label: "Don't want",
+        border: '#5A3030',
+        bg: '#2A1C1C',
+        color: '#A05050',
+        renderIcon: (size) => wishlistIcon(0, size, '#A05050'),
+      }
+    case 1:
+      return {
+        label: 'Wishlist',
+        border: '#2A5030',
+        bg: '#162010',
+        color: '#50A060',
+        renderIcon: (size) => wishlistIcon(1, size, '#50A060'),
+      }
+    case 2:
+      return {
+        label: 'Expensive treat',
+        border: '#A0A8C0',
+        bg: 'linear-gradient(145deg, #3A3E48 0%, #78808C 52%, #4A4E58 100%)',
+        color: '#E8ECF8',
+        renderIcon: (size) => wishlistIcon(2, size, '#E8ECF8'),
+      }
+    case 3:
+      return {
+        label: 'Very expensive treat',
+        border: '#E0C848',
+        bg: 'linear-gradient(145deg, #5A4808 0%, #C8A020 52%, #8A7010 100%)',
+        color: '#FFF0A0',
+        renderIcon: (size) => wishlistIcon(3, size, '#FFF0A0'),
+      }
+    default:
+      return {
+        label: 'Not set',
+        border: '#3A3848',
+        bg: '#22222C',
+        color: '#9894A4',
+        renderIcon: (size) => wishlistIcon(null, size, '#9894A4'),
+      }
+  }
 }
 
 function buildOptimisticReview(
@@ -80,56 +198,6 @@ function placePanelAtCenter(rect: DOMRect) {
   return { left, top }
 }
 
-function buttonConfig(value: WishlistValue) {
-  switch (value) {
-    case 0:
-      return {
-        icon: X,
-        label: "Don't want",
-        border: '#5A3030',
-        bg: '#2A1C1C',
-        color: '#A05050',
-        filled: false,
-      }
-    case 1:
-      return {
-        icon: Bookmark,
-        label: 'Wishlist',
-        border: '#2A5030',
-        bg: '#162010',
-        color: '#50A060',
-        filled: true,
-      }
-    case 2:
-      return {
-        icon: BookmarkCheck,
-        label: 'Expensive treat',
-        border: '#585A60',
-        bg: '#2E3038',
-        color: '#A0A8B8',
-        filled: true,
-      }
-    case 3:
-      return {
-        icon: Crown,
-        label: 'Very expensive treat',
-        border: '#7A6820',
-        bg: '#2A2208',
-        color: '#C8A830',
-        filled: true,
-      }
-    default:
-      return {
-        icon: Star,
-        label: 'Not set',
-        border: '#3A3848',
-        bg: '#22222C',
-        color: '#54505E',
-        filled: false,
-      }
-  }
-}
-
 const panelShellStyle = (colors: { pickerPanelBg: string; pickerPanelBorder: string }): CSSProperties => ({
   position: 'fixed',
   zIndex: 10000,
@@ -164,7 +232,7 @@ export function PreviewWishlistPicker({
   review,
   onReviewChange,
 }: PreviewWishlistPickerProps) {
-  const { colors } = usePreviewTheme()
+  const { colors, mode } = usePreviewTheme()
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [panelOpen, setPanelOpen] = useState(false)
@@ -175,7 +243,7 @@ export function PreviewWishlistPicker({
   const buttonRef = useRef<HTMLButtonElement>(null)
   const value = normalizeWishlist(review?.wishlist)
   const cfg = buttonConfig(value)
-  const TriggerIcon = cfg.icon
+  const panelText = getReviewPanelTextColors(mode, value)
 
   useEffect(() => {
     setMounted(true)
@@ -258,6 +326,12 @@ export function PreviewWishlistPicker({
 
   return (
     <div className="flex flex-col items-center gap-1 flex-shrink-0">
+      <p
+        className="text-[8px] uppercase tracking-wider leading-tight text-center max-w-[54px]"
+        style={{ color: panelText.label, fontFamily: 'var(--font-dm-sans), sans-serif' }}
+      >
+        {getWishlistStateLabel(value)}
+      </p>
       <button
         ref={buttonRef}
         type="button"
@@ -278,7 +352,7 @@ export function PreviewWishlistPicker({
         onMouseEnter={openPanel}
         onMouseLeave={scheduleClose}
       >
-        <TriggerIcon className={`w-5 h-5 ${cfg.filled ? 'fill-current' : ''}`} />
+        {cfg.renderIcon(20)}
       </button>
 
       {mounted && panelOpen
@@ -306,7 +380,6 @@ export function PreviewWishlistPicker({
                 {WISHLIST_OPTIONS.map((option) => {
                   const selected = value === option.value
                   const optionCfg = buttonConfig(option.value)
-                  const OptionIcon = optionCfg.icon
                   return (
                     <button
                       key={option.label}
@@ -326,10 +399,7 @@ export function PreviewWishlistPicker({
                       onMouseEnter={() => setHoveredOption(option.value)}
                       onClick={() => void setValue(option.value)}
                     >
-                      <OptionIcon
-                        size={OPTION_ICON_SIZE}
-                        className={optionCfg.filled ? 'fill-current' : undefined}
-                      />
+                      {optionCfg.renderIcon(OPTION_ICON_SIZE)}
                     </button>
                   )
                 })}

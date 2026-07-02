@@ -18,7 +18,7 @@ import {
   type WineFilters,
 } from '@/lib/wine-filters'
 import { toPreviewWineCard } from '@/lib/preview/wine-card-model'
-import { createWineSearchIndex, normalizeSearchText } from '@/lib/wine-search'
+import { createWineSearchIndex, hasActiveWineSearch, searchWinesFromIndex } from '@/lib/wine-search'
 
 type DisplayWineRow = WineRow & { valueScore: number | null }
 
@@ -62,17 +62,14 @@ export function PreviewWineList({ wines: initialWines, userId, userName }: Previ
   const searchIndex = useMemo(() => createWineSearchIndex(filtered), [filtered])
 
   const searched = useMemo(() => {
-    const trimmed = searchQuery.trim()
-    if (!trimmed) return filtered
-    const normalizedQuery = normalizeSearchText(trimmed)
-    if (!normalizedQuery) return filtered
-    return searchIndex.search(normalizedQuery).map((result) => result.item.wine)
+    if (!hasActiveWineSearch(searchQuery)) return filtered
+    return searchWinesFromIndex(searchIndex, searchQuery)
   }, [filtered, searchIndex, searchQuery])
 
-  const sorted = useMemo(
-    () => sortWines(searched, primarySort, secondarySort),
-    [searched, primarySort, secondarySort],
-  )
+  const sorted = useMemo(() => {
+    if (hasActiveWineSearch(searchQuery)) return searched
+    return sortWines(searched, primarySort, secondarySort)
+  }, [searched, primarySort, secondarySort, searchQuery])
 
   const previewWines = useMemo(() => sorted.map(toPreviewWineCard), [sorted])
 

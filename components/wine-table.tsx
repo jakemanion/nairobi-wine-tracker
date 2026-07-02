@@ -23,7 +23,7 @@ import {
   filterWines,
   type WineFilters,
 } from '@/lib/wine-filters'
-import { createWineSearchIndex, normalizeSearchText } from '@/lib/wine-search'
+import { createWineSearchIndex, hasActiveWineSearch, searchWinesFromIndex } from '@/lib/wine-search'
 export type WineReview = {
   id: string
   overall_score: number | null
@@ -660,13 +660,8 @@ export function WineTable({ wines: initialWines, userId }: { wines: WineRow[]; u
   const searchIndex = useMemo(() => createWineSearchIndex(filtered), [filtered])
 
   const searched = useMemo(() => {
-    const trimmed = searchQuery.trim()
-    if (!trimmed) return filtered
-
-    const normalizedQuery = normalizeSearchText(trimmed)
-    if (!normalizedQuery) return filtered
-
-    return searchIndex.search(normalizedQuery).map((result) => result.item.wine)
+    if (!hasActiveWineSearch(searchQuery)) return filtered
+    return searchWinesFromIndex(searchIndex, searchQuery)
   }, [filtered, searchIndex, searchQuery])
 
   const onColumnSort = (key: SortFieldKey) => {
@@ -680,10 +675,10 @@ export function WineTable({ wines: initialWines, userId }: { wines: WineRow[]; u
     setPrimarySort({ key, dir: defaultSortDir(key) })
   }
 
-  const sorted = useMemo(
-    () => sortWines(searched, primarySort, secondarySort),
-    [searched, primarySort, secondarySort],
-  )
+  const sorted = useMemo(() => {
+    if (hasActiveWineSearch(searchQuery)) return searched
+    return sortWines(searched, primarySort, secondarySort)
+  }, [searched, primarySort, secondarySort, searchQuery])
 
   const searchActive = searchQuery.trim().length > 0
   const listConstrained = sorted.length !== wines.length

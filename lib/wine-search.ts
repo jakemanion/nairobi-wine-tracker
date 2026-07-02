@@ -44,6 +44,20 @@ export function createWineSearchIndex<T extends WineRow>(wines: T[]) {
   return new Fuse(entries, FUSE_OPTIONS as IFuseOptions<SearchableWineEntry<T>>)
 }
 
+export function hasActiveWineSearch(query: string): boolean {
+  return normalizeSearchText(query).length > 0
+}
+
+export function searchWinesFromIndex<T extends WineRow>(
+  index: ReturnType<typeof createWineSearchIndex<T>>,
+  query: string,
+): T[] {
+  const normalizedQuery = normalizeSearchText(query.trim())
+  if (!normalizedQuery) return []
+
+  return index.search(normalizedQuery).map((result) => result.item.wine)
+}
+
 export function fuzzySearchWines<T extends WineRow>(wines: T[], query: string): T[] {
   const trimmed = query.trim()
   if (!trimmed) return wines
@@ -52,5 +66,5 @@ export function fuzzySearchWines<T extends WineRow>(wines: T[], query: string): 
   if (!normalizedQuery) return wines
 
   const index = createWineSearchIndex(wines)
-  return index.search(normalizedQuery).map((result) => result.item.wine)
+  return searchWinesFromIndex(index, trimmed)
 }

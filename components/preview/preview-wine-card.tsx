@@ -505,34 +505,18 @@ export function PreviewWineCard({
         style={{ width: '29.33%', ...getReviewPanelStyle(wishlist, mode) }}
       >
         <div className="flex items-end gap-1.5 min-w-0">
-          <div className="flex flex-col items-center gap-1 flex-shrink-0">
-            <p
-              className="text-[9px] uppercase tracking-wider leading-none"
-              style={{ color: panelText.label, fontFamily: 'var(--font-dm-sans), sans-serif' }}
-            >
-              Wishlist
-            </p>
-            <PreviewWishlistPicker
-              wineId={wine.id}
-              userId={userId}
-              review={review}
-              onReviewChange={onReviewChange}
-            />
-          </div>
-          <div className="flex flex-col items-center gap-1 flex-shrink-0">
-            <p
-              className="text-[9px] uppercase tracking-wider leading-none"
-              style={{ color: panelText.label, fontFamily: 'var(--font-dm-sans), sans-serif' }}
-            >
-              Tried
-            </p>
-            <PreviewTriedStatusPicker
-              wineId={wine.id}
-              userId={userId}
-              review={review}
-              onReviewChange={onReviewChange}
-            />
-          </div>
+          <PreviewWishlistPicker
+            wineId={wine.id}
+            userId={userId}
+            review={review}
+            onReviewChange={onReviewChange}
+          />
+          <PreviewTriedStatusPicker
+            wineId={wine.id}
+            userId={userId}
+            review={review}
+            onReviewChange={onReviewChange}
+          />
           <div
             className="flex-1 min-w-0 basis-0 transition-opacity duration-200"
             style={{ opacity: ratingInactive ? 0.45 : 1 }}
