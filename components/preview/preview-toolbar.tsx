@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react'
 import { Search, SlidersHorizontal } from 'lucide-react'
+import { ClearShortlistButton } from '@/components/clear-shortlist-button'
 import { WineFilterPanel, type SortCriterion } from '@/components/wine-filter-panel'
 import { usePreviewTheme } from '@/components/preview/preview-theme-context'
 import { buildListStateSummary } from '@/lib/preview/list-state-summary'
@@ -27,6 +28,8 @@ type PreviewToolbarProps = {
   onSecondarySortChange: (next: SortCriterion) => void
   ratingThenPriceActive: boolean
   onApplyRatingThenPrice: () => void
+  userId: string
+  onShortlistCleared: () => void
   resultCount: number
   totalCount: number
 }
@@ -46,6 +49,8 @@ export function PreviewToolbar({
   onSecondarySortChange,
   ratingThenPriceActive,
   onApplyRatingThenPrice,
+  userId,
+  onShortlistCleared,
   resultCount,
   totalCount,
 }: PreviewToolbarProps) {
@@ -127,6 +132,11 @@ export function PreviewToolbar({
             Clear search
           </button>
         ) : null}
+        <ClearShortlistButton
+          userId={userId}
+          theme={mode}
+          onCleared={onShortlistCleared}
+        />
       </div>
 
       <div className="px-3 pb-2.5 flex justify-center min-w-0">
@@ -161,6 +171,8 @@ export function PreviewToolbar({
             onSecondarySortChange={onSecondarySortChange}
             ratingThenPriceActive={ratingThenPriceActive}
             onApplyRatingThenPrice={onApplyRatingThenPrice}
+            userId={userId}
+            onShortlistCleared={onShortlistCleared}
           />
         </div>
       ) : null}

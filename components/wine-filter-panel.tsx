@@ -1,6 +1,7 @@
 'use client'
 
 import type { CSSProperties } from 'react'
+import { ClearShortlistButton } from '@/components/clear-shortlist-button'
 import {
   EMPTY_WINE_FILTERS,
   type TriedStatusFilterValue,
@@ -267,6 +268,8 @@ type WineFilterPanelProps = {
   onApplyRatingThenPrice: () => void
   embedded?: boolean
   theme?: PanelTheme
+  userId?: string
+  onShortlistCleared?: () => void
 }
 
 export function WineFilterPanel({
@@ -284,6 +287,8 @@ export function WineFilterPanel({
   onApplyRatingThenPrice,
   embedded = false,
   theme = 'light',
+  userId,
+  onShortlistCleared,
 }: WineFilterPanelProps) {
   function updateFilters(patch: Partial<WineFilters>) {
     onFiltersChange({ ...filters, ...patch })
@@ -568,7 +573,7 @@ export function WineFilterPanel({
             </div>
           </section>
 
-          <div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
             <button
               type="button"
               disabled={activeFilterCount === 0}
@@ -581,6 +586,18 @@ export function WineFilterPanel({
             >
               Clear filters
             </button>
+            {userId && onShortlistCleared ? (
+              <ClearShortlistButton
+                userId={userId}
+                theme={theme}
+                onCleared={onShortlistCleared}
+                style={{
+                  padding: '6px 12px',
+                  fontSize: 14,
+                  borderRadius: 4,
+                }}
+              />
+            ) : null}
           </div>
     </div>
   )

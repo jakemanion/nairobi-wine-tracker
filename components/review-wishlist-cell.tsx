@@ -107,6 +107,7 @@ function buildOptimisticReview(
     wishlist,
     want_to_try: review?.want_to_try ?? null,
     tried_status: review?.tried_status ?? null,
+    shortlist: review?.shortlist ?? null,
     tasting_notes: review?.tasting_notes ?? null,
     tasted_on: review?.tasted_on ?? null,
   }

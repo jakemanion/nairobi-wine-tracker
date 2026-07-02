@@ -24,12 +24,14 @@ import {
   type WineFilters,
 } from '@/lib/wine-filters'
 import { createWineSearchIndex, hasActiveWineSearch, searchWinesFromIndex } from '@/lib/wine-search'
+import { ClearShortlistButton } from '@/components/clear-shortlist-button'
 export type WineReview = {
   id: string
   overall_score: number | null
   value_score: number | null
   wishlist: number | null
   tried_status: number | null
+  shortlist: number | null
   want_to_try?: boolean | null
   tried?: boolean | null
   would_buy_again?: boolean | null
@@ -625,6 +627,13 @@ function WineDataRow({ wine, showDetails, userId, onReviewChange }: WineDataRowP
   )
 }
 
+function clearShortlistFromWines(wines: DisplayWineRow[]): DisplayWineRow[] {
+  return wines.map((wine) => {
+    if (!wine.review || wine.review.shortlist !== 1) return wine
+    return { ...wine, review: { ...wine.review, shortlist: null } }
+  })
+}
+
 function updateWineReview(
   wines: DisplayWineRow[],
   wineId: string | number,
@@ -754,6 +763,10 @@ export function WineTable({ wines: initialWines, userId }: { wines: WineRow[]; u
               Clear search
             </button>
           ) : null}
+          <ClearShortlistButton
+            userId={userId}
+            onCleared={() => setWines((current) => clearShortlistFromWines(current))}
+          />
         </div>
         <div
           style={{
@@ -811,6 +824,8 @@ export function WineTable({ wines: initialWines, userId }: { wines: WineRow[]; u
             setPrimarySort({ key: 'vivino_rating', dir: 'desc' })
             setSecondarySort({ key: 'store_prices', dir: 'asc' })
           }}
+          userId={userId}
+          onShortlistCleared={() => setWines((current) => clearShortlistFromWines(current))}
         />
       </div>
       <div style={tableScrollStyle}>

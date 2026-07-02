@@ -44,6 +44,13 @@ function updateWineReview(
   )
 }
 
+function clearShortlistFromWines(wines: DisplayWineRow[]): DisplayWineRow[] {
+  return wines.map((wine) => {
+    if (!wine.review || wine.review.shortlist !== 1) return wine
+    return { ...wine, review: { ...wine.review, shortlist: null } }
+  })
+}
+
 export function PreviewWineList({ wines: initialWines, userId, userName }: PreviewWineListProps) {
   const { colors, mode, toggleMode } = usePreviewTheme()
   const [wines, setWines] = useState<DisplayWineRow[]>(() =>
@@ -159,6 +166,8 @@ export function PreviewWineList({ wines: initialWines, userId, userName }: Previ
               setPrimarySort({ key: 'vivino_rating', dir: 'desc' })
               setSecondarySort({ key: 'store_prices', dir: 'asc' })
             }}
+            userId={userId}
+            onShortlistCleared={() => setWines((current) => clearShortlistFromWines(current))}
             resultCount={previewWines.length}
             totalCount={wines.length}
           />

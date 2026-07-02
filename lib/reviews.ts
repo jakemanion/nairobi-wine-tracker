@@ -5,6 +5,8 @@ export type WishlistValue = 0 | 1 | 2 | 3 | null
 
 export type TriedStatusValue = 0 | 1 | 2 | null
 
+export type ShortlistValue = 1 | null
+
 export type ReviewBoolField = 'want_to_try' | 'tried' | 'would_buy_again'
 
 export type ReviewEditableField =
@@ -13,6 +15,7 @@ export type ReviewEditableField =
   | 'tasting_notes'
   | 'wishlist'
   | 'tried_status'
+  | 'shortlist'
 
 const reviewSelect = `
   id,
@@ -20,6 +23,7 @@ const reviewSelect = `
   value_score,
   wishlist,
   tried_status,
+  shortlist,
   want_to_try,
   tried,
   would_buy_again,
@@ -120,4 +124,41 @@ export async function saveReviewTriedStatusField({
     field: 'tried_status',
     value,
   })
+}
+
+type SaveReviewShortlistArgs = {
+  userId: string
+  wineId: string
+  reviewId?: string | null
+  value: ShortlistValue
+}
+
+export async function saveReviewShortlistField({
+  userId,
+  wineId,
+  reviewId,
+  value,
+}: SaveReviewShortlistArgs): Promise<SaveReviewFieldResult> {
+  return saveReviewField({
+    userId,
+    wineId,
+    reviewId,
+    field: 'shortlist',
+    value,
+  })
+}
+
+type ClearUserShortlistResult =
+  | { error?: undefined }
+  | { error: string }
+
+export async function clearUserShortlist(userId: string): Promise<ClearUserShortlistResult> {
+  const { error } = await supabase
+    .from('reviews')
+    .update({ shortlist: null })
+    .eq('user_id', userId)
+    .eq('shortlist', 1)
+
+  if (error) return { error: error.message }
+  return {}
 }

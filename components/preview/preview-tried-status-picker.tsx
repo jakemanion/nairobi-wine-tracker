@@ -65,6 +65,7 @@ function buildOptimisticReview(
     value_score: review?.value_score ?? null,
     wishlist: review?.wishlist ?? null,
     tried_status,
+    shortlist: review?.shortlist ?? null,
     want_to_try: review?.want_to_try ?? null,
     tried: review?.tried ?? null,
     would_buy_again: review?.would_buy_again ?? null,

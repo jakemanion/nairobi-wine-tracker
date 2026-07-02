@@ -9,6 +9,7 @@ import {
   getWishlistAccentColor,
   PreviewWishlistPicker,
 } from '@/components/preview/preview-wishlist-picker'
+import { PreviewShortlistButton } from '@/components/preview/preview-shortlist-button'
 import { PreviewTriedStatusPicker } from '@/components/preview/preview-tried-status-picker'
 import { usePreviewTheme } from '@/components/preview/preview-theme-context'
 import {
@@ -47,7 +48,8 @@ function buildOptimisticReview(
     overall_score: patch.overall_score !== undefined ? patch.overall_score : (review?.overall_score ?? null),
     value_score: review?.value_score ?? null,
     wishlist: patch.wishlist !== undefined ? patch.wishlist : (review?.wishlist ?? null),
-    tried_status: review?.tried_status ?? null,
+    tried_status: patch.tried_status !== undefined ? patch.tried_status : (review?.tried_status ?? null),
+    shortlist: patch.shortlist !== undefined ? patch.shortlist : (review?.shortlist ?? null),
     want_to_try: review?.want_to_try ?? null,
     tried: review?.tried ?? null,
     would_buy_again: review?.would_buy_again ?? null,
@@ -395,14 +397,22 @@ export function PreviewWineCard({
       </div>
 
       <div
-        className="flex-1 min-w-0 px-3.5 py-2.5 flex flex-col justify-between gap-1.5"
+        className="flex-1 min-w-0 px-3.5 py-2.5 flex flex-col justify-between gap-1.5 relative"
         style={{
           background: colors.wineInfoBg,
           boxShadow: colors.wineInfoSheen,
           borderRight: `1px solid ${colors.infoBorder}`,
         }}
       >
-        <div className="flex items-start gap-2.5">
+        <div className="absolute top-2.5 right-3.5 z-[1]">
+          <PreviewShortlistButton
+            wineId={wine.id}
+            userId={userId}
+            review={review}
+            onReviewChange={onReviewChange}
+          />
+        </div>
+        <div className="flex items-start gap-2.5 pr-12">
           <VivinoCircle rating={wine.vivinoRating} url={wine.vivinoUrl} />
           <div className="flex-1 min-w-0 flex flex-col gap-1.5 pt-0.5">
             <p

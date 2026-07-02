@@ -7,7 +7,7 @@ import {
   type CSSProperties,
 } from 'react'
 import { createPortal } from 'react-dom'
-import { Bookmark, Sparkles, X } from 'lucide-react'
+import { Bookmark, X } from 'lucide-react'
 import type { ReactNode } from 'react'
 import type { WineReview } from '@/components/wine-table'
 import { saveReviewWishlistField, type WishlistValue } from '@/lib/reviews'
@@ -85,32 +85,9 @@ function wishlistIcon(value: WishlistValue, size: number, color: string): ReactN
     case 1:
       return <Bookmark size={size} strokeWidth={2} className="fill-current" style={{ color }} />
     case 2:
-      return (
-        <span className="relative inline-flex" style={{ color: '#D8E0F0' }}>
-          <Bookmark size={size} strokeWidth={2} className="fill-current" style={{ color: '#B8C0D8' }} />
-          <Sparkles
-            size={Math.max(8, Math.round(size * 0.42))}
-            className="absolute -top-0.5 -right-1"
-            style={{ color: '#F0F4FF' }}
-          />
-        </span>
-      )
+      return <Bookmark size={size} strokeWidth={2} className="fill-current" style={{ color: '#B8C0D8' }} />
     case 3:
-      return (
-        <span className="relative inline-flex" style={{ color: '#F8E8A0' }}>
-          <Bookmark size={size} strokeWidth={2} className="fill-current" style={{ color: '#E8C840' }} />
-          <Sparkles
-            size={Math.max(7, Math.round(size * 0.38))}
-            className="absolute -top-1 -right-0.5"
-            style={{ color: '#FFF4C0' }}
-          />
-          <Sparkles
-            size={Math.max(6, Math.round(size * 0.3))}
-            className="absolute -bottom-0.5 -left-0.5"
-            style={{ color: '#FFF4C0' }}
-          />
-        </span>
-      )
+      return <Bookmark size={size} strokeWidth={2} className="fill-current" style={{ color: '#E8C840' }} />
     default:
       return <Bookmark size={size} strokeWidth={2} style={{ color }} />
   }
@@ -171,6 +148,7 @@ function buildOptimisticReview(
     value_score: review?.value_score ?? null,
     wishlist,
     tried_status: review?.tried_status ?? null,
+    shortlist: review?.shortlist ?? null,
     want_to_try: review?.want_to_try ?? null,
     tried: review?.tried ?? null,
     would_buy_again: review?.would_buy_again ?? null,
