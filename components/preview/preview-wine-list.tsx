@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import { RegisterNavLink } from '@/components/auth/register-nav-link'
 import { ClearShortlistButton } from '@/components/clear-shortlist-button'
 import { ShowShortlistOnlyButton } from '@/components/show-shortlist-only-button'
 import { PreviewToolbar } from '@/components/preview/preview-toolbar'
@@ -126,6 +127,7 @@ export function PreviewWineList({ wines: initialWines, userId, userName }: Previ
               </p>
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
+              <RegisterNavLink theme={mode} />
               <ShowShortlistOnlyButton
                 active={shortlistOnly}
                 theme={mode}
