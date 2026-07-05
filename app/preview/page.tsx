@@ -120,9 +120,11 @@ export default async function PreviewPage() {
   return (
     <PreviewThemeProvider>
       <PreviewWineList
+        key={session.isLoggedIn ? session.userId : 'guest'}
         isLoggedIn={session.isLoggedIn}
         userId={session.userId ?? ''}
         userName={session.userName ?? ''}
+        userEmail={session.userEmail ?? ''}
         wines={wineRows}
       />
     </PreviewThemeProvider>

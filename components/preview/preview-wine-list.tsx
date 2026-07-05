@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import { LogoutButton } from '@/components/auth/logout-button'
 import { LoginNavLink } from '@/components/auth/login-nav-link'
 import { RegisterNavLink } from '@/components/auth/register-nav-link'
 import { ClearShortlistButton } from '@/components/clear-shortlist-button'
@@ -32,6 +33,7 @@ type PreviewWineListProps = {
   isLoggedIn: boolean
   userId: string
   userName: string
+  userEmail: string
 }
 
 const EAGER_IMAGE_COUNT = 30
@@ -60,6 +62,7 @@ export function PreviewWineList({
   isLoggedIn,
   userId,
   userName,
+  userEmail,
 }: PreviewWineListProps) {
   const { colors, mode } = usePreviewTheme()
   const [wines, setWines] = useState<DisplayWineRow[]>(() =>
@@ -130,7 +133,11 @@ export function PreviewWineList({
                 WineDiviner: Nairobi
               </h1>
               <p className="text-[10px] mt-1 truncate" style={{ color: colors.headerSub }}>
-                {isLoggedIn ? userName : 'Sign in to save your reviews'}
+                {isLoggedIn
+                  ? userEmail
+                    ? `${userName} · ${userEmail}`
+                    : userName
+                  : 'Sign in to save your reviews'}
               </p>
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
@@ -146,6 +153,7 @@ export function PreviewWineList({
                     theme={mode}
                     onCleared={() => setWines((current) => clearShortlistFromWines(current))}
                   />
+                  <LogoutButton theme={mode} />
                 </>
               ) : (
                 <>
