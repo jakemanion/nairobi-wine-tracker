@@ -69,7 +69,6 @@ export function PreviewWineList({
     initialWines.map(withComputedValueScore),
   )
   const [filters, setFilters] = useState<WineFilters>(EMPTY_WINE_FILTERS)
-  const [toolsExpanded, setToolsExpanded] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [primarySort, setPrimarySort] = useState<SortCriterion>({ key: 'winery', dir: 'asc' })
   const [secondarySort, setSecondarySort] = useState<SortCriterion>({ key: 'none', dir: 'asc' })
@@ -101,12 +100,6 @@ export function PreviewWineList({
   }, [searched, primarySort, secondarySort, searchQuery])
 
   const previewWines = useMemo(() => sorted.map(toPreviewWineCard), [sorted])
-
-  const ratingThenPriceActive =
-    primarySort.key === 'vivino_rating' &&
-    primarySort.dir === 'desc' &&
-    secondarySort.key === 'store_prices' &&
-    secondarySort.dir === 'asc'
 
   return (
     <div className="min-h-screen" style={{ background: colors.pageBg }}>
@@ -169,21 +162,13 @@ export function PreviewWineList({
           <PreviewToolbar
             searchQuery={searchQuery}
             onSearchQueryChange={setSearchQuery}
-            toolsExpanded={toolsExpanded}
-            onToolsExpandedChange={setToolsExpanded}
             activeFilterCount={activeFilterCount}
             filters={filters}
             onFiltersChange={setFilters}
             filterOptions={filterOptions}
             primarySort={primarySort}
-            secondarySort={secondarySort}
             onPrimarySortChange={setPrimarySort}
             onSecondarySortChange={setSecondarySort}
-            ratingThenPriceActive={ratingThenPriceActive}
-            onApplyRatingThenPrice={() => {
-              setPrimarySort({ key: 'vivino_rating', dir: 'desc' })
-              setSecondarySort({ key: 'store_prices', dir: 'asc' })
-            }}
             resultCount={previewWines.length}
             totalCount={shortlistOnly ? shortlistedWines.length : wines.length}
             priceBounds={priceBounds}

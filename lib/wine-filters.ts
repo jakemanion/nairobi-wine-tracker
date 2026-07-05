@@ -39,6 +39,124 @@ export const EMPTY_WINE_FILTERS: WineFilters = {
 
 export const BEST_UNDER_PRICE_PRESETS = [1500, 2000, 3000, 4000, 5000] as const
 
+export const HIDE_UNWANTED_WISHLIST_FILTERS: WishlistFilterValue[] = ['unset', 1, 2, 3]
+export const HIDE_UNWANTED_TRIED_FILTERS: TriedStatusFilterValue[] = ['unset', 0, 1]
+
+export const WISHLIST_FILTER_LABELS: Record<WishlistFilterValue, string> = {
+  unset: 'Not set',
+  0: "Don't want",
+  1: 'Want',
+  2: 'Expensive treat',
+  3: 'Very expensive treat',
+}
+
+export const TRIED_STATUS_FILTER_LABELS: Record<TriedStatusFilterValue, string> = {
+  unset: 'Not tried',
+  0: 'Tried',
+  1: 'Buy again',
+  2: "Don't buy again",
+}
+
+const WISHLIST_FILTER_PREFIX = 'wishlist:'
+const TRIED_FILTER_PREFIX = 'tried:'
+
+export function buildReviewFilterGroups(): Array<{
+  label: string
+  options: Array<{ value: string; label: string }>
+}> {
+  const wishlistOptions = (['unset', 0, 1, 2, 3] as WishlistFilterValue[]).map((value) => ({
+    value: `${WISHLIST_FILTER_PREFIX}${value}`,
+    label: WISHLIST_FILTER_LABELS[value],
+  }))
+  const triedOptions = (['unset', 0, 1, 2] as TriedStatusFilterValue[]).map((value) => ({
+    value: `${TRIED_FILTER_PREFIX}${value}`,
+    label: TRIED_STATUS_FILTER_LABELS[value],
+  }))
+
+  return [
+    { label: 'Wishlist', options: wishlistOptions },
+    { label: 'Tried', options: triedOptions },
+  ]
+}
+
+export function encodeReviewFilterSelection(
+  wishlist: WishlistFilterValue[],
+  triedStatus: TriedStatusFilterValue[],
+): string[] {
+  return [
+    ...wishlist.map((value) => `${WISHLIST_FILTER_PREFIX}${value}`),
+    ...triedStatus.map((value) => `${TRIED_FILTER_PREFIX}${value}`),
+  ]
+}
+
+export function decodeReviewFilterSelection(selected: string[]): {
+  wishlist: WishlistFilterValue[]
+  triedStatus: TriedStatusFilterValue[]
+} {
+  const wishlist: WishlistFilterValue[] = []
+  const triedStatus: TriedStatusFilterValue[] = []
+
+  for (const value of selected) {
+    if (value.startsWith(WISHLIST_FILTER_PREFIX)) {
+      const raw = value.slice(WISHLIST_FILTER_PREFIX.length)
+      if (raw === 'unset' || raw === '0' || raw === '1' || raw === '2' || raw === '3') {
+        wishlist.push(raw === 'unset' ? 'unset' : (Number(raw) as 0 | 1 | 2 | 3))
+      }
+    } else if (value.startsWith(TRIED_FILTER_PREFIX)) {
+      const raw = value.slice(TRIED_FILTER_PREFIX.length)
+      if (raw === 'unset' || raw === '0' || raw === '1' || raw === '2') {
+        triedStatus.push(raw === 'unset' ? 'unset' : (Number(raw) as 0 | 1 | 2))
+      }
+    }
+  }
+
+  return { wishlist, triedStatus }
+}
+
+function filterArraysEqual<T>(left: T[], right: T[]): boolean {
+  if (left.length !== right.length) return false
+  const leftSorted = [...left].sort()
+  const rightSorted = [...right].sort()
+  return leftSorted.every((value, index) => value === rightSorted[index])
+}
+
+export function isHideUnwantedPreset(filters: WineFilters): boolean {
+  return (
+    filters.hideUnwanted &&
+    filterArraysEqual(filters.wishlist, HIDE_UNWANTED_WISHLIST_FILTERS) &&
+    filterArraysEqual(filters.triedStatus, HIDE_UNWANTED_TRIED_FILTERS)
+  )
+}
+
+export function applyHideUnwantedToggle(filters: WineFilters, enable: boolean): WineFilters {
+  if (enable) {
+    return {
+      ...filters,
+      hideUnwanted: true,
+      wishlist: [...HIDE_UNWANTED_WISHLIST_FILTERS],
+      triedStatus: [...HIDE_UNWANTED_TRIED_FILTERS],
+    }
+  }
+
+  return {
+    ...filters,
+    hideUnwanted: false,
+    wishlist: [],
+    triedStatus: [],
+  }
+}
+
+export function selectedCountriesFromRegionFilters(regions: string[]): string[] {
+  return regions
+    .map((value) => parseRegionFilterValue(value))
+    .filter((parsed): parsed is { kind: 'country'; country: string } => parsed?.kind === 'country')
+    .map((parsed) => parsed.country)
+}
+
+export function countryFiltersFromSelection(countries: string[]): string[] {
+  return countries.map((country) => countryFilterValue(country))
+}
+
 export function computeListPriceBounds(
   wines: WineRow[],
 ): { min: number; max: number; median: number } | null {

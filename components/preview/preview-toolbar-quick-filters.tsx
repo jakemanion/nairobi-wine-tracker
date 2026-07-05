@@ -3,9 +3,11 @@
 import type { CSSProperties } from 'react'
 import {
   BEST_UNDER_PRICE_PRESETS,
-  buildRegionFilterGroups,
-  formatRegionFilterLabel,
-  type RegionFilterGroup,
+  buildReviewFilterGroups,
+  countryFiltersFromSelection,
+  decodeReviewFilterSelection,
+  encodeReviewFilterSelection,
+  selectedCountriesFromRegionFilters,
   type WineFilters,
 } from '@/lib/wine-filters'
 import { PreviewFilterMultiSelect } from '@/components/preview/preview-filter-multi-select'
@@ -24,17 +26,16 @@ type PreviewToolbarQuickFiltersProps = {
   onFiltersChange: (filters: WineFilters) => void
   stores: string[]
   grapes: string[]
-  regionGroups: RegionFilterGroup[]
+  countries: string[]
   priceBounds: PriceBounds | null
   primarySort: SortCriterion
   onPrimarySortChange: (next: SortCriterion) => void
   onSecondarySortChange: (next: SortCriterion) => void
 }
 
-function chipStyle(
-  colors: PreviewColors,
-  active: boolean,
-): CSSProperties {
+const SLIDER_WIDTH = '5.625rem'
+
+function chipStyle(colors: PreviewColors, active: boolean): CSSProperties {
   return {
     padding: '4px 8px',
     fontSize: 11,
@@ -70,10 +71,7 @@ function sliderGroupStyle(colors: PreviewColors): CSSProperties {
   }
 }
 
-function toggleStore(
-  disabledStores: string[],
-  store: string,
-): string[] {
+function toggleStore(disabledStores: string[], store: string): string[] {
   return disabledStores.includes(store)
     ? disabledStores.filter((name) => name !== store)
     : [...disabledStores, store]
@@ -91,11 +89,16 @@ const PRODUCER_SORT: SortCriterion = { key: 'winery', dir: 'asc' }
 const PRICE_SLIDER_STEPS = 1000
 const MEDIAN_SLIDER_POSITION = Math.round((2 / 3) * PRICE_SLIDER_STEPS)
 
+const RATING_SLIDER_STEPS = 100
+const RATING_LOW_MAX = 3.5
+const RATING_HIGH_MAX = 5
+const RATING_LOW_SLIDER_POSITION = 30
+
 const QUICK_SORT_OPTIONS: Array<{ key: SortFieldKey; label: string; dir: 'asc' | 'desc' }> = [
   { key: 'winery', label: 'Producer', dir: 'asc' },
   { key: 'wine_name', label: 'Name', dir: 'asc' },
   { key: 'store_prices', label: 'Price', dir: 'asc' },
-  { key: 'value_score', label: 'value', dir: 'desc' },
+  { key: 'value_score', label: 'Value', dir: 'desc' },
   { key: 'vivino_rating', label: 'Rating', dir: 'desc' },
 ]
 
@@ -177,13 +180,37 @@ function sliderPositionToMaxPrice(
   return Math.max(median, Math.round(raw / 100) * 100)
 }
 
+function ratingToSliderPosition(rating: number): number {
+  if (rating <= RATING_LOW_MAX) {
+    const t = rating / RATING_LOW_MAX
+    return Math.round(Math.min(1, Math.max(0, t)) * RATING_LOW_SLIDER_POSITION)
+  }
+
+  const t = (rating - RATING_LOW_MAX) / (RATING_HIGH_MAX - RATING_LOW_MAX)
+  return Math.round(
+    RATING_LOW_SLIDER_POSITION +
+      Math.min(1, Math.max(0, t)) * (RATING_SLIDER_STEPS - RATING_LOW_SLIDER_POSITION),
+  )
+}
+
+function sliderPositionToRating(position: number): number {
+  if (position <= RATING_LOW_SLIDER_POSITION) {
+    const t = position / RATING_LOW_SLIDER_POSITION
+    return Math.min(RATING_LOW_MAX, Math.max(0, t * RATING_LOW_MAX))
+  }
+
+  const span = RATING_SLIDER_STEPS - RATING_LOW_SLIDER_POSITION
+  const t = span === 0 ? 1 : (position - RATING_LOW_SLIDER_POSITION) / span
+  return RATING_LOW_MAX + t * (RATING_HIGH_MAX - RATING_LOW_MAX)
+}
+
 export function PreviewToolbarQuickFilters({
   colors,
   filters,
   onFiltersChange,
   stores,
   grapes,
-  regionGroups,
+  countries,
   priceBounds,
   primarySort,
   onPrimarySortChange,
@@ -205,6 +232,10 @@ export function PreviewToolbarQuickFilters({
 
   const vivinoMinValue = filters.vivinoMin.trim() ? parseFloat(filters.vivinoMin) : 0
   const vivinoMinAll = !filters.vivinoMin.trim() || vivinoMinValue <= 0
+  const ratingSliderPosition = vivinoMinAll ? 0 : ratingToSliderPosition(vivinoMinValue)
+
+  const reviewFilterSelection = encodeReviewFilterSelection(filters.wishlist, filters.triedStatus)
+  const selectedCountries = selectedCountriesFromRegionFilters(filters.regions)
 
   function updateFilters(patch: Partial<WineFilters>) {
     onFiltersChange({ ...filters, ...patch })
@@ -229,6 +260,15 @@ export function PreviewToolbarQuickFilters({
     updateFilters({ priceMax: String(price) })
     onPrimarySortChange({ key: 'vivino_rating', dir: 'desc' })
     onSecondarySortChange({ key: 'none', dir: 'asc' })
+  }
+
+  function updateReviewFilters(selected: string[]) {
+    const { wishlist, triedStatus } = decodeReviewFilterSelection(selected)
+    updateFilters({
+      wishlist,
+      triedStatus,
+      hideUnwanted: false,
+    })
   }
 
   return (
@@ -275,7 +315,8 @@ export function PreviewToolbarQuickFilters({
             step={1}
             value={priceSliderPosition}
             aria-label="Highest price"
-            className="w-[120px] flex-none accent-[#C93048]"
+            className="flex-none accent-[#C93048]"
+            style={{ width: SLIDER_WIDTH }}
             onChange={(event) => {
               const nextPrice = sliderPositionToMaxPrice(
                 Number(event.target.value),
@@ -296,13 +337,14 @@ export function PreviewToolbarQuickFilters({
           <input
             type="range"
             min={0}
-            max={5}
-            step={0.1}
-            value={vivinoMinAll ? 0 : vivinoMinValue}
+            max={RATING_SLIDER_STEPS}
+            step={1}
+            value={ratingSliderPosition}
             aria-label="Lowest rating"
-            className="w-[120px] flex-none accent-[#C93048]"
+            className="flex-none accent-[#C93048]"
+            style={{ width: SLIDER_WIDTH }}
             onChange={(event) => {
-              const next = Number(event.target.value)
+              const next = sliderPositionToRating(Number(event.target.value))
               if (next <= 0) {
                 updateFilters({ vivinoMin: '' })
                 return
@@ -326,12 +368,20 @@ export function PreviewToolbarQuickFilters({
 
         <PreviewFilterMultiSelect
           colors={colors}
-          label="Regions"
-          emptyMessage="No regions in list"
-          groups={buildRegionFilterGroups(regionGroups)}
-          selected={filters.regions}
-          formatSelectedLabel={formatRegionFilterLabel}
-          onChange={(next) => updateFilters({ regions: next })}
+          label="Countries"
+          emptyMessage="No countries in list"
+          options={countries}
+          selected={selectedCountries}
+          onChange={(next) => updateFilters({ regions: countryFiltersFromSelection(next) })}
+        />
+
+        <PreviewFilterMultiSelect
+          colors={colors}
+          label="Reviews"
+          emptyMessage="No review options"
+          groups={buildReviewFilterGroups()}
+          selected={reviewFilterSelection}
+          onChange={updateReviewFilters}
         />
       </div>
 
