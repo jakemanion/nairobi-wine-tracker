@@ -20,8 +20,8 @@ export function AuthScreen({
   subtitle,
   heading,
   description,
-  backHref = '/preview',
-  backLabel = 'Back to preview',
+  backHref = '/',
+  backLabel = 'Back to wine list',
   children,
 }: AuthScreenProps) {
   return (

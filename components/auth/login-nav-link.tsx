@@ -12,7 +12,7 @@ export function LoginNavLink({
   className = '',
   style,
   theme = 'light',
-  nextPath = '/preview',
+  nextPath = '/',
 }: LoginNavLinkProps) {
   const href = `/login?next=${encodeURIComponent(nextPath)}`
 

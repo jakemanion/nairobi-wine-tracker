@@ -190,8 +190,8 @@ export function RegisterForm() {
           className="text-xs text-center"
           style={{ color: colors.muted, fontFamily: 'var(--font-dm-sans), sans-serif' }}
         >
-          <Link href="/login?next=%2Fpreview" className="no-underline" style={{ color: accent }}>
-            Log in to preview
+          <Link href="/login?next=%2F" className="no-underline" style={{ color: accent }}>
+            Log in to wine list
           </Link>
         </p>
       )}

@@ -1,8 +1,9 @@
 import Link from 'next/link'
-import { WineTable, type WineReview, type WineRow } from '@/components/wine-table'
-import { isActorAdmin } from '@/lib/auth/admin'
+import { PreviewWineList } from '@/components/preview/preview-wine-list'
+import { PreviewThemeProvider } from '@/components/preview/preview-theme-context'
+import type { WineReview, WineRow } from '@/components/wine-table'
+import { getPreviewSession } from '@/lib/auth/preview-session'
 import { createServerReadClient } from '@/lib/supabase-server'
-import { getCurrentUserId } from '@/lib/user'
 
 export const dynamic = 'force-dynamic'
 
@@ -20,9 +21,7 @@ type UserReview = {
 }
 
 function attachReviews(wines: WineRow[], reviews: UserReview[]): WineRow[] {
-  const reviewsByWineId = new Map(
-    reviews.map((review) => [review.wine_id, review]),
-  )
+  const reviewsByWineId = new Map(reviews.map((review) => [review.wine_id, review]))
 
   return wines.map((wine) => {
     const review = reviewsByWineId.get(String(wine.id))
@@ -46,94 +45,88 @@ function attachReviews(wines: WineRow[], reviews: UserReview[]): WineRow[] {
 }
 
 export default async function Home() {
-  const userId = getCurrentUserId()
+  const session = await getPreviewSession()
   const supabase = createServerReadClient()
 
-  const [
-    { data: profile, error: profileError },
-    { data: wines, error: winesError },
-    { data: reviews, error: reviewsError },
-  ] = await Promise.all([
-    supabase
-      .from('profiles')
-      .select('display_name, username')
-      .eq('id', userId)
-      .maybeSingle(),
-    supabase
-      .from('wines')
-      .select(`
+  const winesQuery = supabase
+    .from('wines')
+    .select(`
+      id,
+      producer,
+      wine_name,
+      vintage,
+      country,
+      region,
+      grape_varieties,
+      style,
+      vivino_url,
+      vivino_rating,
+      store_listings (
         id,
-        producer,
-        wine_name,
-        vintage,
-        country,
-        region,
-        grape_varieties,
-        style,
-        vivino_url,
-        vivino_rating,
-        store_listings (
+        current_price_ksh,
+        store_product_url,
+        in_stock,
+        image_url,
+        stores (
           id,
-          current_price_ksh,
-          store_product_url,
-          in_stock,
-          image_url,
-          stores (
-            id,
-            name
-          )
+          name
         )
-      `)
-      .order('producer')
-      .order('wine_name'),
-    supabase
-      .from('reviews')
-      .select(`
-        id,
-        wine_id,
-        overall_score,
-        value_score,
-        wishlist,
-        tried_status,
-        shortlist,
-        want_to_try,
-        tasting_notes,
-        tasted_on
-      `)
-      .eq('user_id', userId),
+      )
+    `)
+    .order('producer')
+    .order('wine_name')
+
+  const reviewsQuery = session.isLoggedIn
+    ? supabase
+        .from('reviews')
+        .select(`
+          id,
+          wine_id,
+          overall_score,
+          value_score,
+          wishlist,
+          tried_status,
+          shortlist,
+          want_to_try,
+          tasting_notes,
+          tasted_on
+        `)
+        .eq('user_id', session.userId)
+    : null
+
+  const [{ data: wines, error: winesError }, reviewsResult] = await Promise.all([
+    winesQuery,
+    reviewsQuery ?? Promise.resolve({ data: [], error: null }),
   ])
 
-  const error = profileError ?? winesError ?? reviewsError
-  const userName = profile?.display_name ?? profile?.username ?? 'Unknown user'
-  const showAdminLink = await isActorAdmin()
+  const error = winesError ?? reviewsResult.error
+  const reviews = (reviewsResult.data ?? []) as UserReview[]
+
+  if (error) {
+    return (
+      <main className="p-6">
+        <p style={{ color: '#c05050' }}>Error: {error.message}</p>
+        <Link href="/" style={{ color: '#C93048' }}>
+          Back to wine list
+        </Link>
+      </main>
+    )
+  }
+
+  const wineRows = session.isLoggedIn
+    ? attachReviews((wines ?? []) as WineRow[], reviews)
+    : ((wines ?? []) as WineRow[])
 
   return (
-    <main style={{ padding: 20 }}>
-      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12 }}>
-        <h1 style={{ margin: 0 }}>Wine Tracker (Nairobi)</h1>
-        {showAdminLink ? (
-          <Link href="/admin" style={{ color: '#0a7', textDecoration: 'none', fontSize: 14 }}>
-            Admin →
-          </Link>
-        ) : null}
-        <Link href="/preview" style={{ color: '#0a7', textDecoration: 'none', fontSize: 14 }}>
-          Preview design →
-        </Link>
-      </div>
-      <p style={{ marginTop: 8, marginBottom: 0, color: '#444' }}>
-        Signed in as <strong>{userName}</strong>
-      </p>
-
-      {error && (
-        <p style={{ color: 'red' }}>
-          Error: {error.message}
-        </p>
-      )}
-
-      <WineTable
-        userId={userId}
-        wines={attachReviews((wines ?? []) as WineRow[], (reviews ?? []) as UserReview[])}
+    <PreviewThemeProvider>
+      <PreviewWineList
+        key={session.isLoggedIn ? session.userId : 'guest'}
+        isLoggedIn={session.isLoggedIn}
+        userId={session.userId ?? ''}
+        userName={session.userName ?? ''}
+        userEmail={session.userEmail ?? ''}
+        wines={wineRows}
       />
-    </main>
+    </PreviewThemeProvider>
   )
 }

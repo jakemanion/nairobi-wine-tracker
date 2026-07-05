@@ -157,7 +157,7 @@ export function PreviewWineList({
                 </>
               ) : (
                 <>
-                  <LoginNavLink theme={mode} nextPath="/preview" />
+                  <LoginNavLink theme={mode} nextPath="/" />
                   <RegisterNavLink theme={mode} />
                 </>
               )}

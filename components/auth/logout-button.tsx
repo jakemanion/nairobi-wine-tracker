@@ -27,7 +27,7 @@ export function LogoutButton({ className = '', style, theme = 'light' }: LogoutB
       return
     }
 
-    router.push('/preview')
+    router.push('/')
     router.refresh()
   }
 

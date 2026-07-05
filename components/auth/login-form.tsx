@@ -17,7 +17,7 @@ type LoginFormProps = {
   initialError?: string | null
 }
 
-export function LoginForm({ nextPath = '/preview', initialError = null }: LoginFormProps) {
+export function LoginForm({ nextPath = '/', initialError = null }: LoginFormProps) {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')

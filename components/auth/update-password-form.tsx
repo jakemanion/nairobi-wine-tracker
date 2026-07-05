@@ -64,7 +64,7 @@ export function UpdatePasswordForm() {
 
     setStatus('success')
     setMessage('Password updated. Redirecting to preview…')
-    router.push('/preview')
+    router.push('/')
     router.refresh()
   }
 

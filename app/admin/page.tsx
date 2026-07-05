@@ -13,8 +13,8 @@ export default async function AdminPage() {
       <main style={{ padding: 20 }}>
         <h1 style={{ margin: 0, fontSize: 18 }}>Admin</h1>
         <p style={{ color: '#c05050' }}>{ADMIN_UNAUTHORIZED_MESSAGE}</p>
-        <Link href="/preview" style={{ color: '#0a7', textDecoration: 'none', fontSize: 14 }}>
-          ← Back to preview
+        <Link href="/" style={{ color: '#0a7', textDecoration: 'none', fontSize: 14 }}>
+          ← Back to wine list
         </Link>
       </main>
     )
@@ -92,7 +92,7 @@ export default async function AdminPage() {
           <span style={{ color: '#666', fontSize: 12 }}>Match listings to wines</span>
         </div>
         <Link href="/" style={{ color: '#0a7', textDecoration: 'none', fontSize: 14 }}>
-          ← Back to tracker
+          ← Back to wine list
         </Link>
       </div>
 

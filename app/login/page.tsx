@@ -12,7 +12,7 @@ type LoginPageProps = {
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
   const { next, error } = await searchParams
-  const nextPath = next && next.startsWith('/') ? next : '/preview'
+  const nextPath = next && next.startsWith('/') ? next : '/'
   const initialError =
     error === 'invalid_reset_link'
       ? 'That password reset link is invalid or has expired. Request a new one from Forgot password.'
