@@ -143,18 +143,6 @@ export function PreviewToolbar({
         </div>
 
         <div className="flex items-center gap-2 flex-shrink-0 ml-auto">
-          <p
-            className="m-0 truncate"
-            title={resultCountText}
-            style={{
-              color: colors.summaryText,
-              fontFamily: 'var(--font-dm-sans), sans-serif',
-              fontSize: 11,
-              lineHeight: 1.3,
-            }}
-          >
-            {resultCountText}
-          </p>
           <button
             type="button"
             aria-pressed={hideUnwantedActive}
@@ -194,20 +182,30 @@ export function PreviewToolbar({
         </div>
       </div>
 
-      <div style={{ borderTop: `1px solid ${colors.toolbarBorder}` }}>
-        <PreviewToolbarQuickFilters
-          colors={colors}
-          filters={filters}
-          onFiltersChange={onFiltersChange}
-          stores={filterOptions.stores}
-          grapes={filterOptions.grapes}
-          countries={filterOptions.countries}
-          priceBounds={priceBounds}
-          primarySort={primarySort}
-          onPrimarySortChange={onPrimarySortChange}
-          onSecondarySortChange={onSecondarySortChange}
-        />
-      </div>
+      <PreviewToolbarQuickFilters
+        colors={colors}
+        filters={filters}
+        onFiltersChange={onFiltersChange}
+        stores={filterOptions.stores}
+        grapes={filterOptions.grapes}
+        countries={filterOptions.countries}
+        priceBounds={priceBounds}
+        primarySort={primarySort}
+        onPrimarySortChange={onPrimarySortChange}
+        onSecondarySortChange={onSecondarySortChange}
+      />
+      <p
+        className="m-0 px-3 pb-2 truncate"
+        title={resultCountText}
+        style={{
+          color: colors.summaryText,
+          fontFamily: 'var(--font-dm-sans), sans-serif',
+          fontSize: 9,
+          lineHeight: 1.3,
+        }}
+      >
+        {resultCountText}
+      </p>
     </div>
   )
 }

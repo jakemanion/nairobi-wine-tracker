@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, type CSSProperties } from 'react'
-import { ListChecks } from 'lucide-react'
 import { clearUserShortlist } from '@/lib/reviews'
 
 type ClearShortlistButtonProps = {
@@ -55,7 +54,6 @@ export function ClearShortlistButton({
       disabled={clearing}
       onClick={() => void handleClear()}
     >
-      <ListChecks className="w-3.5 h-3.5" strokeWidth={2} />
       Clear Shortlist
     </button>
   )

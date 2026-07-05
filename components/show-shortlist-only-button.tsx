@@ -1,6 +1,5 @@
 'use client'
 
-import { ListChecks } from 'lucide-react'
 import type { CSSProperties } from 'react'
 
 type ShowShortlistOnlyButtonProps = {
@@ -41,7 +40,6 @@ export function ShowShortlistOnlyButton({
       }}
       onClick={() => onChange(!active)}
     >
-      <ListChecks className="w-3.5 h-3.5" strokeWidth={2} />
       Shortlist only
     </button>
   )
