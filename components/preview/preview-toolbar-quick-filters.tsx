@@ -33,7 +33,7 @@ type PreviewToolbarQuickFiltersProps = {
   onSecondarySortChange: (next: SortCriterion) => void
 }
 
-const SLIDER_WIDTH = '5.625rem'
+const SLIDER_WIDTH = '4.21875rem'
 
 function chipStyle(colors: PreviewColors, active: boolean): CSSProperties {
   return {
@@ -95,10 +95,10 @@ const RATING_HIGH_MAX = 5
 const RATING_LOW_SLIDER_POSITION = 30
 
 const QUICK_SORT_OPTIONS: Array<{ key: SortFieldKey; label: string; dir: 'asc' | 'desc' }> = [
+  { key: 'value_score', label: 'Value', dir: 'desc' },
   { key: 'winery', label: 'Producer', dir: 'asc' },
   { key: 'wine_name', label: 'Name', dir: 'asc' },
   { key: 'store_prices', label: 'Price', dir: 'asc' },
-  { key: 'value_score', label: 'Value', dir: 'desc' },
   { key: 'vivino_rating', label: 'Rating', dir: 'desc' },
 ]
 
@@ -274,34 +274,38 @@ export function PreviewToolbarQuickFilters({
   return (
     <div className="flex flex-col gap-2.5 px-3 pb-3">
       <div className="flex flex-wrap items-center gap-2">
-        <span style={sliderLabelStyle(colors)}>Sort</span>
-        {QUICK_SORT_OPTIONS.map((option) => {
-          const active = isQuickSortActive(primarySort, option.key, option.dir)
-          return (
-            <button
-              key={option.key}
-              type="button"
-              aria-pressed={active}
-              style={chipStyle(colors, active)}
-              onClick={() => applyQuickSort(option.key, option.dir)}
-            >
-              {option.label}
-            </button>
-          )
-        })}
+        <div className="flex flex-wrap items-center gap-1.5" style={sliderGroupStyle(colors)}>
+          <span style={sliderLabelStyle(colors)}>Sort by:</span>
+          {QUICK_SORT_OPTIONS.map((option) => {
+            const active = isQuickSortActive(primarySort, option.key, option.dir)
+            return (
+              <button
+                key={option.key}
+                type="button"
+                aria-pressed={active}
+                style={chipStyle(colors, active)}
+                onClick={() => applyQuickSort(option.key, option.dir)}
+              >
+                {option.label}
+              </button>
+            )
+          })}
+        </div>
 
-        <span style={sliderLabelStyle(colors)}>Best wines under:</span>
-        {BEST_UNDER_PRICE_PRESETS.map((price) => (
-          <button
-            key={price}
-            type="button"
-            aria-pressed={isBestUnderActive(filters, primarySort, price)}
-            style={chipStyle(colors, isBestUnderActive(filters, primarySort, price))}
-            onClick={() => applyBestUnder(price)}
-          >
-            {price.toLocaleString()}
-          </button>
-        ))}
+        <div className="flex flex-wrap items-center gap-1.5" style={sliderGroupStyle(colors)}>
+          <span style={sliderLabelStyle(colors)}>Best wines under:</span>
+          {BEST_UNDER_PRICE_PRESETS.map((price) => (
+            <button
+              key={price}
+              type="button"
+              aria-pressed={isBestUnderActive(filters, primarySort, price)}
+              style={chipStyle(colors, isBestUnderActive(filters, primarySort, price))}
+              onClick={() => applyBestUnder(price)}
+            >
+              {price.toLocaleString()}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
@@ -377,8 +381,8 @@ export function PreviewToolbarQuickFilters({
 
         <PreviewFilterMultiSelect
           colors={colors}
-          label="Reviews"
-          emptyMessage="No review options"
+          label="Wishlists"
+          emptyMessage="No wishlist options"
           groups={buildReviewFilterGroups()}
           selected={reviewFilterSelection}
           onChange={updateReviewFilters}

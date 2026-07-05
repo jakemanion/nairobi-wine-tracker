@@ -168,7 +168,7 @@ export function PreviewFilterMultiSelect({
     setOpen((current) => !current)
   }
 
-  function renderOption(option: FilterMultiSelectOption, indent = false) {
+  function renderOption(option: FilterMultiSelectOption) {
     const checked = selected.includes(option.value)
     return (
       <label
@@ -177,7 +177,6 @@ export function PreviewFilterMultiSelect({
         aria-selected={checked}
         style={{
           ...optionStyle,
-          paddingLeft: indent ? 22 : 10,
           background: checked ? 'rgba(201, 48, 72, 0.08)' : 'transparent',
         }}
       >
@@ -255,7 +254,7 @@ export function PreviewFilterMultiSelect({
                 groups.map((group) => (
                   <div key={group.label}>
                     <div style={groupHeadingStyle}>{group.label}</div>
-                    {group.options.map((option, index) => renderOption(option, index > 0))}
+                    {group.options.map((option) => renderOption(option))}
                   </div>
                 ))
               ) : (
