@@ -1,5 +1,5 @@
 import { createAuthServerClient } from '@/lib/supabase-auth-server'
-import { ADMIN_USER_ID, getCurrentUserId, isAdminUserId } from '@/lib/user'
+import { ADMIN_USER_ID, isAdminUserId } from '@/lib/user'
 
 export const ADMIN_UNAUTHORIZED_MESSAGE =
   'You do not have permission to access admin tools.'
@@ -14,15 +14,12 @@ export async function getSessionUserId(): Promise<string | null> {
 }
 
 /**
- * User id used for authorization on this request.
- * Prefers a real session; falls back to the pre-login stub user.
+ * True only when the current request has a logged-in session for the admin user.
  */
-export async function getActorUserId(): Promise<string> {
-  return (await getSessionUserId()) ?? getCurrentUserId()
-}
-
 export async function isActorAdmin(): Promise<boolean> {
-  return isAdminUserId(await getActorUserId())
+  const userId = await getSessionUserId()
+  if (!userId) return false
+  return isAdminUserId(userId)
 }
 
 export async function requireAdminAccess(): Promise<

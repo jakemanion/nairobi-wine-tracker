@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { AdminMatcher } from '@/components/admin-matcher'
-import { ADMIN_UNAUTHORIZED_MESSAGE, isActorAdmin } from '@/lib/auth/admin'
+import { ADMIN_UNAUTHORIZED_MESSAGE, getSessionUserId, isActorAdmin } from '@/lib/auth/admin'
 import { createServerReadClient } from '@/lib/supabase-server'
 import { normalizeStoreListing } from '@/lib/store-listings'
 import type { WineRecord } from '@/lib/wines'
@@ -9,13 +9,22 @@ export const dynamic = 'force-dynamic'
 
 export default async function AdminPage() {
   if (!(await isActorAdmin())) {
+    const sessionUserId = await getSessionUserId()
+
     return (
       <main style={{ padding: 20 }}>
         <h1 style={{ margin: 0, fontSize: 18 }}>Admin</h1>
         <p style={{ color: '#c05050' }}>{ADMIN_UNAUTHORIZED_MESSAGE}</p>
-        <Link href="/" style={{ color: '#0a7', textDecoration: 'none', fontSize: 14 }}>
-          ← Back to wine list
-        </Link>
+        <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
+          {!sessionUserId ? (
+            <Link href="/login?next=/admin" style={{ color: '#0a7', textDecoration: 'none', fontSize: 14 }}>
+              Log in →
+            </Link>
+          ) : null}
+          <Link href="/" style={{ color: '#0a7', textDecoration: 'none', fontSize: 14 }}>
+            ← Back to wine list
+          </Link>
+        </div>
       </main>
     )
   }
