@@ -4,8 +4,6 @@ import { useMemo, useState } from 'react'
 import { LogoutButton } from '@/components/auth/logout-button'
 import { LoginNavLink } from '@/components/auth/login-nav-link'
 import { RegisterNavLink } from '@/components/auth/register-nav-link'
-import { ClearShortlistButton } from '@/components/clear-shortlist-button'
-import { ShowShortlistOnlyButton } from '@/components/show-shortlist-only-button'
 import { PreviewToolbar } from '@/components/preview/preview-toolbar'
 import { PreviewWineCard } from '@/components/preview/preview-wine-card'
 import { usePreviewTheme } from '@/components/preview/preview-theme-context'
@@ -126,26 +124,19 @@ export function PreviewWineList({
                 WineDiviner: Nairobi
               </h1>
               <p className="text-[10px] mt-1 truncate" style={{ color: colors.headerSub }}>
-                {isLoggedIn
-                  ? userEmail
-                    ? `${userName} · ${userEmail}`
-                    : userName
-                  : 'Sign in to save your reviews'}
+                Find Nairobi&apos;s best wine for your money
               </p>
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
               {isLoggedIn ? (
                 <>
-                  <ShowShortlistOnlyButton
-                    active={shortlistOnly}
-                    theme={mode}
-                    onChange={setShortlistOnly}
-                  />
-                  <ClearShortlistButton
-                    userId={userId}
-                    theme={mode}
-                    onCleared={() => setWines((current) => clearShortlistFromWines(current))}
-                  />
+                  <span
+                    className="text-[10px] truncate max-w-[14rem]"
+                    style={{ color: colors.headerSub, fontFamily: 'var(--font-dm-sans), sans-serif' }}
+                    title={userEmail ? `${userName} · ${userEmail}` : userName}
+                  >
+                    {userEmail ? `${userName} · ${userEmail}` : userName}
+                  </span>
                   <LogoutButton theme={mode} />
                 </>
               ) : (
@@ -172,6 +163,11 @@ export function PreviewWineList({
             resultCount={previewWines.length}
             totalCount={shortlistOnly ? shortlistedWines.length : wines.length}
             priceBounds={priceBounds}
+            isLoggedIn={isLoggedIn}
+            userId={userId}
+            shortlistOnly={shortlistOnly}
+            onShortlistOnlyChange={setShortlistOnly}
+            onShortlistCleared={() => setWines((current) => clearShortlistFromWines(current))}
           />
         </div>
       </div>

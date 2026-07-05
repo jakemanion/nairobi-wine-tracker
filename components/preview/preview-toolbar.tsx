@@ -1,6 +1,8 @@
 'use client'
 
-import { Search } from 'lucide-react'
+import { Search, ListChecks } from 'lucide-react'
+import { ClearShortlistButton } from '@/components/clear-shortlist-button'
+import { ShowShortlistOnlyButton } from '@/components/show-shortlist-only-button'
 import { PreviewToolbarQuickFilters } from '@/components/preview/preview-toolbar-quick-filters'
 import type { SortCriterion } from '@/components/wine-filter-panel'
 import { usePreviewTheme } from '@/components/preview/preview-theme-context'
@@ -37,6 +39,11 @@ type PreviewToolbarProps = {
   resultCount: number
   totalCount: number
   priceBounds: { min: number; max: number; median: number } | null
+  isLoggedIn?: boolean
+  userId?: string
+  shortlistOnly?: boolean
+  onShortlistOnlyChange?: (active: boolean) => void
+  onShortlistCleared?: () => void
 }
 
 export function PreviewToolbar({
@@ -52,8 +59,13 @@ export function PreviewToolbar({
   resultCount,
   totalCount,
   priceBounds,
+  isLoggedIn = false,
+  userId,
+  shortlistOnly = false,
+  onShortlistOnlyChange,
+  onShortlistCleared,
 }: PreviewToolbarProps) {
-  const { colors } = usePreviewTheme()
+  const { colors, mode } = usePreviewTheme()
   const searchActive = searchQuery.trim().length > 0
   const toolsActive = activeFilterCount > 0 || searchActive
   const resultCountText = buildResultCountText(resultCount, totalCount)
@@ -62,6 +74,26 @@ export function PreviewToolbar({
     (filters.hideUnwanted &&
       filters.wishlist.length === 0 &&
       filters.triedStatus.length === 0)
+
+  const shortlistPanelStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+    padding: '6px 10px',
+    borderRadius: 6,
+    background: colors.searchBg,
+    border: `1px solid ${colors.searchBorder}`,
+  } as const
+
+  const shortlistLabelStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 4,
+    fontSize: 11,
+    color: colors.muted,
+    fontFamily: 'var(--font-dm-sans), sans-serif',
+    whiteSpace: 'nowrap',
+  } as const
 
   return (
     <div
@@ -141,6 +173,24 @@ export function PreviewToolbar({
           >
             {hideUnwantedActive ? 'Show unwanted' : 'Hide unwanted'}
           </button>
+          {isLoggedIn && userId && onShortlistOnlyChange && onShortlistCleared ? (
+            <div className="flex items-center gap-1.5 flex-shrink-0" style={shortlistPanelStyle}>
+              <span style={shortlistLabelStyle}>
+                <ListChecks className="w-3.5 h-3.5" strokeWidth={2} />
+                Shortlist
+              </span>
+              <ShowShortlistOnlyButton
+                active={shortlistOnly}
+                theme={mode}
+                onChange={onShortlistOnlyChange}
+              />
+              <ClearShortlistButton
+                userId={userId}
+                theme={mode}
+                onCleared={onShortlistCleared}
+              />
+            </div>
+          ) : null}
         </div>
       </div>
 

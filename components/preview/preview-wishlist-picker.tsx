@@ -7,7 +7,7 @@ import {
   type CSSProperties,
 } from 'react'
 import { createPortal } from 'react-dom'
-import { Bookmark, X } from 'lucide-react'
+import { Bookmark } from 'lucide-react'
 import type { ReactNode } from 'react'
 import type { WineReview } from '@/components/wine-table'
 import { saveReviewWishlistField, type WishlistValue } from '@/lib/reviews'
@@ -71,17 +71,7 @@ type WishlistButtonConfig = {
 function wishlistIcon(value: WishlistValue, size: number, color: string): ReactNode {
   switch (value) {
     case 0:
-      return (
-        <span className="relative inline-flex items-center justify-center" style={{ color }}>
-          <Bookmark size={size} strokeWidth={2} />
-          <X
-            size={Math.round(size * 0.72)}
-            strokeWidth={2.5}
-            className="absolute"
-            style={{ transform: 'rotate(-14deg)' }}
-          />
-        </span>
-      )
+      return <Bookmark size={size} strokeWidth={2} className="fill-current" style={{ color }} />
     case 1:
       return <Bookmark size={size} strokeWidth={2} className="fill-current" style={{ color }} />
     case 2:

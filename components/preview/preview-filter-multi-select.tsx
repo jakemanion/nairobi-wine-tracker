@@ -86,7 +86,6 @@ export function PreviewFilterMultiSelect({
   const triggerRef = useRef<HTMLButtonElement>(null)
 
   const allOptions = flatOptions(options, groups)
-  const labelForValue = formatSelectedLabel ?? ((value: string) => value)
 
   useEffect(() => {
     setMounted(true)
@@ -119,11 +118,7 @@ export function PreviewFilterMultiSelect({
   }, [open])
 
   const triggerLabel =
-    selected.length === 0
-      ? label
-      : selected.length === 1
-        ? labelForValue(selected[0])
-        : `${label} (${selected.length})`
+    selected.length === 0 ? label : `${label} (${selected.length})`
 
   const panelStyle: CSSProperties = {
     position: 'fixed',
