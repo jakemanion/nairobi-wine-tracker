@@ -4,38 +4,34 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState, type FormEvent } from 'react'
 import { signInWithEmail } from '@/lib/auth/sign-in'
+import { validateEmail } from '@/lib/auth/validation'
 import { getPreviewColors } from '@/lib/preview/preview-colors'
 
 const colors = getPreviewColors('dark')
 const accent = '#C93048'
 
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-
 type FormStatus = 'idle' | 'loading' | 'error'
 
 type LoginFormProps = {
   nextPath?: string
+  initialError?: string | null
 }
 
-export function LoginForm({ nextPath = '/preview' }: LoginFormProps) {
+export function LoginForm({ nextPath = '/preview', initialError = null }: LoginFormProps) {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [status, setStatus] = useState<FormStatus>('idle')
-  const [message, setMessage] = useState<string | null>(null)
+  const [message, setMessage] = useState<string | null>(initialError)
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
     const trimmedEmail = email.trim()
-    if (!trimmedEmail) {
+    const validationError = validateEmail(trimmedEmail)
+    if (validationError) {
       setStatus('error')
-      setMessage('Email is required.')
-      return
-    }
-    if (!EMAIL_PATTERN.test(trimmedEmail)) {
-      setStatus('error')
-      setMessage('Enter a valid email address.')
+      setMessage(validationError)
       return
     }
     if (!password) {
@@ -113,6 +109,15 @@ export function LoginForm({ nextPath = '/preview' }: LoginFormProps) {
             fontFamily: 'var(--font-dm-sans), sans-serif',
           }}
         />
+        <p className="text-right">
+          <Link
+            href="/forgot-password"
+            className="text-xs no-underline"
+            style={{ color: accent, fontFamily: 'var(--font-dm-sans), sans-serif' }}
+          >
+            Forgot password?
+          </Link>
+        </p>
       </div>
 
       {isLoading ? (
