@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { WineTable, type WineReview, type WineRow } from '@/components/wine-table'
+import { isActorAdmin } from '@/lib/auth/admin'
 import { createServerReadClient } from '@/lib/supabase-server'
 import { getCurrentUserId } from '@/lib/user'
 
@@ -104,14 +105,17 @@ export default async function Home() {
 
   const error = profileError ?? winesError ?? reviewsError
   const userName = profile?.display_name ?? profile?.username ?? 'Unknown user'
+  const showAdminLink = await isActorAdmin()
 
   return (
     <main style={{ padding: 20 }}>
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12 }}>
         <h1 style={{ margin: 0 }}>Wine Tracker (Nairobi)</h1>
-        <Link href="/admin" style={{ color: '#0a7', textDecoration: 'none', fontSize: 14 }}>
-          Admin →
-        </Link>
+        {showAdminLink ? (
+          <Link href="/admin" style={{ color: '#0a7', textDecoration: 'none', fontSize: 14 }}>
+            Admin →
+          </Link>
+        ) : null}
         <Link href="/preview" style={{ color: '#0a7', textDecoration: 'none', fontSize: 14 }}>
           Preview design →
         </Link>

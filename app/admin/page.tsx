@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { AdminMatcher } from '@/components/admin-matcher'
+import { ADMIN_UNAUTHORIZED_MESSAGE, isActorAdmin } from '@/lib/auth/admin'
 import { createServerReadClient } from '@/lib/supabase-server'
 import { normalizeStoreListing } from '@/lib/store-listings'
 import type { WineRecord } from '@/lib/wines'
@@ -7,6 +8,18 @@ import type { WineRecord } from '@/lib/wines'
 export const dynamic = 'force-dynamic'
 
 export default async function AdminPage() {
+  if (!(await isActorAdmin())) {
+    return (
+      <main style={{ padding: 20 }}>
+        <h1 style={{ margin: 0, fontSize: 18 }}>Admin</h1>
+        <p style={{ color: '#c05050' }}>{ADMIN_UNAUTHORIZED_MESSAGE}</p>
+        <Link href="/preview" style={{ color: '#0a7', textDecoration: 'none', fontSize: 14 }}>
+          ← Back to preview
+        </Link>
+      </main>
+    )
+  }
+
   const supabase = createServerReadClient()
 
   const [{ data: listings, error: listingsError }, { data: wines, error: winesError }] =

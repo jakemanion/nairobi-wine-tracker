@@ -1,6 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { requireAdminAccess } from '@/lib/auth/admin'
 import { buildWineFromListing } from '@/lib/build-wine-from-listing'
 import { createAdminClient } from '@/lib/supabase-admin'
 import {
@@ -89,6 +90,9 @@ export async function adminUpdateWineField({
   field: WineField
   value: string | number | null
 }): Promise<WineMutationResult> {
+  const access = await requireAdminAccess()
+  if (!access.ok) return { error: access.error }
+
   const { client, configError } = getAdminClient()
   if (!client) return { error: configError! }
 
@@ -109,6 +113,9 @@ export async function adminUpdateWineField({
 export async function adminCreateWine(
   data: Partial<Omit<WineRecord, 'id'>> = {},
 ): Promise<WineMutationResult> {
+  const access = await requireAdminAccess()
+  if (!access.ok) return { error: access.error }
+
   const { client, configError } = getAdminClient()
   if (!client) return { error: configError! }
 
@@ -133,6 +140,9 @@ export async function adminUpdateStoreListingField({
   field: StoreListingField
   value: string | number | boolean | null
 }): Promise<ListingMutationResult> {
+  const access = await requireAdminAccess()
+  if (!access.ok) return { error: access.error }
+
   const { client, configError } = getAdminClient()
   if (!client) return { error: configError! }
 
@@ -157,6 +167,9 @@ export async function adminMatchStoreListingToWine({
   listingId: string
   wineId: string
 }): Promise<ListingMutationResult> {
+  const access = await requireAdminAccess()
+  if (!access.ok) return { error: access.error }
+
   const { client, configError } = getAdminClient()
   if (!client) return { error: configError! }
 
@@ -177,6 +190,9 @@ export async function adminMatchStoreListingToWine({
 export async function adminClearStoreListingMatch(
   listingId: string,
 ): Promise<ListingMutationResult> {
+  const access = await requireAdminAccess()
+  if (!access.ok) return { error: access.error }
+
   const { client, configError } = getAdminClient()
   if (!client) return { error: configError! }
 
@@ -197,6 +213,9 @@ export async function adminClearStoreListingMatch(
 export async function adminDeleteStoreListing(
   listingId: string,
 ): Promise<{ error?: string }> {
+  const access = await requireAdminAccess()
+  if (!access.ok) return { error: access.error }
+
   const { client, configError } = getAdminClient()
   if (!client) return { error: configError! }
 
@@ -209,6 +228,9 @@ export async function adminDeleteStoreListing(
 }
 
 export async function adminDeleteWine(wineId: string): Promise<{ error?: string }> {
+  const access = await requireAdminAccess()
+  if (!access.ok) return { error: access.error }
+
   const { client, configError } = getAdminClient()
   if (!client) return { error: configError! }
 
@@ -237,6 +259,9 @@ export async function adminPromoteListingToCanonicalWine(
   | { wine: WineRecord; listing: StoreListingRecord; error?: undefined }
   | { wine?: undefined; listing?: undefined; error: string }
 > {
+  const access = await requireAdminAccess()
+  if (!access.ok) return { error: access.error }
+
   const wineResult = await adminCreateWine(buildWineFromListing(listing))
   if (wineResult.error || !wineResult.wine) {
     return { error: wineResult.error ?? 'Failed to create wine.' }
