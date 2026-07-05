@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useState, type FormEvent } from 'react'
 import { MIN_PASSWORD_LENGTH } from '@/lib/auth/constants'
 import { signUpWithEmail } from '@/lib/auth/sign-up'
@@ -45,7 +46,7 @@ export function RegisterForm() {
     setMessage(
       result.needsEmailConfirmation
         ? `Account created. Check your inbox at ${result.email} to confirm your email before signing in.`
-        : 'Account created successfully. You can sign in once login is available.',
+        : 'Account created successfully.',
     )
     setPassword('')
     setConfirmPassword('')
@@ -184,7 +185,16 @@ export function RegisterForm() {
         >
           Did not receive an email? Check spam, or confirm that email sign-up is enabled in Supabase.
         </p>
-      ) : null}
+      ) : (
+        <p
+          className="text-xs text-center"
+          style={{ color: colors.muted, fontFamily: 'var(--font-dm-sans), sans-serif' }}
+        >
+          <Link href="/login?next=%2Fpreview" className="no-underline" style={{ color: accent }}>
+            Log in to preview
+          </Link>
+        </p>
+      )}
     </form>
   )
 }

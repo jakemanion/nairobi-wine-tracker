@@ -23,11 +23,15 @@ import type { WishlistValue, TriedStatusValue } from '@/lib/reviews'
 
 type PreviewWineCardProps = {
   wine: PreviewWineCardData
+  isLoggedIn: boolean
   userId: string
   review?: WineReview | null
   onReviewChange: (review: WineReview | null) => void
   imagePriority?: boolean
 }
+
+const LOGIN_PROMPT_MESSAGE =
+  'Login or register for free to use wine wishlists and likes'
 
 function normalizeTriedStatus(value: number | null | undefined): TriedStatusValue {
   if (value === 0 || value === 1 || value === 2) return value
@@ -249,6 +253,7 @@ function RatingSlider({
 
 export function PreviewWineCard({
   wine,
+  isLoggedIn,
   userId,
   review,
   onReviewChange,
@@ -292,6 +297,7 @@ export function PreviewWineCard({
   }, [review?.overall_score, review?.tasting_notes])
 
   async function saveRating(next: number) {
+    if (!isLoggedIn) return
     const rounded = Math.round(next * 10) / 10
     const stored = review?.overall_score ?? null
     if (stored != null && Math.abs(stored - rounded) < 0.05) return
@@ -324,6 +330,7 @@ export function PreviewWineCard({
   }
 
   async function saveNotes() {
+    if (!isLoggedIn) return
     notesDirtyRef.current = false
     const next = notesDraft.trim() || null
     const stored = review?.tasting_notes?.trim() || null
@@ -404,11 +411,15 @@ export function PreviewWineCard({
           borderRight: `1px solid ${colors.infoBorder}`,
         }}
       >
-        <div className="absolute top-2.5 right-3.5 z-[1]">
+        <div
+          className="absolute top-2.5 right-3.5 z-[1] transition-opacity duration-200"
+          style={{ opacity: isLoggedIn ? 1 : 0.35, pointerEvents: isLoggedIn ? 'auto' : 'none' }}
+        >
           <PreviewShortlistButton
             wineId={wine.id}
             userId={userId}
             review={review}
+            disabled={!isLoggedIn}
             onReviewChange={onReviewChange}
           />
         </div>
@@ -511,9 +522,36 @@ export function PreviewWineCard({
       </div>
 
       <div
-        className="flex-shrink-0 px-2.5 py-2.5 flex flex-col gap-2 transition-colors duration-300 min-w-0"
-        style={{ width: '29.33%', ...getReviewPanelStyle(wishlist, mode) }}
+        className="relative flex-shrink-0 px-2.5 py-2.5 flex flex-col gap-2 transition-colors duration-300 min-w-0 group/review-panel"
+        style={{
+          width: '29.33%',
+          ...getReviewPanelStyle(wishlist, mode),
+          opacity: isLoggedIn ? 1 : 0.42,
+        }}
       >
+        {!isLoggedIn ? (
+          <div
+            className="absolute inset-0 z-20 flex items-center justify-center rounded-lg px-4 text-center"
+            aria-hidden={false}
+            role="note"
+          >
+            <div
+              className="absolute inset-0 rounded-lg opacity-0 transition-opacity duration-200 group-hover/review-panel:opacity-100"
+              style={{ background: 'rgba(0, 0, 0, 0.55)' }}
+            />
+            <p
+              className="relative z-10 text-[11px] font-medium leading-snug opacity-0 transition-opacity duration-200 group-hover/review-panel:opacity-100 pointer-events-none"
+              style={{ color: '#F5F2EC', fontFamily: 'var(--font-dm-sans), sans-serif' }}
+            >
+              {LOGIN_PROMPT_MESSAGE}
+            </p>
+          </div>
+        ) : null}
+
+        <div
+          className="flex flex-col gap-2 min-h-0"
+          style={{ pointerEvents: isLoggedIn ? 'auto' : 'none' }}
+        >
         <div className="flex items-end gap-1.5 min-w-0">
           <PreviewWishlistPicker
             wineId={wine.id}
@@ -572,6 +610,7 @@ export function PreviewWineCard({
             {error}
           </p>
         ) : null}
+        </div>
       </div>
     </div>
   )

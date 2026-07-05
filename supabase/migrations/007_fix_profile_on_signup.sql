@@ -1,5 +1,9 @@
--- Create a public.profiles row whenever a new auth user is created.
--- profiles.id matches auth.users.id (one profile per auth user).
+-- Fix profile creation trigger after "Database error saving new user" on signup.
+-- Common causes: wrong timestamp column name, RLS, or missing grants.
+
+-- Let the trigger role write to profiles.
+GRANT USAGE ON SCHEMA public TO supabase_auth_admin;
+GRANT INSERT ON TABLE public.profiles TO supabase_auth_admin;
 
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS trigger
@@ -19,10 +23,8 @@ BEGIN
     base_username := 'user';
   END IF;
 
-  -- Suffix with part of the user id so usernames stay unique.
   profile_username := base_username || '_' || left(replace(NEW.id::text, '-', ''), 6);
 
-  -- profiles columns: id, username, display_name, created_at
   INSERT INTO public.profiles (id, username, display_name, created_at)
   VALUES (
     NEW.id,

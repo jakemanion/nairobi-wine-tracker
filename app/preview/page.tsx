@@ -2,8 +2,8 @@ import Link from 'next/link'
 import { PreviewWineList } from '@/components/preview/preview-wine-list'
 import { PreviewThemeProvider } from '@/components/preview/preview-theme-context'
 import type { WineReview, WineRow } from '@/components/wine-table'
+import { getPreviewSession } from '@/lib/auth/preview-session'
 import { createServerReadClient } from '@/lib/supabase-server'
-import { getCurrentUserId } from '@/lib/user'
 
 export const dynamic = 'force-dynamic'
 
@@ -45,65 +45,62 @@ function attachReviews(wines: WineRow[], reviews: UserReview[]): WineRow[] {
 }
 
 export default async function PreviewPage() {
-  const userId = getCurrentUserId()
+  const session = await getPreviewSession()
   const supabase = createServerReadClient()
 
-  const [
-    { data: profile, error: profileError },
-    { data: wines, error: winesError },
-    { data: reviews, error: reviewsError },
-  ] = await Promise.all([
-    supabase
-      .from('profiles')
-      .select('display_name, username')
-      .eq('id', userId)
-      .maybeSingle(),
-    supabase
-      .from('wines')
-      .select(`
+  const winesQuery = supabase
+    .from('wines')
+    .select(`
+      id,
+      producer,
+      wine_name,
+      vintage,
+      country,
+      region,
+      grape_varieties,
+      style,
+      vivino_url,
+      vivino_rating,
+      store_listings (
         id,
-        producer,
-        wine_name,
-        vintage,
-        country,
-        region,
-        grape_varieties,
-        style,
-        vivino_url,
-        vivino_rating,
-        store_listings (
+        current_price_ksh,
+        store_product_url,
+        in_stock,
+        image_url,
+        stores (
           id,
-          current_price_ksh,
-          store_product_url,
-          in_stock,
-          image_url,
-          stores (
-            id,
-            name
-          )
+          name
         )
-      `)
-      .order('producer')
-      .order('wine_name'),
-    supabase
-      .from('reviews')
-      .select(`
-        id,
-        wine_id,
-        overall_score,
-        value_score,
-        wishlist,
-        tried_status,
-        shortlist,
-        want_to_try,
-        tasting_notes,
-        tasted_on
-      `)
-      .eq('user_id', userId),
+      )
+    `)
+    .order('producer')
+    .order('wine_name')
+
+  const reviewsQuery = session.isLoggedIn
+    ? supabase
+        .from('reviews')
+        .select(`
+          id,
+          wine_id,
+          overall_score,
+          value_score,
+          wishlist,
+          tried_status,
+          shortlist,
+          want_to_try,
+          tasting_notes,
+          tasted_on
+        `)
+        .eq('user_id', session.userId)
+    : null
+
+  const [{ data: wines, error: winesError }, reviewsResult] = await Promise.all([
+    winesQuery,
+    reviewsQuery ?? Promise.resolve({ data: [], error: null }),
   ])
 
-  const error = profileError ?? winesError ?? reviewsError
-  const userName = profile?.display_name ?? profile?.username ?? 'Unknown user'
+  const error = winesError ?? reviewsResult.error
+  const reviews = (reviewsResult.data ?? []) as UserReview[]
 
   if (error) {
     return (
@@ -116,12 +113,17 @@ export default async function PreviewPage() {
     )
   }
 
+  const wineRows = session.isLoggedIn
+    ? attachReviews((wines ?? []) as WineRow[], reviews)
+    : ((wines ?? []) as WineRow[])
+
   return (
     <PreviewThemeProvider>
       <PreviewWineList
-        userId={userId}
-        userName={userName}
-        wines={attachReviews((wines ?? []) as WineRow[], (reviews ?? []) as UserReview[])}
+        isLoggedIn={session.isLoggedIn}
+        userId={session.userId ?? ''}
+        userName={session.userName ?? ''}
+        wines={wineRows}
       />
     </PreviewThemeProvider>
   )

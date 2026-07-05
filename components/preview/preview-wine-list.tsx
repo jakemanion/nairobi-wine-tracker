@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import { LoginNavLink } from '@/components/auth/login-nav-link'
 import { RegisterNavLink } from '@/components/auth/register-nav-link'
 import { ClearShortlistButton } from '@/components/clear-shortlist-button'
 import { ShowShortlistOnlyButton } from '@/components/show-shortlist-only-button'
@@ -28,6 +29,7 @@ const PREVIEW_CONTENT_MAX_WIDTH = '54.625rem'
 
 type PreviewWineListProps = {
   wines: WineRow[]
+  isLoggedIn: boolean
   userId: string
   userName: string
 }
@@ -53,7 +55,12 @@ function clearShortlistFromWines(wines: DisplayWineRow[]): DisplayWineRow[] {
   })
 }
 
-export function PreviewWineList({ wines: initialWines, userId, userName }: PreviewWineListProps) {
+export function PreviewWineList({
+  wines: initialWines,
+  isLoggedIn,
+  userId,
+  userName,
+}: PreviewWineListProps) {
   const { colors, mode } = usePreviewTheme()
   const [wines, setWines] = useState<DisplayWineRow[]>(() =>
     initialWines.map(withComputedValueScore),
@@ -123,21 +130,29 @@ export function PreviewWineList({ wines: initialWines, userId, userName }: Previ
                 WineDiviner: Nairobi
               </h1>
               <p className="text-[10px] mt-1 truncate" style={{ color: colors.headerSub }}>
-                Preview design · {userName}
+                {isLoggedIn ? userName : 'Sign in to save your reviews'}
               </p>
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
-              <RegisterNavLink theme={mode} />
-              <ShowShortlistOnlyButton
-                active={shortlistOnly}
-                theme={mode}
-                onChange={setShortlistOnly}
-              />
-              <ClearShortlistButton
-                userId={userId}
-                theme={mode}
-                onCleared={() => setWines((current) => clearShortlistFromWines(current))}
-              />
+              {isLoggedIn ? (
+                <>
+                  <ShowShortlistOnlyButton
+                    active={shortlistOnly}
+                    theme={mode}
+                    onChange={setShortlistOnly}
+                  />
+                  <ClearShortlistButton
+                    userId={userId}
+                    theme={mode}
+                    onCleared={() => setWines((current) => clearShortlistFromWines(current))}
+                  />
+                </>
+              ) : (
+                <>
+                  <LoginNavLink theme={mode} nextPath="/preview" />
+                  <RegisterNavLink theme={mode} />
+                </>
+              )}
             </div>
           </div>
         </header>
@@ -180,8 +195,9 @@ export function PreviewWineList({ wines: initialWines, userId, userName }: Previ
               <PreviewWineCard
                 key={wine.id}
                 wine={wine}
+                isLoggedIn={isLoggedIn}
                 userId={userId}
-                review={source?.review}
+                review={isLoggedIn ? source?.review : undefined}
                 imagePriority={index < EAGER_IMAGE_COUNT}
                 onReviewChange={(review) =>
                   setWines((current) => updateWineReview(current, wine.id, review))

@@ -12,6 +12,7 @@ type PreviewShortlistButtonProps = {
   wineId: string
   userId: string
   review?: WineReview | null
+  disabled?: boolean
   onReviewChange: (review: WineReview | null) => void
 }
 
@@ -42,6 +43,7 @@ export function PreviewShortlistButton({
   wineId,
   userId,
   review,
+  disabled = false,
   onReviewChange,
 }: PreviewShortlistButtonProps) {
   const [saving, setSaving] = useState(false)
@@ -52,7 +54,7 @@ export function PreviewShortlistButton({
   const activeStyle = WISHLISTED_BUTTON_STYLE
 
   async function toggle() {
-    if (saving) return
+    if (saving || disabled) return
 
     const next: ShortlistValue = shortlisted ? null : 1
     const previousReview = review ?? null
@@ -96,15 +98,15 @@ export function PreviewShortlistButton({
         title={SHORTLIST_TOOLTIP}
         aria-label={SHORTLIST_TOOLTIP}
         aria-pressed={shortlisted}
-        disabled={saving}
+        disabled={saving || disabled}
         className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-105 flex-shrink-0"
         style={{
           border: `2px solid ${shortlisted ? activeStyle.border : '#3A3848'}`,
           background: shortlisted ? activeStyle.bg : '#22222C',
           color: shortlisted ? activeStyle.color : inactiveColor,
           boxShadow: '0 2px 8px rgba(0,0,0,0.4)',
-          opacity: saving ? 0.5 : 1,
-          cursor: saving ? 'wait' : 'pointer',
+          opacity: saving || disabled ? 0.5 : 1,
+          cursor: saving || disabled ? 'not-allowed' : 'pointer',
         }}
         onClick={() => void toggle()}
       >
