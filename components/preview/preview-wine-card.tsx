@@ -1,9 +1,9 @@
 'use client'
 
-import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 import { ExternalLink, MapPin } from 'lucide-react'
 import type { WineReview } from '@/components/wine-table'
+import { LoggedOutLoginPromptOverlay } from '@/components/preview/logged-out-login-prompt'
 import { PreviewBottleImage } from '@/components/preview/preview-bottle-image'
 import {
   getReviewPanelStyle,
@@ -31,9 +31,6 @@ type PreviewWineCardProps = {
   onReviewChange: (review: WineReview | null) => void
   imagePriority?: boolean
 }
-
-const LOGIN_PROMPT_MESSAGE =
-  'Login or register for free to use wine wishlists and likes'
 
 function normalizeTriedStatus(value: number | null | undefined): TriedStatusValue {
   if (value === 0 || value === 1 || value === 2) return value
@@ -413,19 +410,19 @@ export function PreviewWineCard({
           borderRight: `1px solid ${colors.infoBorder}`,
         }}
       >
-        <div
-          className="absolute top-2.5 right-3.5 z-[1] transition-opacity duration-200"
-          style={{ opacity: isLoggedIn ? 1 : 0.35, pointerEvents: isLoggedIn ? 'auto' : 'none' }}
-        >
-          <UsageTipTarget tipId="shortlist-button">
-            <PreviewShortlistButton
-              wineId={wine.id}
-              userId={userId}
-              review={review}
-              disabled={!isLoggedIn}
-              onReviewChange={onReviewChange}
-            />
-          </UsageTipTarget>
+        <div className="absolute top-2.5 right-3.5 z-[1] group/shortlist-login">
+          <div style={{ opacity: isLoggedIn ? 1 : 0.35 }}>
+            <UsageTipTarget tipId="shortlist-button">
+              <PreviewShortlistButton
+                wineId={wine.id}
+                userId={userId}
+                review={review}
+                disabled={!isLoggedIn}
+                onReviewChange={onReviewChange}
+              />
+            </UsageTipTarget>
+          </div>
+          {!isLoggedIn ? <LoggedOutLoginPromptOverlay hoverGroup="shortlist-login" /> : null}
         </div>
         <div className="flex items-start gap-2.5 pr-12">
           <VivinoCircle rating={wine.vivinoRating} url={wine.vivinoUrl} />
@@ -530,59 +527,16 @@ export function PreviewWineCard({
         style={{
           width: '29.33%',
           ...getReviewPanelStyle(wishlist, mode),
-          opacity: isLoggedIn ? 1 : 0.42,
         }}
       >
-        {!isLoggedIn ? (
-          <div
-            className="absolute inset-0 z-20 flex flex-col items-center justify-center rounded-lg px-4 text-center"
-            aria-hidden={false}
-            role="note"
-          >
-            <div
-              className="absolute inset-0 rounded-lg opacity-0 transition-opacity duration-200 group-hover/review-panel:opacity-100"
-              style={{ background: 'rgba(0, 0, 0, 0.55)' }}
-            />
-            <div className="relative z-10 flex flex-col items-center gap-2.5 opacity-0 transition-opacity duration-200 group-hover/review-panel:opacity-100">
-              <p
-                className="text-[11px] font-medium leading-snug m-0"
-                style={{ color: '#F5F2EC', fontFamily: 'var(--font-dm-sans), sans-serif' }}
-              >
-                {LOGIN_PROMPT_MESSAGE}
-              </p>
-              <div className="flex items-center gap-2">
-                <Link
-                  href="/login?next=%2F"
-                  className="text-[11px] px-3 py-1.5 rounded-lg no-underline"
-                  style={{
-                    background: '#C93048',
-                    border: '1px solid #C93048',
-                    color: '#FFFFFF',
-                    fontFamily: 'var(--font-dm-sans), sans-serif',
-                  }}
-                >
-                  Log in
-                </Link>
-                <Link
-                  href="/register"
-                  className="text-[11px] px-3 py-1.5 rounded-lg no-underline"
-                  style={{
-                    background: 'rgba(255, 255, 255, 0.12)',
-                    border: '1px solid rgba(255, 255, 255, 0.35)',
-                    color: '#F5F2EC',
-                    fontFamily: 'var(--font-dm-sans), sans-serif',
-                  }}
-                >
-                  Register
-                </Link>
-              </div>
-            </div>
-          </div>
-        ) : null}
+        {!isLoggedIn ? <LoggedOutLoginPromptOverlay hoverGroup="review-panel" /> : null}
 
         <div
           className="flex flex-col gap-2 min-h-0"
-          style={{ pointerEvents: isLoggedIn ? 'auto' : 'none' }}
+          style={{
+            pointerEvents: isLoggedIn ? 'auto' : 'none',
+            opacity: isLoggedIn ? 1 : 0.42,
+          }}
         >
         <div className="flex items-end gap-1.5 min-w-0">
           <UsageTipTarget tipId="wishlist-button">

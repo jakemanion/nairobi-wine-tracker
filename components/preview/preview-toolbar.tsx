@@ -144,26 +144,28 @@ export function PreviewToolbar({
         </div>
 
         <div className="flex items-center gap-2 flex-shrink-0 ml-auto">
-          <UsageTipTarget tipId="hide-unwanted">
-            <button
-              type="button"
-              aria-pressed={hideUnwantedActive}
-              className="flex items-center text-xs px-3 py-2 rounded-lg flex-shrink-0"
-              style={{
-                background: hideUnwantedActive ? colors.searchBg : colors.buttonBg,
-                border: `1px solid ${hideUnwantedActive ? '#C93048' : colors.buttonBorder}`,
-                color: hideUnwantedActive ? colors.searchText : colors.buttonText,
-                fontFamily: 'var(--font-dm-sans), sans-serif',
-                cursor: 'pointer',
-                whiteSpace: 'nowrap',
-              }}
-              onClick={() =>
-                onFiltersChange(applyHideUnwantedToggle(filters, !hideUnwantedActive))
-              }
-            >
-              {hideUnwantedActive ? 'Show unwanted' : 'Hide unwanted'}
-            </button>
-          </UsageTipTarget>
+          {isLoggedIn ? (
+            <UsageTipTarget tipId="hide-unwanted">
+              <button
+                type="button"
+                aria-pressed={hideUnwantedActive}
+                className="flex items-center text-xs px-3 py-2 rounded-lg flex-shrink-0"
+                style={{
+                  background: hideUnwantedActive ? colors.searchBg : colors.buttonBg,
+                  border: `1px solid ${hideUnwantedActive ? '#C93048' : colors.buttonBorder}`,
+                  color: hideUnwantedActive ? colors.searchText : colors.buttonText,
+                  fontFamily: 'var(--font-dm-sans), sans-serif',
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                }}
+                onClick={() =>
+                  onFiltersChange(applyHideUnwantedToggle(filters, !hideUnwantedActive))
+                }
+              >
+                {hideUnwantedActive ? 'Show unwanted' : 'Hide unwanted'}
+              </button>
+            </UsageTipTarget>
+          ) : null}
           {isLoggedIn && userId && onShortlistOnlyChange && onShortlistCleared ? (
             <UsageTipTarget
               tipId="shortlist-panel"
