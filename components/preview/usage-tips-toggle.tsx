@@ -26,9 +26,9 @@ export function UsageTipsToggle({ colors }: UsageTipsToggleProps) {
         checked={enabled}
         onChange={(event) => setEnabled(event.target.checked)}
         className="accent-[#C93048]"
-        aria-label="Toggle usage tips"
+        aria-label="Toggle show tips"
       />
-      Tips
+      Show tips
     </label>
   )
 }

@@ -8,6 +8,7 @@ import { PreviewToolbar } from '@/components/preview/preview-toolbar'
 import { PreviewWineCard } from '@/components/preview/preview-wine-card'
 import { UsageTipsProvider } from '@/components/preview/usage-tips-context'
 import { UsageTipsToggle } from '@/components/preview/usage-tips-toggle'
+import { WelcomePanel } from '@/components/preview/welcome-panel'
 import { usePreviewTheme } from '@/components/preview/preview-theme-context'
 import type { SortCriterion } from '@/components/wine-filter-panel'
 import type { WineReview, WineRow } from '@/components/wine-table'
@@ -177,6 +178,7 @@ export function PreviewWineList({
       </div>
 
       <main className="mx-auto px-6 py-5 space-y-2.5" style={{ maxWidth: PREVIEW_CONTENT_MAX_WIDTH }}>
+        <WelcomePanel />
         {previewWines.length === 0 ? (
           <p className="text-center text-sm py-12" style={{ color: colors.emptyText }}>
             {shortlistOnly ? 'No wines on your shortlist.' : 'No wines match your search or filters.'}

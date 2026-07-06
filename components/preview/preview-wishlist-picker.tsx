@@ -299,7 +299,7 @@ export function PreviewWishlistPicker({
 
   const tooltip =
     hoveredOption === 'none'
-      ? '\u00a0'
+      ? 'Wishlist this wine'
       : (WISHLIST_OPTIONS.find((o) => o.value === hoveredOption)?.tooltip ?? '')
 
   return (

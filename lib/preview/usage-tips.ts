@@ -17,6 +17,12 @@ export type UsageTipContent = {
 }
 
 export const USAGE_TIPS_STORAGE_KEY = 'wine-diviner-usage-tips-enabled'
+export const WELCOME_DISMISSED_STORAGE_KEY = 'wine-diviner-welcome-dismissed'
+
+export const WELCOME_PANEL = {
+  heading: 'Welcome!',
+  body: "WineDiviner:Nairobi helps you find the best wines in town for your money, without the guesswork. Search by rating, budget or value, and keep track of wines you've tried and those you'd like to try.",
+} as const
 
 export const USAGE_TIPS: Record<UsageTipId, UsageTipContent> = {
   'wishlist-button': {

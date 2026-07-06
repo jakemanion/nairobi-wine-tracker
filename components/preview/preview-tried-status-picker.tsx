@@ -279,7 +279,7 @@ export function PreviewTriedStatusPicker({
 
   const tooltip =
     hoveredOption === 'none'
-      ? '\u00a0'
+      ? "Track wines you've tried"
       : (TRIED_OPTIONS.find((o) => o.value === hoveredOption)?.tooltip ?? '')
 
   return (
