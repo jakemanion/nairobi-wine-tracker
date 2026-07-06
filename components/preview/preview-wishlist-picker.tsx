@@ -305,13 +305,10 @@ export function PreviewWishlistPicker({
   function openTip(event: MouseEvent) {
     if (!usageTipsEnabled) return
     cancelTipClose()
-    setTipCursor({ x: event.clientX, y: event.clientY })
-    setTipOpen(true)
-  }
-
-  function trackTipCursor(event: MouseEvent) {
-    if (!usageTipsEnabled) return
-    setTipCursor({ x: event.clientX, y: event.clientY })
+    if (!tipOpen) {
+      setTipCursor({ x: event.clientX, y: event.clientY })
+      setTipOpen(true)
+    }
   }
 
   function closeTip() {
@@ -361,7 +358,6 @@ export function PreviewWishlistPicker({
       ref={anchorRef}
       className="relative flex flex-col items-center gap-1 flex-shrink-0"
       onMouseEnter={openTip}
-      onMouseMove={trackTipCursor}
       onMouseLeave={scheduleTipClose}
     >
       <p
@@ -391,7 +387,6 @@ export function PreviewWishlistPicker({
           openPanel()
           openTip(event)
         }}
-        onMouseMove={trackTipCursor}
         onMouseLeave={scheduleClose}
       >
         {cfg.renderIcon(20)}

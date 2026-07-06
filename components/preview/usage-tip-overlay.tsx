@@ -1,5 +1,6 @@
 'use client'
 
+import { useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { Lightbulb } from 'lucide-react'
 import type { CSSProperties } from 'react'
@@ -98,9 +99,18 @@ export function UsageTipOverlay({
   onMouseLeave,
   onHideAllTips,
 }: UsageTipOverlayProps) {
-  if (!open) return null
+  const placedRef = useRef<PlacedUsageTip | null>(null)
 
-  const placed = placeUsageTipPanel(placement, point)
+  if (!open) {
+    placedRef.current = null
+    return null
+  }
+
+  if (!placedRef.current) {
+    placedRef.current = placeUsageTipPanel(placement, point)
+  }
+
+  const placed = placedRef.current
   const panelTransform = placement === 'above-anchor' ? 'translateY(-100%)' : undefined
 
   return createPortal(
