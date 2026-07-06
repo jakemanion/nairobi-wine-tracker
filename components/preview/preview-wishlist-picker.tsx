@@ -5,6 +5,7 @@ import {
   useRef,
   useState,
   type CSSProperties,
+  type MouseEvent,
 } from 'react'
 import { createPortal } from 'react-dom'
 import { Bookmark } from 'lucide-react'
@@ -14,14 +15,18 @@ import { saveReviewWishlistField, type WishlistValue } from '@/lib/reviews'
 import type { PreviewThemeMode } from '@/lib/preview/preview-colors'
 import { getReviewPanelTextColors } from '@/lib/preview/preview-colors'
 import { usePreviewTheme } from '@/components/preview/preview-theme-context'
+import { UsageTipOverlay } from '@/components/preview/usage-tip-overlay'
 
 const PANEL_WIDTH = 248
 const PANEL_HEIGHT = 88
 const OPTION_SIZE = 40
 const OPTION_ICON_SIZE = 20
 const HOVER_CLOSE_DELAY_MS = 120
-const TIP_WIDTH = 220
-const TIP_GAP = 10
+
+const WISHLIST_USAGE_TIP = {
+  heading: 'How to use: Wishlists',
+  body: "Use this Wishlist button to remember the wines you want to try... and those you don't",
+} as const
 
 type PreviewWishlistPickerProps = {
   wineId: string
@@ -179,22 +184,6 @@ function placePanelAboveButton(rect: DOMRect) {
   return { left, top }
 }
 
-function placeUsageTipAboveButton(rect: DOMRect) {
-  const centerX = rect.left + rect.width / 2
-  let left = centerX - TIP_WIDTH / 2
-
-  if (left < 12) left = 12
-  if (left + TIP_WIDTH > window.innerWidth - 12) {
-    left = window.innerWidth - TIP_WIDTH - 12
-  }
-
-  return {
-    left,
-    top: rect.top - TIP_GAP,
-    arrowLeft: centerX - left,
-  }
-}
-
 const panelShellStyle = (colors: { pickerPanelBg: string; pickerPanelBorder: string }): CSSProperties => ({
   position: 'fixed',
   zIndex: 10000,
@@ -236,7 +225,7 @@ export function PreviewWishlistPicker({
   const [error, setError] = useState<string | null>(null)
   const [panelOpen, setPanelOpen] = useState(false)
   const [tipOpen, setTipOpen] = useState(false)
-  const [tipPosition, setTipPosition] = useState({ left: 0, top: 0, arrowLeft: 110 })
+  const [tipCursor, setTipCursor] = useState({ x: 0, y: 0 })
   const [panelPosition, setPanelPosition] = useState({ left: 0, top: 0 })
   const [hoveredOption, setHoveredOption] = useState<WishlistValue | 'none'>('none')
   const [mounted, setMounted] = useState(false)
@@ -267,24 +256,6 @@ export function PreviewWishlistPicker({
     if (usageTipsEnabled) return
     setTipOpen(false)
   }, [usageTipsEnabled])
-
-  useEffect(() => {
-    if (!tipOpen || !buttonRef.current) return
-
-    function updateTipPosition() {
-      if (!buttonRef.current) return
-      setTipPosition(placeUsageTipAboveButton(buttonRef.current.getBoundingClientRect()))
-    }
-
-    updateTipPosition()
-    window.addEventListener('resize', updateTipPosition)
-    window.addEventListener('scroll', updateTipPosition, true)
-
-    return () => {
-      window.removeEventListener('resize', updateTipPosition)
-      window.removeEventListener('scroll', updateTipPosition, true)
-    }
-  }, [tipOpen])
 
   function cancelClose() {
     if (closeTimeoutRef.current != null) {
@@ -331,11 +302,16 @@ export function PreviewWishlistPicker({
     setPanelOpen(true)
   }
 
-  function openTip() {
-    if (!usageTipsEnabled || !buttonRef.current) return
+  function openTip(event: MouseEvent) {
+    if (!usageTipsEnabled) return
     cancelTipClose()
-    setTipPosition(placeUsageTipAboveButton(buttonRef.current.getBoundingClientRect()))
+    setTipCursor({ x: event.clientX, y: event.clientY })
     setTipOpen(true)
+  }
+
+  function trackTipCursor(event: MouseEvent) {
+    if (!usageTipsEnabled) return
+    setTipCursor({ x: event.clientX, y: event.clientY })
   }
 
   function closeTip() {
@@ -385,6 +361,7 @@ export function PreviewWishlistPicker({
       ref={anchorRef}
       className="relative flex flex-col items-center gap-1 flex-shrink-0"
       onMouseEnter={openTip}
+      onMouseMove={trackTipCursor}
       onMouseLeave={scheduleTipClose}
     >
       <p
@@ -410,73 +387,30 @@ export function PreviewWishlistPicker({
           opacity: saving ? 0.5 : 1,
           cursor: saving ? 'wait' : 'pointer',
         }}
-        onMouseEnter={() => {
+        onMouseEnter={(event) => {
           openPanel()
-          openTip()
+          openTip(event)
         }}
+        onMouseMove={trackTipCursor}
         onMouseLeave={scheduleClose}
       >
         {cfg.renderIcon(20)}
       </button>
-      {mounted && tipOpen && usageTipsEnabled
-        ? createPortal(
-            <div
-              className="w-[220px] rounded-lg p-2.5"
-              style={{
-                position: 'fixed',
-                left: tipPosition.left,
-                top: tipPosition.top,
-                transform: 'translateY(-100%)',
-                zIndex: 10001,
-                background: '#111218',
-                border: '1px solid #3A3848',
-                boxShadow: '0 8px 24px rgba(0,0,0,0.45)',
-              }}
-              onMouseEnter={cancelTipClose}
-              onMouseLeave={closeTip}
-            >
-              <div
-                className="absolute top-full h-0 w-0"
-                style={{
-                  left: tipPosition.arrowLeft - 6,
-                  borderLeft: '6px solid transparent',
-                  borderRight: '6px solid transparent',
-                  borderTop: '7px solid #3A3848',
-                }}
-              />
-              <p
-                className="m-0 text-[11px] font-semibold"
-                style={{ color: '#F5F2EC', fontFamily: 'var(--font-dm-sans), sans-serif' }}
-              >
-                How to use: Wishlists
-              </p>
-              <p
-                className="m-0 mt-1 text-[10px] leading-snug"
-                style={{ color: '#D0CED4', fontFamily: 'var(--font-dm-sans), sans-serif' }}
-              >
-                Use this Wishlist button to remember the wines you want to try... and those you don't
-              </p>
-              <button
-                type="button"
-                className="mt-2 text-[10px] px-2 py-1 rounded-md"
-                style={{
-                  background: '#C93048',
-                  border: '1px solid #C93048',
-                  color: '#FFFFFF',
-                  fontFamily: 'var(--font-dm-sans), sans-serif',
-                  cursor: 'pointer',
-                }}
-                onClick={() => {
-                  closeTip()
-                  onHideAllTips?.()
-                }}
-              >
-                Hide all tips
-              </button>
-            </div>,
-            document.body,
-          )
-        : null}
+      {mounted ? (
+        <UsageTipOverlay
+          open={tipOpen && usageTipsEnabled}
+          placement="bottom-left-of-cursor"
+          point={tipCursor}
+          heading={WISHLIST_USAGE_TIP.heading}
+          body={WISHLIST_USAGE_TIP.body}
+          onMouseEnter={cancelTipClose}
+          onMouseLeave={closeTip}
+          onHideAllTips={() => {
+            closeTip()
+            onHideAllTips?.()
+          }}
+        />
+      ) : null}
 
       {mounted && panelOpen
         ? createPortal(
