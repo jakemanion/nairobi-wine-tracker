@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { LogoutButton } from '@/components/auth/logout-button'
 import { LoginNavLink } from '@/components/auth/login-nav-link'
 import { RegisterNavLink } from '@/components/auth/register-nav-link'
@@ -35,6 +35,7 @@ type PreviewWineListProps = {
 }
 
 const EAGER_IMAGE_COUNT = 30
+const USAGE_TIPS_STORAGE_KEY = 'wine-diviner-usage-tips-enabled'
 
 function updateWineReview(
   wines: DisplayWineRow[],
@@ -71,6 +72,27 @@ export function PreviewWineList({
   const [primarySort, setPrimarySort] = useState<SortCriterion>({ key: 'winery', dir: 'asc' })
   const [secondarySort, setSecondarySort] = useState<SortCriterion>({ key: 'none', dir: 'asc' })
   const [shortlistOnly, setShortlistOnly] = useState(false)
+  const [usageTipsEnabled, setUsageTipsEnabled] = useState(true)
+
+  useEffect(() => {
+    if (!isLoggedIn) return
+    try {
+      const stored = window.localStorage.getItem(USAGE_TIPS_STORAGE_KEY)
+      if (stored === 'off') setUsageTipsEnabled(false)
+      if (stored === 'on') setUsageTipsEnabled(true)
+    } catch {
+      // Ignore storage access errors and keep defaults.
+    }
+  }, [isLoggedIn])
+
+  function setUsageTips(next: boolean) {
+    setUsageTipsEnabled(next)
+    try {
+      window.localStorage.setItem(USAGE_TIPS_STORAGE_KEY, next ? 'on' : 'off')
+    } catch {
+      // Ignore storage write errors and keep in-memory state.
+    }
+  }
 
   const filterOptions = useMemo(() => collectFilterOptions(wines), [wines])
   const priceBounds = useMemo(() => computeListPriceBounds(wines), [wines])
@@ -137,6 +159,25 @@ export function PreviewWineList({
                   >
                     {userEmail ? `${userName} · ${userEmail}` : userName}
                   </span>
+                  <label
+                    className="inline-flex items-center gap-1.5 text-[10px] px-2 py-1 rounded-md"
+                    style={{
+                      color: colors.headerSub,
+                      border: `1px solid ${colors.headerBorder}`,
+                      background: colors.toolbarBg,
+                      fontFamily: 'var(--font-dm-sans), sans-serif',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={usageTipsEnabled}
+                      onChange={(event) => setUsageTips(event.target.checked)}
+                      className="accent-[#C93048]"
+                      aria-label="Toggle usage tips"
+                    />
+                    Tips
+                  </label>
                   <LogoutButton theme={mode} />
                 </>
               ) : (
@@ -188,6 +229,8 @@ export function PreviewWineList({
                 userId={userId}
                 review={isLoggedIn ? source?.review : undefined}
                 imagePriority={index < EAGER_IMAGE_COUNT}
+                usageTipsEnabled={isLoggedIn && usageTipsEnabled}
+                onHideAllTips={() => setUsageTips(false)}
                 onReviewChange={(review) =>
                   setWines((current) => updateWineReview(current, wine.id, review))
                 }

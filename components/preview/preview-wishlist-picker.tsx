@@ -25,6 +25,8 @@ type PreviewWishlistPickerProps = {
   wineId: string
   userId: string
   review?: WineReview | null
+  usageTipsEnabled?: boolean
+  onHideAllTips?: () => void
   onReviewChange: (review: WineReview | null) => void
 }
 
@@ -207,12 +209,15 @@ export function PreviewWishlistPicker({
   wineId,
   userId,
   review,
+  usageTipsEnabled = false,
+  onHideAllTips,
   onReviewChange,
 }: PreviewWishlistPickerProps) {
   const { colors, mode } = usePreviewTheme()
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [panelOpen, setPanelOpen] = useState(false)
+  const [tipOpen, setTipOpen] = useState(false)
   const [panelPosition, setPanelPosition] = useState({ left: 0, top: 0 })
   const [hoveredOption, setHoveredOption] = useState<WishlistValue | 'none'>('none')
   const [mounted, setMounted] = useState(false)
@@ -265,6 +270,15 @@ export function PreviewWishlistPicker({
     setPanelOpen(true)
   }
 
+  function showTip() {
+    if (!usageTipsEnabled) return
+    setTipOpen(true)
+  }
+
+  function hideTip() {
+    setTipOpen(false)
+  }
+
   async function setValue(next: WishlistValue) {
     if (saving || value === next) {
       setPanelOpen(false)
@@ -303,7 +317,12 @@ export function PreviewWishlistPicker({
       : (WISHLIST_OPTIONS.find((o) => o.value === hoveredOption)?.tooltip ?? '')
 
   return (
-    <div ref={anchorRef} className="flex flex-col items-center gap-1 flex-shrink-0">
+    <div
+      ref={anchorRef}
+      className="relative flex flex-col items-center gap-1 flex-shrink-0"
+      onMouseEnter={showTip}
+      onMouseLeave={hideTip}
+    >
       <p
         className="text-[8px] uppercase tracking-wider leading-tight text-center max-w-[54px]"
         style={{ color: panelText.label, fontFamily: 'var(--font-dm-sans), sans-serif' }}
@@ -332,6 +351,56 @@ export function PreviewWishlistPicker({
       >
         {cfg.renderIcon(20)}
       </button>
+      {tipOpen ? (
+        <div
+          className="absolute z-20 w-[220px] rounded-lg p-2.5"
+          style={{
+            right: -12,
+            bottom: 'calc(100% + 8px)',
+            background: '#111218',
+            border: '1px solid #3A3848',
+            boxShadow: '0 8px 24px rgba(0,0,0,0.45)',
+          }}
+        >
+          <div
+            className="absolute right-5 top-full h-0 w-0"
+            style={{
+              borderLeft: '6px solid transparent',
+              borderRight: '6px solid transparent',
+              borderTop: '7px solid #3A3848',
+            }}
+          />
+          <p
+            className="m-0 text-[11px] font-semibold"
+            style={{ color: '#F5F2EC', fontFamily: 'var(--font-dm-sans), sans-serif' }}
+          >
+            How to use: Wishlists
+          </p>
+          <p
+            className="m-0 mt-1 text-[10px] leading-snug"
+            style={{ color: '#D0CED4', fontFamily: 'var(--font-dm-sans), sans-serif' }}
+          >
+            Use this Wishlist button to remember the wines you want to try... and those you don't
+          </p>
+          <button
+            type="button"
+            className="mt-2 text-[10px] px-2 py-1 rounded-md"
+            style={{
+              background: '#C93048',
+              border: '1px solid #C93048',
+              color: '#FFFFFF',
+              fontFamily: 'var(--font-dm-sans), sans-serif',
+              cursor: 'pointer',
+            }}
+            onClick={() => {
+              setTipOpen(false)
+              onHideAllTips?.()
+            }}
+          >
+            Hide all tips
+          </button>
+        </div>
+      ) : null}
 
       {mounted && panelOpen
         ? createPortal(

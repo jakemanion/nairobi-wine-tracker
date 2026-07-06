@@ -27,6 +27,8 @@ type PreviewWineCardProps = {
   isLoggedIn: boolean
   userId: string
   review?: WineReview | null
+  usageTipsEnabled?: boolean
+  onHideAllTips?: () => void
   onReviewChange: (review: WineReview | null) => void
   imagePriority?: boolean
 }
@@ -257,6 +259,8 @@ export function PreviewWineCard({
   isLoggedIn,
   userId,
   review,
+  usageTipsEnabled = false,
+  onHideAllTips,
   onReviewChange,
   imagePriority = false,
 }: PreviewWineCardProps) {
@@ -586,6 +590,8 @@ export function PreviewWineCard({
             wineId={wine.id}
             userId={userId}
             review={review}
+            usageTipsEnabled={usageTipsEnabled}
+            onHideAllTips={onHideAllTips}
             onReviewChange={onReviewChange}
           />
           <PreviewTriedStatusPicker
