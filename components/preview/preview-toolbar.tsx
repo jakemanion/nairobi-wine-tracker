@@ -4,6 +4,7 @@ import { Search, ListChecks } from 'lucide-react'
 import { ClearShortlistButton } from '@/components/clear-shortlist-button'
 import { ShowShortlistOnlyButton } from '@/components/show-shortlist-only-button'
 import { PreviewToolbarQuickFilters } from '@/components/preview/preview-toolbar-quick-filters'
+import { UsageTipTarget } from '@/components/preview/usage-tip-target'
 import type { SortCriterion } from '@/components/wine-filter-panel'
 import { usePreviewTheme } from '@/components/preview/preview-theme-context'
 import {
@@ -143,26 +144,32 @@ export function PreviewToolbar({
         </div>
 
         <div className="flex items-center gap-2 flex-shrink-0 ml-auto">
-          <button
-            type="button"
-            aria-pressed={hideUnwantedActive}
-            className="flex items-center text-xs px-3 py-2 rounded-lg flex-shrink-0"
-            style={{
-              background: hideUnwantedActive ? colors.searchBg : colors.buttonBg,
-              border: `1px solid ${hideUnwantedActive ? '#C93048' : colors.buttonBorder}`,
-              color: hideUnwantedActive ? colors.searchText : colors.buttonText,
-              fontFamily: 'var(--font-dm-sans), sans-serif',
-              cursor: 'pointer',
-              whiteSpace: 'nowrap',
-            }}
-            onClick={() =>
-              onFiltersChange(applyHideUnwantedToggle(filters, !hideUnwantedActive))
-            }
-          >
-            {hideUnwantedActive ? 'Show unwanted' : 'Hide unwanted'}
-          </button>
+          <UsageTipTarget tipId="hide-unwanted">
+            <button
+              type="button"
+              aria-pressed={hideUnwantedActive}
+              className="flex items-center text-xs px-3 py-2 rounded-lg flex-shrink-0"
+              style={{
+                background: hideUnwantedActive ? colors.searchBg : colors.buttonBg,
+                border: `1px solid ${hideUnwantedActive ? '#C93048' : colors.buttonBorder}`,
+                color: hideUnwantedActive ? colors.searchText : colors.buttonText,
+                fontFamily: 'var(--font-dm-sans), sans-serif',
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+              }}
+              onClick={() =>
+                onFiltersChange(applyHideUnwantedToggle(filters, !hideUnwantedActive))
+              }
+            >
+              {hideUnwantedActive ? 'Show unwanted' : 'Hide unwanted'}
+            </button>
+          </UsageTipTarget>
           {isLoggedIn && userId && onShortlistOnlyChange && onShortlistCleared ? (
-            <div className="flex items-center gap-1.5 flex-shrink-0" style={shortlistPanelStyle}>
+            <UsageTipTarget
+              tipId="shortlist-panel"
+              className="flex items-center gap-1.5 flex-shrink-0"
+              style={shortlistPanelStyle}
+            >
               <span style={shortlistLabelStyle}>
                 <ListChecks className="w-3.5 h-3.5" strokeWidth={2} />
                 Shortlist
@@ -177,7 +184,7 @@ export function PreviewToolbar({
                 theme={mode}
                 onCleared={onShortlistCleared}
               />
-            </div>
+            </UsageTipTarget>
           ) : null}
         </div>
       </div>

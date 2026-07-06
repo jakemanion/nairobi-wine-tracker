@@ -11,6 +11,7 @@ import {
   type WineFilters,
 } from '@/lib/wine-filters'
 import { PreviewFilterMultiSelect } from '@/components/preview/preview-filter-multi-select'
+import { UsageTipTarget } from '@/components/preview/usage-tip-target'
 import type { PreviewColors } from '@/lib/preview/preview-colors'
 import type { SortCriterion, SortFieldKey } from '@/components/wine-filter-panel'
 
@@ -274,7 +275,11 @@ export function PreviewToolbarQuickFilters({
   return (
     <div className="flex flex-col gap-2.5 px-3 pb-3">
       <div className="flex flex-wrap items-center gap-2">
-        <div className="flex flex-wrap items-center gap-1.5" style={sliderGroupStyle(colors)}>
+        <UsageTipTarget
+          tipId="sort-panel"
+          className="flex flex-wrap items-center gap-1.5"
+          style={sliderGroupStyle(colors)}
+        >
           <span style={sliderLabelStyle(colors)}>Sort by:</span>
           {QUICK_SORT_OPTIONS.map((option) => {
             const active = isQuickSortActive(primarySort, option.key, option.dir)
@@ -290,9 +295,13 @@ export function PreviewToolbarQuickFilters({
               </button>
             )
           })}
-        </div>
+        </UsageTipTarget>
 
-        <div className="flex flex-wrap items-center gap-1.5" style={sliderGroupStyle(colors)}>
+        <UsageTipTarget
+          tipId="best-under-panel"
+          className="flex flex-wrap items-center gap-1.5"
+          style={sliderGroupStyle(colors)}
+        >
           <span style={sliderLabelStyle(colors)}>Best wines under:</span>
           {BEST_UNDER_PRICE_PRESETS.map((price) => (
             <button
@@ -305,7 +314,7 @@ export function PreviewToolbarQuickFilters({
               {price.toLocaleString()}
             </button>
           ))}
-        </div>
+        </UsageTipTarget>
       </div>
 
       <div className="flex flex-wrap items-center gap-2">

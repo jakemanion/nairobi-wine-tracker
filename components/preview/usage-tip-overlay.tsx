@@ -84,6 +84,7 @@ type UsageTipOverlayProps = {
   point: UsageTipPoint
   heading: string
   body: string
+  estimatedHeight?: number
   onMouseEnter?: () => void
   onMouseLeave?: () => void
   onHideAllTips?: () => void
@@ -95,6 +96,7 @@ export function UsageTipOverlay({
   point,
   heading,
   body,
+  estimatedHeight,
   onMouseEnter,
   onMouseLeave,
   onHideAllTips,
@@ -107,7 +109,7 @@ export function UsageTipOverlay({
   }
 
   if (!placedRef.current) {
-    placedRef.current = placeUsageTipPanel(placement, point)
+    placedRef.current = placeUsageTipPanel(placement, point, estimatedHeight ?? TIP_ESTIMATED_HEIGHT)
   }
 
   const placed = placedRef.current

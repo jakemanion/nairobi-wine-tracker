@@ -12,6 +12,7 @@ import {
 } from '@/components/preview/preview-wishlist-picker'
 import { PreviewShortlistButton } from '@/components/preview/preview-shortlist-button'
 import { PreviewTriedStatusPicker } from '@/components/preview/preview-tried-status-picker'
+import { UsageTipTarget } from '@/components/preview/usage-tip-target'
 import { usePreviewTheme } from '@/components/preview/preview-theme-context'
 import {
   colourRibbonStyle,
@@ -27,8 +28,6 @@ type PreviewWineCardProps = {
   isLoggedIn: boolean
   userId: string
   review?: WineReview | null
-  usageTipsEnabled?: boolean
-  onHideAllTips?: () => void
   onReviewChange: (review: WineReview | null) => void
   imagePriority?: boolean
 }
@@ -259,8 +258,6 @@ export function PreviewWineCard({
   isLoggedIn,
   userId,
   review,
-  usageTipsEnabled = false,
-  onHideAllTips,
   onReviewChange,
   imagePriority = false,
 }: PreviewWineCardProps) {
@@ -420,13 +417,15 @@ export function PreviewWineCard({
           className="absolute top-2.5 right-3.5 z-[1] transition-opacity duration-200"
           style={{ opacity: isLoggedIn ? 1 : 0.35, pointerEvents: isLoggedIn ? 'auto' : 'none' }}
         >
-          <PreviewShortlistButton
-            wineId={wine.id}
-            userId={userId}
-            review={review}
-            disabled={!isLoggedIn}
-            onReviewChange={onReviewChange}
-          />
+          <UsageTipTarget tipId="shortlist-button">
+            <PreviewShortlistButton
+              wineId={wine.id}
+              userId={userId}
+              review={review}
+              disabled={!isLoggedIn}
+              onReviewChange={onReviewChange}
+            />
+          </UsageTipTarget>
         </div>
         <div className="flex items-start gap-2.5 pr-12">
           <VivinoCircle rating={wine.vivinoRating} url={wine.vivinoUrl} />
@@ -586,21 +585,24 @@ export function PreviewWineCard({
           style={{ pointerEvents: isLoggedIn ? 'auto' : 'none' }}
         >
         <div className="flex items-end gap-1.5 min-w-0">
-          <PreviewWishlistPicker
-            wineId={wine.id}
-            userId={userId}
-            review={review}
-            usageTipsEnabled={usageTipsEnabled}
-            onHideAllTips={onHideAllTips}
-            onReviewChange={onReviewChange}
-          />
-          <PreviewTriedStatusPicker
-            wineId={wine.id}
-            userId={userId}
-            review={review}
-            onReviewChange={onReviewChange}
-          />
-          <div
+          <UsageTipTarget tipId="wishlist-button">
+            <PreviewWishlistPicker
+              wineId={wine.id}
+              userId={userId}
+              review={review}
+              onReviewChange={onReviewChange}
+            />
+          </UsageTipTarget>
+          <UsageTipTarget tipId="tried-button">
+            <PreviewTriedStatusPicker
+              wineId={wine.id}
+              userId={userId}
+              review={review}
+              onReviewChange={onReviewChange}
+            />
+          </UsageTipTarget>
+          <UsageTipTarget
+            tipId="rating-slider"
             className="flex-1 min-w-0 basis-0 transition-opacity duration-200"
             style={{ opacity: ratingInactive ? 0.45 : 1 }}
           >
@@ -617,28 +619,30 @@ export function PreviewWineCard({
               onChange={setRatingDraft}
               onCommit={(v) => void saveRating(v)}
             />
-          </div>
+          </UsageTipTarget>
         </div>
 
-        <textarea
-          value={notesDraft}
-          disabled={savingNotes}
-          placeholder="Notes"
-          rows={2}
-          className="w-full text-[11px] resize-none focus:outline-none transition-colors leading-relaxed rounded-lg px-2.5 py-1.5 disabled:opacity-60"
-          style={{
-            background: panelText.notesBg,
-            border: `1px solid ${panelText.notesBorder}`,
-            color: panelText.notesText,
-            fontFamily: 'var(--font-dm-sans), sans-serif',
-            caretColor: colors.producer,
-          }}
-          onChange={(e) => {
-            notesDirtyRef.current = true
-            setNotesDraft(e.target.value)
-          }}
-          onBlur={() => void saveNotes()}
-        />
+        <UsageTipTarget tipId="notes-textfield">
+          <textarea
+            value={notesDraft}
+            disabled={savingNotes}
+            placeholder="Notes"
+            rows={2}
+            className="w-full text-[11px] resize-none focus:outline-none transition-colors leading-relaxed rounded-lg px-2.5 py-1.5 disabled:opacity-60"
+            style={{
+              background: panelText.notesBg,
+              border: `1px solid ${panelText.notesBorder}`,
+              color: panelText.notesText,
+              fontFamily: 'var(--font-dm-sans), sans-serif',
+              caretColor: colors.producer,
+            }}
+            onChange={(e) => {
+              notesDirtyRef.current = true
+              setNotesDraft(e.target.value)
+            }}
+            onBlur={() => void saveNotes()}
+          />
+        </UsageTipTarget>
 
         {error ? (
           <p className="text-[10px]" style={{ color: '#c05050' }}>
