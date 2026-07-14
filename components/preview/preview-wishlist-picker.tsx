@@ -22,8 +22,8 @@ function normalizeWishlist(value: number | null | undefined): WishlistValue {
   return null
 }
 
-export function getWishlistStateLabel(value: WishlistValue): string {
-  return value === 1 ? 'WISHLISTED' : 'WISHLIST'
+export function getWishlistStateLabel(_value: WishlistValue): string {
+  return 'WISHLIST'
 }
 
 export const WISHLISTED_BUTTON_STYLE = {
@@ -99,9 +99,9 @@ export function PreviewWishlistPicker({
   const iconColor = active ? WISHLISTED_BUTTON_STYLE.color : '#9894A4'
 
   return (
-    <div className="flex flex-col items-center gap-1 flex-shrink-0">
+    <div className="flex flex-col items-center gap-0.5 flex-shrink-0">
       <p
-        className="text-[8px] uppercase tracking-wider leading-tight text-center max-w-[54px]"
+        className="text-[6px] uppercase tracking-wider leading-tight text-center max-w-[54px]"
         style={{ color: panelText.label, fontFamily: 'var(--font-dm-sans), sans-serif' }}
       >
         {getWishlistStateLabel(value)}
@@ -112,7 +112,7 @@ export function PreviewWishlistPicker({
         aria-label={active ? 'Remove from wishlist' : 'Add to wishlist'}
         aria-pressed={active}
         disabled={saving}
-        className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-105 flex-shrink-0"
+        className="w-10 h-10 rounded-lg flex items-center justify-center transition-all hover:scale-105 flex-shrink-0"
         style={{
           border: `2px solid ${borderColor}`,
           background: bgColor,
@@ -124,7 +124,7 @@ export function PreviewWishlistPicker({
         onClick={() => void toggle()}
       >
         <Heart
-          size={20}
+          size={24}
           strokeWidth={2}
           className={active ? 'fill-current' : undefined}
           style={{ color: iconColor }}

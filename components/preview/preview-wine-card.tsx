@@ -244,24 +244,24 @@ function HideButton({
       onClick={onClick}
     >
       <div
-        className="w-8 h-8 rounded-full flex items-center justify-center"
+        className="w-6 h-6 rounded flex items-center justify-center"
         style={{
-          border: `2px solid ${active ? '#5A3030' : '#3A3848'}`,
+          border: `1.5px solid ${active ? '#5A3030' : '#3A3848'}`,
           background: active ? '#2A1C1C' : '#22222C',
           color: active ? '#F08080' : '#9894A4',
-          boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
+          boxShadow: '0 1px 4px rgba(0,0,0,0.25)',
         }}
       >
-        <EyeOff size={14} strokeWidth={2} />
+        <EyeOff size={13} strokeWidth={2} />
       </div>
       <span
-        className="text-[7px] uppercase tracking-wider leading-none"
+        className="text-[5px] uppercase tracking-wider leading-none"
         style={{
           color: active ? '#F08080' : panelLabelColor,
           fontFamily: 'var(--font-dm-sans), sans-serif',
         }}
       >
-        {active ? 'Hidden' : 'Hide'}
+        Hide
       </span>
     </button>
   )
@@ -518,22 +518,33 @@ export function PreviewWineCard({
       </div>
 
       <div
-        className="relative flex-shrink-0 px-2.5 py-2.5 flex flex-col gap-2 transition-colors duration-300 min-w-0 group/review-panel"
+        className="relative flex-shrink-0 px-2.5 py-2.5 flex flex-col gap-1.5 transition-colors duration-300 min-w-0 group/review-panel"
         style={{
-          width: '29.33%',
+          width: '35.2%',
           ...getReviewPanelStyle(wishlist, mode),
         }}
       >
         {!isLoggedIn ? <LoggedOutLoginPromptOverlay hoverGroup="review-panel" /> : null}
 
+        <div className="absolute top-1.5 right-1.5 z-10"
+          style={{ pointerEvents: isLoggedIn ? 'auto' : 'none', opacity: isLoggedIn ? 1 : 0.42 }}
+        >
+          <HideButton
+            active={isHidden}
+            saving={savingHide}
+            panelLabelColor={panelText.muted}
+            onClick={() => void toggleHide()}
+          />
+        </div>
+
         <div
-          className="flex flex-col gap-2 min-h-0"
+          className="flex flex-col gap-1.5 min-h-0"
           style={{
             pointerEvents: isLoggedIn ? 'auto' : 'none',
             opacity: isLoggedIn ? 1 : 0.42,
           }}
         >
-          <div className="flex items-end gap-1.5 min-w-0">
+          <div className="flex items-end gap-1.5 min-w-0 pr-8">
             <UsageTipTarget tipId="wishlist-button">
               <PreviewWishlistPicker
                 wineId={wine.id}
@@ -551,7 +562,31 @@ export function PreviewWineCard({
                 onReviewChange={onReviewChange}
               />
             </UsageTipTarget>
-            <UsageTipTarget tipId="tried-button">
+          </div>
+
+          <div className="flex items-start gap-1.5">
+            <UsageTipTarget tipId="notes-textfield" className="flex-1 min-w-0">
+              <textarea
+                value={notesDraft}
+                disabled={savingNotes}
+                placeholder="Notes"
+                rows={2}
+                className="w-full text-[11px] resize-none focus:outline-none transition-colors leading-relaxed rounded-lg px-2 py-1.5 disabled:opacity-60"
+                style={{
+                  background: panelText.notesBg,
+                  border: `1px solid ${panelText.notesBorder}`,
+                  color: panelText.notesText,
+                  fontFamily: 'var(--font-dm-sans), sans-serif',
+                  caretColor: colors.producer,
+                }}
+                onChange={(e) => {
+                  notesDirtyRef.current = true
+                  setNotesDraft(e.target.value)
+                }}
+                onBlur={() => void saveNotes()}
+              />
+            </UsageTipTarget>
+            <UsageTipTarget tipId="tried-button" className="flex-shrink-0 pt-1">
               <PreviewTriedStatusPicker
                 wineId={wine.id}
                 userId={userId}
@@ -559,37 +594,7 @@ export function PreviewWineCard({
                 onReviewChange={onReviewChange}
               />
             </UsageTipTarget>
-            <div className="ml-auto">
-              <HideButton
-                active={isHidden}
-                saving={savingHide}
-                panelLabelColor={panelText.muted}
-                onClick={() => void toggleHide()}
-              />
-            </div>
           </div>
-
-          <UsageTipTarget tipId="notes-textfield">
-            <textarea
-              value={notesDraft}
-              disabled={savingNotes}
-              placeholder="Notes"
-              rows={2}
-              className="w-full text-[11px] resize-none focus:outline-none transition-colors leading-relaxed rounded-lg px-2.5 py-1.5 disabled:opacity-60"
-              style={{
-                background: panelText.notesBg,
-                border: `1px solid ${panelText.notesBorder}`,
-                color: panelText.notesText,
-                fontFamily: 'var(--font-dm-sans), sans-serif',
-                caretColor: colors.producer,
-              }}
-              onChange={(e) => {
-                notesDirtyRef.current = true
-                setNotesDraft(e.target.value)
-              }}
-              onBlur={() => void saveNotes()}
-            />
-          </UsageTipTarget>
 
           {error ? (
             <p className="text-[10px]" style={{ color: '#c05050' }}>

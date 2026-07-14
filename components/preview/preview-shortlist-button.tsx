@@ -50,7 +50,7 @@ export function PreviewShortlistButton({
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const shortlisted = normalizeShortlist(review?.shortlist) === 1
-  const label = shortlisted ? 'SHORTLISTED' : 'SHORTLIST'
+  const label = 'SHORTLIST'
   const inactiveColor = '#9894A4'
   const activeStyle = WISHLISTED_BUTTON_STYLE
 
@@ -84,9 +84,9 @@ export function PreviewShortlistButton({
   }
 
   return (
-    <div className="flex flex-col items-center gap-1 flex-shrink-0">
+    <div className="flex flex-col items-center gap-0.5 flex-shrink-0">
       <p
-        className="text-[8px] uppercase tracking-wider leading-tight text-center max-w-[54px]"
+        className="text-[6px] uppercase tracking-wider leading-tight text-center max-w-[54px]"
         style={{
           color: shortlisted ? activeStyle.color : inactiveColor,
           fontFamily: 'var(--font-dm-sans), sans-serif',
@@ -100,7 +100,7 @@ export function PreviewShortlistButton({
         aria-label={SHORTLIST_TOOLTIP}
         aria-pressed={shortlisted}
         disabled={saving || disabled}
-        className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-105 flex-shrink-0"
+        className="w-10 h-10 rounded-lg flex items-center justify-center transition-all hover:scale-105 flex-shrink-0"
         style={{
           border: `2px solid ${shortlisted ? activeStyle.border : '#3A3848'}`,
           background: shortlisted ? activeStyle.bg : '#22222C',
@@ -113,7 +113,7 @@ export function PreviewShortlistButton({
       >
         <ListChecks
           className={shortlisted ? 'fill-current' : undefined}
-          size={20}
+          size={24}
           strokeWidth={2}
           style={{ color: shortlisted ? activeStyle.color : inactiveColor }}
         />

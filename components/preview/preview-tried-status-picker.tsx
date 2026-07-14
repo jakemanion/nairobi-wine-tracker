@@ -20,15 +20,8 @@ function normalizeTriedStatus(value: number | null | undefined): TriedStatusValu
   return null
 }
 
-export function getTriedStateLabel(value: TriedStatusValue): string {
-  switch (value) {
-    case 1:
-      return 'LIKED'
-    case 2:
-      return 'DISLIKED'
-    default:
-      return 'TRIED?'
-  }
+export function getTriedStateLabel(_value: TriedStatusValue): string {
+  return 'TRIED?'
 }
 
 function buildOptimisticReview(
@@ -61,9 +54,6 @@ export function PreviewTriedStatusPicker({
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const value = normalizeTriedStatus(review?.tried_status)
-  const wishlistForPanel =
-    review?.wishlist != null && review.wishlist >= 1 ? 1 : (review?.wishlist ?? null)
-  const panelText = getReviewPanelTextColors(mode, wishlistForPanel)
 
   async function setStatus(next: TriedStatusValue) {
     if (saving) return
@@ -97,32 +87,26 @@ export function PreviewTriedStatusPicker({
   const downActive = value === 2
 
   return (
-    <div className="flex flex-col items-center gap-1 flex-shrink-0">
-      <p
-        className="text-[8px] uppercase tracking-wider leading-tight text-center max-w-[54px]"
-        style={{ color: panelText.label, fontFamily: 'var(--font-dm-sans), sans-serif' }}
-      >
-        {getTriedStateLabel(value)}
-      </p>
-      <div className="flex items-center gap-1.5">
+    <div className="flex flex-col items-center gap-0.5 flex-shrink-0">
+      <div className="flex items-center gap-1">
         <button
           type="button"
           title={upActive ? 'Remove thumbs up' : 'Thumbs up'}
           aria-label={upActive ? 'Remove thumbs up' : 'Thumbs up'}
           aria-pressed={upActive}
           disabled={saving}
-          className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-105 flex-shrink-0"
+          className="w-5 h-5 rounded flex items-center justify-center transition-all hover:scale-110 flex-shrink-0"
           style={{
-            border: `2px solid ${upActive ? '#2A5030' : '#3A3848'}`,
+            border: `1.5px solid ${upActive ? '#2A5030' : '#3A3848'}`,
             background: upActive ? '#162010' : '#22222C',
             color: upActive ? '#70D080' : '#9894A4',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.4)',
+            boxShadow: '0 1px 4px rgba(0,0,0,0.3)',
             opacity: saving ? 0.5 : 1,
             cursor: saving ? 'wait' : 'pointer',
           }}
           onClick={() => void setStatus(1)}
         >
-          <ThumbsUp size={18} strokeWidth={2} />
+          <ThumbsUp size={12} strokeWidth={2.5} />
         </button>
         <button
           type="button"
@@ -130,18 +114,18 @@ export function PreviewTriedStatusPicker({
           aria-label={downActive ? 'Remove thumbs down' : 'Thumbs down'}
           aria-pressed={downActive}
           disabled={saving}
-          className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-105 flex-shrink-0"
+          className="w-5 h-5 rounded flex items-center justify-center transition-all hover:scale-110 flex-shrink-0"
           style={{
-            border: `2px solid ${downActive ? '#5A3030' : '#3A3848'}`,
+            border: `1.5px solid ${downActive ? '#5A3030' : '#3A3848'}`,
             background: downActive ? '#2A1C1C' : '#22222C',
             color: downActive ? '#F08080' : '#9894A4',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.4)',
+            boxShadow: '0 1px 4px rgba(0,0,0,0.3)',
             opacity: saving ? 0.5 : 1,
             cursor: saving ? 'wait' : 'pointer',
           }}
           onClick={() => void setStatus(2)}
         >
-          <ThumbsDown size={18} strokeWidth={2} />
+          <ThumbsDown size={12} strokeWidth={2.5} />
         </button>
       </div>
       {error ? (
