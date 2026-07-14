@@ -1,13 +1,10 @@
 'use client'
 
 import type { CSSProperties } from 'react'
-import { ArrowUpDown } from 'lucide-react'
+import { ArrowUpDown, Heart, ListChecks, ThumbsUp } from 'lucide-react'
 import {
   BEST_UNDER_PRICE_PRESETS,
-  buildReviewFilterGroups,
   countryFiltersFromSelection,
-  decodeReviewFilterSelection,
-  encodeReviewFilterSelection,
   selectedCountriesFromRegionFilters,
   type WineFilters,
 } from '@/lib/wine-filters'
@@ -165,7 +162,6 @@ export function PreviewToolbarQuickFilters({
 }: PreviewToolbarQuickFiltersProps) {
   const priceMaxBound = priceBounds?.max ?? 10000
 
-  const reviewFilterSelection = encodeReviewFilterSelection(filters.wishlist, filters.triedStatus)
   const selectedCountries = selectedCountriesFromRegionFilters(filters.regions)
 
   function updateFilters(patch: Partial<WineFilters>) {
@@ -191,15 +187,6 @@ export function PreviewToolbarQuickFilters({
     updateFilters({ priceMax: String(price) })
     onPrimarySortChange({ key: 'vivino_rating', dir: 'desc' })
     onSecondarySortChange({ key: 'none', dir: 'asc' })
-  }
-
-  function updateReviewFilters(selected: string[]) {
-    const { wishlist, triedStatus } = decodeReviewFilterSelection(selected)
-    updateFilters({
-      wishlist,
-      triedStatus,
-      hideUnwanted: false,
-    })
   }
 
   return (
@@ -315,14 +302,48 @@ export function PreviewToolbarQuickFilters({
           onChange={(next) => updateFilters({ regions: countryFiltersFromSelection(next) })}
         />
 
-        <PreviewFilterMultiSelect
-          colors={colors}
-          label="Wishlists"
-          emptyMessage="No wishlist options"
-          groups={buildReviewFilterGroups()}
-          selected={reviewFilterSelection}
-          onChange={updateReviewFilters}
-        />
+        <button
+          type="button"
+          aria-pressed={filters.showWishlistOnly}
+          style={{
+            ...chipStyle(colors, filters.showWishlistOnly),
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 4,
+          }}
+          onClick={() => updateFilters({ showWishlistOnly: !filters.showWishlistOnly, showShortlistOnly: false, showThumbsUpOnly: false })}
+        >
+          <Heart size={13} strokeWidth={2} className={filters.showWishlistOnly ? 'fill-current' : undefined} />
+          Wishlist
+        </button>
+        <button
+          type="button"
+          aria-pressed={filters.showShortlistOnly}
+          style={{
+            ...chipStyle(colors, filters.showShortlistOnly),
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 4,
+          }}
+          onClick={() => updateFilters({ showShortlistOnly: !filters.showShortlistOnly, showWishlistOnly: false, showThumbsUpOnly: false })}
+        >
+          <ListChecks size={13} strokeWidth={2} />
+          Shortlist
+        </button>
+        <button
+          type="button"
+          aria-pressed={filters.showThumbsUpOnly}
+          style={{
+            ...chipStyle(colors, filters.showThumbsUpOnly),
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 4,
+          }}
+          onClick={() => updateFilters({ showThumbsUpOnly: !filters.showThumbsUpOnly, showWishlistOnly: false, showShortlistOnly: false })}
+        >
+          <ThumbsUp size={13} strokeWidth={2} />
+          Buy again
+        </button>
       </div>
 
       {stores.length > 0 ? (

@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import { Search } from 'lucide-react'
 import { LogoutButton } from '@/components/auth/logout-button'
 import { LoginNavLink } from '@/components/auth/login-nav-link'
 import { RegisterNavLink } from '@/components/auth/register-nav-link'
@@ -51,13 +52,6 @@ function updateWineReview(
   )
 }
 
-function clearShortlistFromWines(wines: DisplayWineRow[]): DisplayWineRow[] {
-  return wines.map((wine) => {
-    if (!wine.review || wine.review.shortlist !== 1) return wine
-    return { ...wine, review: { ...wine.review, shortlist: null } }
-  })
-}
-
 export function PreviewWineList({
   wines: initialWines,
   isLoggedIn,
@@ -73,27 +67,17 @@ export function PreviewWineList({
   const [searchQuery, setSearchQuery] = useState('')
   const [primarySort, setPrimarySort] = useState<SortCriterion>({ key: 'winery', dir: 'asc' })
   const [secondarySort, setSecondarySort] = useState<SortCriterion>({ key: 'none', dir: 'asc' })
-  const [shortlistOnly, setShortlistOnly] = useState(false)
-
   const filterOptions = useMemo(() => collectFilterOptions(wines), [wines])
   const priceBounds = useMemo(() => computeListPriceBounds(wines), [wines])
   const activeFilterCount = useMemo(() => countActiveFilters(filters), [filters])
 
-  const shortlistedWines = useMemo(
-    () => wines.filter((wine) => wine.review?.shortlist === 1),
-    [wines],
-  )
-
-  const filtered = useMemo(() => {
-    if (shortlistOnly) return shortlistedWines
-    return filterWines(wines, filters)
-  }, [wines, filters, shortlistOnly, shortlistedWines])
+  const filtered = useMemo(() => filterWines(wines, filters), [wines, filters])
   const searchIndex = useMemo(() => createWineSearchIndex(filtered), [filtered])
 
   const searched = useMemo(() => {
-    if (shortlistOnly || !hasActiveWineSearch(searchQuery)) return filtered
+    if (!hasActiveWineSearch(searchQuery)) return filtered
     return searchWinesFromIndex(searchIndex, searchQuery)
-  }, [filtered, searchIndex, searchQuery, shortlistOnly])
+  }, [filtered, searchIndex, searchQuery])
 
   const sorted = useMemo(() => {
     if (hasActiveWineSearch(searchQuery)) return searched
@@ -120,7 +104,7 @@ export function PreviewWineList({
           }}
         >
           <div className="mx-auto px-6 py-3 flex items-center justify-between gap-4" style={{ maxWidth: PREVIEW_CONTENT_MAX_WIDTH }}>
-            <div className="min-w-0">
+            <div className="min-w-0 flex-shrink-0">
               <h1
                 className="text-base font-semibold leading-none truncate"
                 style={{ color: colors.headerTitle, fontFamily: 'var(--font-playfair), serif' }}
@@ -130,6 +114,26 @@ export function PreviewWineList({
               <p className="text-[10px] mt-1 truncate" style={{ color: colors.headerSub }}>
                 Find Nairobi&apos;s best wine for your money
               </p>
+            </div>
+            <div className="relative flex-1 max-w-xs">
+              <Search
+                className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 pointer-events-none"
+                style={{ color: colors.muted }}
+              />
+              <input
+                type="search"
+                value={searchQuery}
+                placeholder="Search wines…"
+                aria-label="Search producer or wine name"
+                className="w-full text-sm rounded-lg pl-8 pr-3 py-1.5 focus:outline-none"
+                style={{
+                  background: colors.searchBg,
+                  border: `1px solid ${colors.searchBorder}`,
+                  color: colors.searchText,
+                  fontFamily: 'var(--font-dm-sans), sans-serif',
+                }}
+                onChange={(event) => setSearchQuery(event.target.value)}
+              />
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
               {isLoggedIn ? (
@@ -156,8 +160,6 @@ export function PreviewWineList({
 
         <div className="mx-auto px-6 py-4" style={{ maxWidth: PREVIEW_CONTENT_MAX_WIDTH }}>
           <PreviewToolbar
-            searchQuery={searchQuery}
-            onSearchQueryChange={setSearchQuery}
             activeFilterCount={activeFilterCount}
             filters={filters}
             onFiltersChange={setFilters}
@@ -166,13 +168,9 @@ export function PreviewWineList({
             onPrimarySortChange={setPrimarySort}
             onSecondarySortChange={setSecondarySort}
             resultCount={previewWines.length}
-            totalCount={shortlistOnly ? shortlistedWines.length : wines.length}
+            totalCount={wines.length}
             priceBounds={priceBounds}
             isLoggedIn={isLoggedIn}
-            userId={userId}
-            shortlistOnly={shortlistOnly}
-            onShortlistOnlyChange={setShortlistOnly}
-            onShortlistCleared={() => setWines((current) => clearShortlistFromWines(current))}
           />
         </div>
       </div>
@@ -181,7 +179,7 @@ export function PreviewWineList({
         <WelcomePanel />
         {previewWines.length === 0 ? (
           <p className="text-center text-sm py-12" style={{ color: colors.emptyText }}>
-            {shortlistOnly ? 'No wines on your shortlist.' : 'No wines match your search or filters.'}
+            No wines match your search or filters.
           </p>
         ) : (
           previewWines.map((wine, index) => {

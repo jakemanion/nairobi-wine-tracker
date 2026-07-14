@@ -19,6 +19,9 @@ export type WineFilters = {
   producer: string
   country: string
   regions: string[]
+  showWishlistOnly: boolean
+  showShortlistOnly: boolean
+  showThumbsUpOnly: boolean
 }
 
 export const EMPTY_WINE_FILTERS: WineFilters = {
@@ -35,6 +38,9 @@ export const EMPTY_WINE_FILTERS: WineFilters = {
   producer: '',
   country: '',
   regions: [],
+  showWishlistOnly: false,
+  showShortlistOnly: false,
+  showThumbsUpOnly: false,
 }
 
 export const BEST_UNDER_PRICE_PRESETS = [1500, 2000, 3000, 4000, 5000] as const
@@ -365,6 +371,9 @@ export function countActiveFilters(filters: WineFilters): number {
   if (filters.regions.length > 0) count += 1
   if (filters.hideUnwanted) count += 1
   if (filters.disabledStores.length > 0) count += 1
+  if (filters.showWishlistOnly) count += 1
+  if (filters.showShortlistOnly) count += 1
+  if (filters.showThumbsUpOnly) count += 1
   return count
 }
 
@@ -378,6 +387,10 @@ export function filterWines<T extends WineRow>(wines: T[], filters: WineFilters)
   const selectedGrapes = filters.grapes.map((grape) => grape.toLowerCase())
 
   return wines.filter((wine) => {
+    if (filters.showWishlistOnly && normalizeWishlist(wine.review?.wishlist) !== 1) return false
+    if (filters.showShortlistOnly && wine.review?.shortlist !== 1) return false
+    if (filters.showThumbsUpOnly && normalizeTriedStatus(wine.review?.tried_status) !== 1) return false
+
     const price = minWinePriceKES(wine.store_listings)
     if (priceMin != null && (price == null || price < priceMin)) return false
     if (priceMax != null && (price == null || price > priceMax)) return false
