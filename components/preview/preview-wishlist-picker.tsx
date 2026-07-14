@@ -5,7 +5,7 @@ import { Heart } from 'lucide-react'
 import type { CSSProperties } from 'react'
 import type { WineReview } from '@/components/wine-table'
 import { saveReviewWishlistField, type WishlistValue } from '@/lib/reviews'
-import type { PreviewThemeMode } from '@/lib/preview/preview-colors'
+import type { PreviewThemeMode, PanelTint } from '@/lib/preview/preview-colors'
 import { getReviewPanelTextColors } from '@/lib/preview/preview-colors'
 import { usePreviewTheme } from '@/components/preview/preview-theme-context'
 
@@ -63,7 +63,8 @@ export function PreviewWishlistPicker({
   const [error, setError] = useState<string | null>(null)
   const value = normalizeWishlist(review?.wishlist)
   const active = value === 1
-  const panelText = getReviewPanelTextColors(mode, value)
+  const tint: PanelTint = active ? 'wishlist' : 'none'
+  const panelText = getReviewPanelTextColors(mode, tint)
 
   async function toggle() {
     if (saving) return
@@ -152,15 +153,30 @@ export function getWishlistAccentColor(
   return '#3A3848'
 }
 
+export function getReviewPanelTint(
+  shortlisted: boolean,
+  thumbsUp: boolean,
+  wishlisted: boolean,
+): PanelTint {
+  if (shortlisted) return 'shortlist'
+  if (thumbsUp) return 'thumbsUp'
+  if (wishlisted) return 'wishlist'
+  return 'none'
+}
+
 export function getReviewPanelStyle(
-  wishlist: WishlistValue,
+  tint: PanelTint,
   mode: PreviewThemeMode = 'dark',
 ): CSSProperties {
   if (mode === 'light') {
-    if (wishlist === 1) return { background: '#C4F0CC' }
+    if (tint === 'shortlist') return { background: '#C4D8F0' }
+    if (tint === 'thumbsUp') return { background: '#FFF0C8' }
+    if (tint === 'wishlist') return { background: '#C4F0CC' }
     return { background: '#F5F3EF' }
   }
 
-  if (wishlist === 1) return { background: '#1E6A30' }
+  if (tint === 'shortlist') return { background: '#1A3060' }
+  if (tint === 'thumbsUp') return { background: '#5A4810' }
+  if (tint === 'wishlist') return { background: '#1E6A30' }
   return { background: '#1C1C24' }
 }

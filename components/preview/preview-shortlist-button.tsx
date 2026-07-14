@@ -3,16 +3,22 @@
 import { useState } from 'react'
 import { ListChecks } from 'lucide-react'
 import type { WineReview } from '@/components/wine-table'
-import { WISHLISTED_BUTTON_STYLE } from '@/components/preview/preview-wishlist-picker'
 import { saveReviewShortlistField, type ShortlistValue } from '@/lib/reviews'
 
 const SHORTLIST_TOOLTIP = 'Shortlist for your next buy'
+
+const SHORTLISTED_BUTTON_STYLE = {
+  border: '#2040A0',
+  bg: '#101830',
+  color: '#6090E0',
+} as const
 
 type PreviewShortlistButtonProps = {
   wineId: string
   userId: string
   review?: WineReview | null
   disabled?: boolean
+  labelColor?: string
   onReviewChange: (review: WineReview | null) => void
 }
 
@@ -45,14 +51,15 @@ export function PreviewShortlistButton({
   userId,
   review,
   disabled = false,
+  labelColor,
   onReviewChange,
 }: PreviewShortlistButtonProps) {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const shortlisted = normalizeShortlist(review?.shortlist) === 1
   const label = 'SHORTLIST'
-  const inactiveColor = '#9894A4'
-  const activeStyle = WISHLISTED_BUTTON_STYLE
+  const inactiveColor = labelColor ?? '#9894A4'
+  const activeStyle = SHORTLISTED_BUTTON_STYLE
 
   async function toggle() {
     if (saving || disabled) return

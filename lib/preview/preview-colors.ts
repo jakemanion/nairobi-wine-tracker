@@ -161,9 +161,11 @@ export type ReviewPanelTextColors = {
   notesText: string
 }
 
+export type PanelTint = 'shortlist' | 'thumbsUp' | 'wishlist' | 'none'
+
 export function getReviewPanelTextColors(
   mode: PreviewThemeMode,
-  wishlist: number | null,
+  tint: PanelTint,
 ): ReviewPanelTextColors {
   if (mode === 'light') {
     return {
@@ -176,7 +178,29 @@ export function getReviewPanelTextColors(
     }
   }
 
-  if (wishlist != null && wishlist >= 1) {
+  if (tint === 'shortlist') {
+    return {
+      label: '#D0E0FF',
+      body: '#F0F4FF',
+      muted: '#A0B8E0',
+      notesBg: 'rgba(0,0,0,0.25)',
+      notesBorder: '#4080D0',
+      notesText: '#F0F4FF',
+    }
+  }
+
+  if (tint === 'thumbsUp') {
+    return {
+      label: '#FFF8C0',
+      body: '#FFFCF0',
+      muted: '#E8D890',
+      notesBg: 'rgba(0,0,0,0.25)',
+      notesBorder: '#D0A828',
+      notesText: '#FFFCF0',
+    }
+  }
+
+  if (tint === 'wishlist') {
     return {
       label: '#D8FFE0',
       body: '#F4FFF6',

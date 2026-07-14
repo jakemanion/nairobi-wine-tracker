@@ -7,6 +7,7 @@ import { LoggedOutLoginPromptOverlay } from '@/components/preview/logged-out-log
 import { PreviewBottleImage } from '@/components/preview/preview-bottle-image'
 import {
   getReviewPanelStyle,
+  getReviewPanelTint,
   getWishlistAccentColor,
   PreviewWishlistPicker,
 } from '@/components/preview/preview-wishlist-picker'
@@ -278,11 +279,13 @@ export function PreviewWineCard({
   const { colors, mode } = usePreviewTheme()
   const wishlist = normalizeWishlist(review?.wishlist)
   const triedStatus = normalizeTriedStatus(review?.tried_status)
+  const shortlisted = review?.shortlist === 1
   const isHidden = review?.hide === true
   const isDimmed = triedStatus === 2 || isHidden
   const minPrice = lowestPrice(wine.prices)
   const ribbon = colourRibbonStyle(wine.colour)
-  const panelText = getReviewPanelTextColors(mode, wishlist)
+  const panelTint = getReviewPanelTint(shortlisted, triedStatus === 1, wishlist === 1)
+  const panelText = getReviewPanelTextColors(mode, panelTint)
   const wishlistOutline =
     wishlist === 1
       ? `3px solid ${getWishlistAccentColor(wishlist, mode)}`
@@ -521,7 +524,7 @@ export function PreviewWineCard({
         className="relative flex-shrink-0 px-2.5 py-2.5 flex flex-col gap-1.5 transition-colors duration-300 min-w-0 group/review-panel"
         style={{
           width: '35.2%',
-          ...getReviewPanelStyle(wishlist, mode),
+          ...getReviewPanelStyle(panelTint, mode),
         }}
       >
         {!isLoggedIn ? <LoggedOutLoginPromptOverlay hoverGroup="review-panel" /> : null}
@@ -559,6 +562,7 @@ export function PreviewWineCard({
                 userId={userId}
                 review={review}
                 disabled={!isLoggedIn}
+                labelColor={panelTint !== 'none' && panelTint !== 'shortlist' ? panelText.label : undefined}
                 onReviewChange={onReviewChange}
               />
             </UsageTipTarget>

@@ -3,8 +3,6 @@
 import { useState } from 'react'
 import { ThumbsUp, ThumbsDown } from 'lucide-react'
 import type { WineReview } from '@/components/wine-table'
-import { usePreviewTheme } from '@/components/preview/preview-theme-context'
-import { getReviewPanelTextColors } from '@/lib/preview/preview-colors'
 import { saveReviewTriedStatusField, type TriedStatusValue } from '@/lib/reviews'
 
 type PreviewTriedStatusPickerProps = {
@@ -50,7 +48,6 @@ export function PreviewTriedStatusPicker({
   review,
   onReviewChange,
 }: PreviewTriedStatusPickerProps) {
-  const { mode } = usePreviewTheme()
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const value = normalizeTriedStatus(review?.tried_status)
