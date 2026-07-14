@@ -60,16 +60,13 @@ const SORT_DIR_OPTIONS: Array<{ value: SortDir; label: string }> = [
 const WISHLIST_FILTER_OPTIONS: Array<{ value: WishlistFilterValue; label: string }> = [
   { value: 'unset', label: 'Not set' },
   { value: 0, label: "Don't want" },
-  { value: 1, label: 'Want' },
-  { value: 2, label: 'Expensive treat' },
-  { value: 3, label: 'Very expensive treat' },
+  { value: 1, label: 'Wishlisted' },
 ]
 
 const TRIED_STATUS_FILTER_OPTIONS: Array<{ value: TriedStatusFilterValue; label: string }> = [
-  { value: 'unset', label: 'Not set' },
-  { value: 0, label: 'Tried' },
-  { value: 1, label: 'Buy again' },
-  { value: 2, label: "Don't buy again" },
+  { value: 'unset', label: 'Not tried' },
+  { value: 1, label: 'Liked' },
+  { value: 2, label: 'Disliked' },
 ]
 
 const checkboxRowStyle: CSSProperties = {

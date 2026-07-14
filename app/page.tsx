@@ -15,6 +15,7 @@ type UserReview = {
   wishlist: number | null
   tried_status: number | null
   shortlist: number | null
+  hide: boolean | null
   want_to_try: boolean | null
   tasting_notes: string | null
   tasted_on: string | null
@@ -36,6 +37,7 @@ function attachReviews(wines: WineRow[], reviews: UserReview[]): WineRow[] {
         wishlist: review.wishlist,
         tried_status: review.tried_status,
         shortlist: review.shortlist,
+        hide: review.hide ?? null,
         want_to_try: review.want_to_try,
         tasting_notes: review.tasting_notes,
         tasted_on: review.tasted_on,
@@ -87,6 +89,7 @@ export default async function Home() {
           wishlist,
           tried_status,
           shortlist,
+          hide,
           want_to_try,
           tasting_notes,
           tasted_on

@@ -80,6 +80,7 @@ export function EditableReviewBoolCell({
       wishlist: review?.wishlist ?? null,
       tried_status: review?.tried_status ?? null,
       shortlist: review?.shortlist ?? null,
+      hide: review?.hide ?? null,
       want_to_try: review?.want_to_try ?? null,
       tasting_notes: review?.tasting_notes ?? null,
       tasted_on: review?.tasted_on ?? null,

@@ -176,7 +176,7 @@ export function getReviewPanelTextColors(
     }
   }
 
-  if (wishlist === 1) {
+  if (wishlist != null && wishlist >= 1) {
     return {
       label: '#D8FFE0',
       body: '#F4FFF6',
@@ -184,26 +184,6 @@ export function getReviewPanelTextColors(
       notesBg: 'rgba(0,0,0,0.25)',
       notesBorder: '#48C868',
       notesText: '#F8FFF8',
-    }
-  }
-  if (wishlist === 2) {
-    return {
-      label: '#E8EEFF',
-      body: '#F8FAFF',
-      muted: '#C0C8E0',
-      notesBg: 'rgba(0,0,0,0.25)',
-      notesBorder: '#A0A8C8',
-      notesText: '#FFFFFF',
-    }
-  }
-  if (wishlist === 3) {
-    return {
-      label: '#FFF8C0',
-      body: '#FFFCF0',
-      muted: '#F0E090',
-      notesBg: 'rgba(0,0,0,0.25)',
-      notesBorder: '#F0D050',
-      notesText: '#FFFCF0',
     }
   }
 

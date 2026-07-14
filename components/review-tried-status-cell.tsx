@@ -106,6 +106,7 @@ function buildOptimisticReview(
     wishlist: review?.wishlist ?? null,
     tried_status,
     shortlist: review?.shortlist ?? null,
+    hide: review?.hide ?? null,
     want_to_try: review?.want_to_try ?? null,
     tried: review?.tried ?? null,
     would_buy_again: review?.would_buy_again ?? null,
@@ -185,8 +186,6 @@ function renderTriedStatusIcon(
   switch (value) {
     case null:
       return <OutlinedStarIcon color={active ? nullStarColor : '#e8e8e8'} size={size} />
-    case 0:
-      return <TickIcon color={active ? triedColor : inactiveColor} size={size} />
     case 1:
       return <TickIcon color={active ? buyAgainColor : inactiveColor} size={size} />
     case 2:
@@ -202,13 +201,13 @@ const TRIED_STATUS_OPTIONS: Array<{
   tooltip: string
 }> = [
   { value: null, ariaLabel: 'not set', tooltip: 'Not set' },
-  { value: 0, ariaLabel: 'tried', tooltip: 'Tried' },
-  { value: 1, ariaLabel: 'tried buy again', tooltip: 'Buy again' },
-  { value: 2, ariaLabel: 'tried dont buy again', tooltip: "Don't buy again" },
+  { value: 1, ariaLabel: 'liked', tooltip: 'Liked' },
+  { value: 2, ariaLabel: 'disliked', tooltip: 'Disliked' },
 ]
 
 function normalizeTriedStatusValue(value: number | null | undefined): TriedStatusValue {
-  if (value === 0 || value === 1 || value === 2) return value
+  if (value === 1) return 1
+  if (value === 2 || value === 3) return 2
   return null
 }
 

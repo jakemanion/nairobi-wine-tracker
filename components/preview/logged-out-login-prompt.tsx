@@ -6,15 +6,12 @@ export const LOGIN_PROMPT_MESSAGE =
   'Login or register for free to use wine wishlists and likes'
 
 type LoggedOutLoginPromptOverlayProps = {
-  hoverGroup: 'review-panel' | 'shortlist-login'
+  hoverGroup: 'review-panel'
 }
 
 export function LoggedOutLoginPromptOverlay({ hoverGroup }: LoggedOutLoginPromptOverlayProps) {
   const hoverVisible = `group-hover/${hoverGroup}:opacity-100 group-hover/${hoverGroup}:pointer-events-auto`
-  const positionClass =
-    hoverGroup === 'shortlist-login'
-      ? 'absolute right-0 top-0 z-30 w-[220px]'
-      : 'absolute inset-0 z-20'
+  const positionClass = 'absolute inset-0 z-20'
 
   return (
     <div

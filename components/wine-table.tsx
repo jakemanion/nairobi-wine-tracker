@@ -32,6 +32,7 @@ export type WineReview = {
   wishlist: number | null
   tried_status: number | null
   shortlist: number | null
+  hide: boolean | null
   want_to_try?: boolean | null
   tried?: boolean | null
   would_buy_again?: boolean | null

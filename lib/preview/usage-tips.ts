@@ -1,7 +1,6 @@
 export type UsageTipId =
   | 'wishlist-button'
   | 'tried-button'
-  | 'rating-slider'
   | 'notes-textfield'
   | 'shortlist-button'
   | 'hide-unwanted'
@@ -27,18 +26,13 @@ export const WELCOME_PANEL = {
 export const USAGE_TIPS: Record<UsageTipId, UsageTipContent> = {
   'wishlist-button': {
     id: 'wishlist-button',
-    heading: 'Wishlists',
-    body: 'Remember wines you want to try... and hide those you wish to avoid.',
+    heading: 'Wishlist',
+    body: 'Heart a wine to add it to your wishlist.',
   },
   'tried-button': {
     id: 'tried-button',
-    heading: 'Tried',
-    body: "Keep track of wines you'd buy again, or skip next time.",
-  },
-  'rating-slider': {
-    id: 'rating-slider',
-    heading: 'Rating',
-    body: 'Your personal ratings help you remember what you think of a wine.',
+    heading: 'Tried it?',
+    body: 'Thumbs up wines you liked, thumbs down ones you didn\'t.',
   },
   'notes-textfield': {
     id: 'notes-textfield',

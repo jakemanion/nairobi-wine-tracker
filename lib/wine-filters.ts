@@ -2,8 +2,8 @@ import { minWinePriceKES } from '@/lib/calculate-value-score'
 import { listGrapeVarieties } from '@/lib/grape-varieties'
 import type { WineRow } from '@/components/wine-table'
 
-export type WishlistFilterValue = 'unset' | 0 | 1 | 2 | 3
-export type TriedStatusFilterValue = 'unset' | 0 | 1 | 2
+export type WishlistFilterValue = 'unset' | 0 | 1
+export type TriedStatusFilterValue = 'unset' | 1 | 2
 
 export type WineFilters = {
   priceMin: string
@@ -39,22 +39,19 @@ export const EMPTY_WINE_FILTERS: WineFilters = {
 
 export const BEST_UNDER_PRICE_PRESETS = [1500, 2000, 3000, 4000, 5000] as const
 
-export const HIDE_UNWANTED_WISHLIST_FILTERS: WishlistFilterValue[] = ['unset', 1, 2, 3]
-export const HIDE_UNWANTED_TRIED_FILTERS: TriedStatusFilterValue[] = ['unset', 0, 1]
+export const HIDE_UNWANTED_WISHLIST_FILTERS: WishlistFilterValue[] = ['unset', 1]
+export const HIDE_UNWANTED_TRIED_FILTERS: TriedStatusFilterValue[] = ['unset', 1]
 
 export const WISHLIST_FILTER_LABELS: Record<WishlistFilterValue, string> = {
   unset: 'Not set',
   0: "Don't want",
-  1: 'Want',
-  2: 'Expensive treat',
-  3: 'Very expensive treat',
+  1: 'Wishlisted',
 }
 
 export const TRIED_STATUS_FILTER_LABELS: Record<TriedStatusFilterValue, string> = {
   unset: 'Not tried',
-  0: 'Tried',
-  1: 'Buy again',
-  2: "Don't buy again",
+  1: 'Liked',
+  2: 'Disliked',
 }
 
 const WISHLIST_FILTER_PREFIX = 'wishlist:'
@@ -64,11 +61,11 @@ export function buildReviewFilterGroups(): Array<{
   label: string
   options: Array<{ value: string; label: string }>
 }> {
-  const wishlistOptions = (['unset', 0, 1, 2, 3] as WishlistFilterValue[]).map((value) => ({
+  const wishlistOptions = (['unset', 0, 1] as WishlistFilterValue[]).map((value) => ({
     value: `${WISHLIST_FILTER_PREFIX}${value}`,
     label: WISHLIST_FILTER_LABELS[value],
   }))
-  const triedOptions = (['unset', 0, 1, 2] as TriedStatusFilterValue[]).map((value) => ({
+  const triedOptions = (['unset', 1, 2] as TriedStatusFilterValue[]).map((value) => ({
     value: `${TRIED_FILTER_PREFIX}${value}`,
     label: TRIED_STATUS_FILTER_LABELS[value],
   }))
@@ -99,13 +96,13 @@ export function decodeReviewFilterSelection(selected: string[]): {
   for (const value of selected) {
     if (value.startsWith(WISHLIST_FILTER_PREFIX)) {
       const raw = value.slice(WISHLIST_FILTER_PREFIX.length)
-      if (raw === 'unset' || raw === '0' || raw === '1' || raw === '2' || raw === '3') {
-        wishlist.push(raw === 'unset' ? 'unset' : (Number(raw) as 0 | 1 | 2 | 3))
+      if (raw === 'unset' || raw === '0' || raw === '1') {
+        wishlist.push(raw === 'unset' ? 'unset' : (Number(raw) as 0 | 1))
       }
     } else if (value.startsWith(TRIED_FILTER_PREFIX)) {
       const raw = value.slice(TRIED_FILTER_PREFIX.length)
-      if (raw === 'unset' || raw === '0' || raw === '1' || raw === '2') {
-        triedStatus.push(raw === 'unset' ? 'unset' : (Number(raw) as 0 | 1 | 2))
+      if (raw === 'unset' || raw === '1' || raw === '2') {
+        triedStatus.push(raw === 'unset' ? 'unset' : (Number(raw) as 1 | 2))
       }
     }
   }
@@ -214,12 +211,14 @@ function ratingNum(v: unknown): number | null {
 }
 
 function normalizeWishlist(value: number | null | undefined): WishlistFilterValue {
-  if (value === 0 || value === 1 || value === 2 || value === 3) return value
+  if (value != null && value >= 1) return 1
+  if (value === 0) return 0
   return 'unset'
 }
 
 function normalizeTriedStatus(value: number | null | undefined): TriedStatusFilterValue {
-  if (value === 0 || value === 1 || value === 2) return value
+  if (value === 1) return 1
+  if (value === 2 || value === 3) return 2
   return 'unset'
 }
 
@@ -416,7 +415,7 @@ export function filterWines<T extends WineRow>(wines: T[], filters: WineFilters)
     }
 
     if (filters.hideUnwanted) {
-      if (wine.review?.wishlist === 0 || wine.review?.tried_status === 2) return false
+      if (wine.review?.wishlist === 0 || wine.review?.tried_status === 2 || wine.review?.tried_status === 3 || wine.review?.hide === true) return false
     }
 
     if (selectedGrapes.length > 0) {

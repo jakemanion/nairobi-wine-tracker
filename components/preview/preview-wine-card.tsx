@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { ExternalLink, MapPin } from 'lucide-react'
+import { ExternalLink, EyeOff, MapPin } from 'lucide-react'
 import type { WineReview } from '@/components/wine-table'
 import { LoggedOutLoginPromptOverlay } from '@/components/preview/logged-out-login-prompt'
 import { PreviewBottleImage } from '@/components/preview/preview-bottle-image'
@@ -33,12 +33,14 @@ type PreviewWineCardProps = {
 }
 
 function normalizeTriedStatus(value: number | null | undefined): TriedStatusValue {
-  if (value === 0 || value === 1 || value === 2) return value
+  if (value === 1) return 1
+  if (value === 2 || value === 3) return 2
   return null
 }
 
 function normalizeWishlist(value: number | null | undefined): WishlistValue {
-  if (value === 0 || value === 1 || value === 2 || value === 3) return value
+  if (value != null && value >= 1) return 1
+  if (value === 0) return 0
   return null
 }
 
@@ -53,6 +55,7 @@ function buildOptimisticReview(
     wishlist: patch.wishlist !== undefined ? patch.wishlist : (review?.wishlist ?? null),
     tried_status: patch.tried_status !== undefined ? patch.tried_status : (review?.tried_status ?? null),
     shortlist: patch.shortlist !== undefined ? patch.shortlist : (review?.shortlist ?? null),
+    hide: patch.hide !== undefined ? patch.hide : (review?.hide ?? null),
     want_to_try: review?.want_to_try ?? null,
     tried: review?.tried ?? null,
     would_buy_again: review?.would_buy_again ?? null,
@@ -212,41 +215,55 @@ function VivinoCircle({ rating, url }: { rating: number | null; url: string | nu
   return content
 }
 
-function RatingSlider({
-  value,
-  disabled,
-  valueColor,
-  onChange,
-  onCommit,
+function HideButton({
+  active,
+  saving,
+  panelLabelColor,
+  onClick,
 }: {
-  value: number
-  disabled?: boolean
-  valueColor: string
-  onChange: (v: number) => void
-  onCommit: (v: number) => void
+  active: boolean
+  saving: boolean
+  panelLabelColor: string
+  onClick: () => void
 }) {
   return (
-    <div className="flex items-center gap-1 min-w-0 w-full">
-      <input
-        type="range"
-        min={0}
-        max={5}
-        step={0.1}
-        value={value}
-        disabled={disabled}
-        className="flex-1 min-w-0 h-1 cursor-pointer disabled:opacity-50"
-        style={{ accentColor: '#C93048' }}
-        onChange={(e) => onChange(parseFloat(e.target.value))}
-        onMouseUp={(e) => onCommit(parseFloat((e.target as HTMLInputElement).value))}
-        onTouchEnd={(e) => onCommit(parseFloat((e.target as HTMLInputElement).value))}
-      />
-      <span
-        className="text-[10px] font-bold w-5 flex-shrink-0 text-right tabular-nums"
-        style={{ color: valueColor, fontFamily: 'var(--font-dm-sans), sans-serif' }}
+    <button
+      type="button"
+      title={active ? 'Unhide wine' : 'Hide wine'}
+      aria-label={active ? 'Unhide wine' : 'Hide wine'}
+      aria-pressed={active}
+      disabled={saving}
+      className="flex flex-col items-center gap-0.5 flex-shrink-0 transition-all hover:scale-105"
+      style={{
+        background: 'none',
+        border: 'none',
+        padding: 0,
+        cursor: saving ? 'wait' : 'pointer',
+        opacity: saving ? 0.5 : 1,
+      }}
+      onClick={onClick}
+    >
+      <div
+        className="w-8 h-8 rounded-full flex items-center justify-center"
+        style={{
+          border: `2px solid ${active ? '#5A3030' : '#3A3848'}`,
+          background: active ? '#2A1C1C' : '#22222C',
+          color: active ? '#F08080' : '#9894A4',
+          boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
+        }}
       >
-        {value.toFixed(1)}
+        <EyeOff size={14} strokeWidth={2} />
+      </div>
+      <span
+        className="text-[7px] uppercase tracking-wider leading-none"
+        style={{
+          color: active ? '#F08080' : panelLabelColor,
+          fontFamily: 'var(--font-dm-sans), sans-serif',
+        }}
+      >
+        {active ? 'Hidden' : 'Hide'}
       </span>
-    </div>
+    </button>
   )
 }
 
@@ -261,15 +278,13 @@ export function PreviewWineCard({
   const { colors, mode } = usePreviewTheme()
   const wishlist = normalizeWishlist(review?.wishlist)
   const triedStatus = normalizeTriedStatus(review?.tried_status)
-  const isDimmed = wishlist === 0 || triedStatus === 2
-  const ratingInactive = triedStatus == null
+  const isHidden = review?.hide === true
+  const isDimmed = triedStatus === 2 || isHidden
   const minPrice = lowestPrice(wine.prices)
   const ribbon = colourRibbonStyle(wine.colour)
   const panelText = getReviewPanelTextColors(mode, wishlist)
-  const ratingLabelColor = ratingInactive ? panelText.muted : panelText.label
-  const ratingValueColor = ratingInactive ? panelText.muted : panelText.body
   const wishlistOutline =
-    wishlist === 1 || wishlist === 2 || wishlist === 3
+    wishlist === 1
       ? `3px solid ${getWishlistAccentColor(wishlist, mode)}`
       : `1px solid ${colors.cardBorder}`
   const infoOnDark = mode === 'light'
@@ -281,52 +296,17 @@ export function PreviewWineCard({
   const infoGrapeText = infoOnDark ? '#E8E4DC' : colors.grapeText
   const priceAmountColor = '#FFFFFF'
 
-  const [ratingDraft, setRatingDraft] = useState(review?.overall_score ?? 0)
   const [notesDraft, setNotesDraft] = useState(review?.tasting_notes ?? '')
-  const [savingRating, setSavingRating] = useState(false)
   const [savingNotes, setSavingNotes] = useState(false)
+  const [savingHide, setSavingHide] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const notesDirtyRef = useRef(false)
 
   useEffect(() => {
-    setRatingDraft(review?.overall_score ?? 0)
     if (!notesDirtyRef.current) {
       setNotesDraft(review?.tasting_notes ?? '')
     }
-  }, [review?.overall_score, review?.tasting_notes])
-
-  async function saveRating(next: number) {
-    if (!isLoggedIn) return
-    const rounded = Math.round(next * 10) / 10
-    const stored = review?.overall_score ?? null
-    if (stored != null && Math.abs(stored - rounded) < 0.05) return
-    if (stored == null && rounded === 0) return
-
-    const previousReview = review ?? null
-    const optimisticReview = buildOptimisticReview(review, { overall_score: rounded })
-
-    setSavingRating(true)
-    setError(null)
-    onReviewChange(optimisticReview)
-
-    const result = await saveReviewField({
-      userId,
-      wineId: wine.id,
-      reviewId: review?.id,
-      field: 'overall_score',
-      value: rounded,
-    })
-
-    setSavingRating(false)
-
-    if (result.error || !result.review) {
-      onReviewChange(previousReview)
-      setError(result.error ?? 'Failed to save rating.')
-      return
-    }
-
-    onReviewChange(result.review)
-  }
+  }, [review?.tasting_notes])
 
   async function saveNotes() {
     if (!isLoggedIn) return
@@ -360,6 +340,35 @@ export function PreviewWineCard({
 
     onReviewChange(result.review)
     setNotesDraft(result.review.tasting_notes ?? '')
+  }
+
+  async function toggleHide() {
+    if (!isLoggedIn) return
+    const next = !isHidden
+    const previousReview = review ?? null
+    const optimisticReview = buildOptimisticReview(review, { hide: next })
+
+    setSavingHide(true)
+    setError(null)
+    onReviewChange(optimisticReview)
+
+    const result = await saveReviewField({
+      userId,
+      wineId: wine.id,
+      reviewId: review?.id,
+      field: 'hide',
+      value: next,
+    })
+
+    setSavingHide(false)
+
+    if (result.error || !result.review) {
+      onReviewChange(previousReview)
+      setError(result.error ?? 'Failed to update hide.')
+      return
+    }
+
+    onReviewChange(result.review)
   }
 
   return (
@@ -410,21 +419,7 @@ export function PreviewWineCard({
           borderRight: `1px solid ${colors.infoBorder}`,
         }}
       >
-        <div className="absolute top-2.5 right-3.5 z-[1] group/shortlist-login">
-          <div style={{ opacity: isLoggedIn ? 1 : 0.35 }}>
-            <UsageTipTarget tipId="shortlist-button">
-              <PreviewShortlistButton
-                wineId={wine.id}
-                userId={userId}
-                review={review}
-                disabled={!isLoggedIn}
-                onReviewChange={onReviewChange}
-              />
-            </UsageTipTarget>
-          </div>
-          {!isLoggedIn ? <LoggedOutLoginPromptOverlay hoverGroup="shortlist-login" /> : null}
-        </div>
-        <div className="flex items-start gap-2.5 pr-12">
+        <div className="flex items-start gap-2.5 pr-2">
           <VivinoCircle rating={wine.vivinoRating} url={wine.vivinoUrl} />
           <div className="flex-1 min-w-0 flex flex-col gap-1.5 pt-0.5">
             <p
@@ -538,71 +533,69 @@ export function PreviewWineCard({
             opacity: isLoggedIn ? 1 : 0.42,
           }}
         >
-        <div className="flex items-end gap-1.5 min-w-0">
-          <UsageTipTarget tipId="wishlist-button">
-            <PreviewWishlistPicker
-              wineId={wine.id}
-              userId={userId}
-              review={review}
-              onReviewChange={onReviewChange}
+          <div className="flex items-end gap-1.5 min-w-0">
+            <UsageTipTarget tipId="wishlist-button">
+              <PreviewWishlistPicker
+                wineId={wine.id}
+                userId={userId}
+                review={review}
+                onReviewChange={onReviewChange}
+              />
+            </UsageTipTarget>
+            <UsageTipTarget tipId="shortlist-button">
+              <PreviewShortlistButton
+                wineId={wine.id}
+                userId={userId}
+                review={review}
+                disabled={!isLoggedIn}
+                onReviewChange={onReviewChange}
+              />
+            </UsageTipTarget>
+            <UsageTipTarget tipId="tried-button">
+              <PreviewTriedStatusPicker
+                wineId={wine.id}
+                userId={userId}
+                review={review}
+                onReviewChange={onReviewChange}
+              />
+            </UsageTipTarget>
+            <div className="ml-auto">
+              <HideButton
+                active={isHidden}
+                saving={savingHide}
+                panelLabelColor={panelText.muted}
+                onClick={() => void toggleHide()}
+              />
+            </div>
+          </div>
+
+          <UsageTipTarget tipId="notes-textfield">
+            <textarea
+              value={notesDraft}
+              disabled={savingNotes}
+              placeholder="Notes"
+              rows={2}
+              className="w-full text-[11px] resize-none focus:outline-none transition-colors leading-relaxed rounded-lg px-2.5 py-1.5 disabled:opacity-60"
+              style={{
+                background: panelText.notesBg,
+                border: `1px solid ${panelText.notesBorder}`,
+                color: panelText.notesText,
+                fontFamily: 'var(--font-dm-sans), sans-serif',
+                caretColor: colors.producer,
+              }}
+              onChange={(e) => {
+                notesDirtyRef.current = true
+                setNotesDraft(e.target.value)
+              }}
+              onBlur={() => void saveNotes()}
             />
           </UsageTipTarget>
-          <UsageTipTarget tipId="tried-button">
-            <PreviewTriedStatusPicker
-              wineId={wine.id}
-              userId={userId}
-              review={review}
-              onReviewChange={onReviewChange}
-            />
-          </UsageTipTarget>
-          <UsageTipTarget
-            tipId="rating-slider"
-            className="flex-1 min-w-0 basis-0 transition-opacity duration-200"
-            style={{ opacity: ratingInactive ? 0.45 : 1 }}
-          >
-            <p
-              className="text-[9px] uppercase tracking-wider mb-1 leading-none"
-              style={{ color: ratingLabelColor, fontFamily: 'var(--font-dm-sans), sans-serif' }}
-            >
-              My Rating
+
+          {error ? (
+            <p className="text-[10px]" style={{ color: '#c05050' }}>
+              {error}
             </p>
-            <RatingSlider
-              value={ratingDraft}
-              disabled={savingRating || ratingInactive}
-              valueColor={ratingValueColor}
-              onChange={setRatingDraft}
-              onCommit={(v) => void saveRating(v)}
-            />
-          </UsageTipTarget>
-        </div>
-
-        <UsageTipTarget tipId="notes-textfield">
-          <textarea
-            value={notesDraft}
-            disabled={savingNotes}
-            placeholder="Notes"
-            rows={2}
-            className="w-full text-[11px] resize-none focus:outline-none transition-colors leading-relaxed rounded-lg px-2.5 py-1.5 disabled:opacity-60"
-            style={{
-              background: panelText.notesBg,
-              border: `1px solid ${panelText.notesBorder}`,
-              color: panelText.notesText,
-              fontFamily: 'var(--font-dm-sans), sans-serif',
-              caretColor: colors.producer,
-            }}
-            onChange={(e) => {
-              notesDirtyRef.current = true
-              setNotesDraft(e.target.value)
-            }}
-            onBlur={() => void saveNotes()}
-          />
-        </UsageTipTarget>
-
-        {error ? (
-          <p className="text-[10px]" style={{ color: '#c05050' }}>
-            {error}
-          </p>
-        ) : null}
+          ) : null}
         </div>
       </div>
     </div>

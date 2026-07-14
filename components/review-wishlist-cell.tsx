@@ -108,6 +108,7 @@ function buildOptimisticReview(
     want_to_try: review?.want_to_try ?? null,
     tried_status: review?.tried_status ?? null,
     shortlist: review?.shortlist ?? null,
+    hide: review?.hide ?? null,
     tasting_notes: review?.tasting_notes ?? null,
     tasted_on: review?.tasted_on ?? null,
   }
@@ -215,22 +216,6 @@ function renderWishlistIcon(
       )
     case 1:
       return <FilledStarIcon color={active ? wantColor : inactiveColor} size={size} />
-    case 2:
-      return (
-        <DollarStarIcon
-          starColor={active ? silverTreatColor : inactiveColor}
-          dollarColor={active ? '#4a4a4a' : '#888'}
-          size={size}
-        />
-      )
-    case 3:
-      return (
-        <DollarStarIcon
-          starColor={active ? goldTreatColor : inactiveColor}
-          dollarColor="#fff"
-          size={size}
-        />
-      )
     default:
       return null
   }
@@ -243,13 +228,12 @@ const WISHLIST_OPTIONS: Array<{
 }> = [
   { value: null, ariaLabel: 'not set', tooltip: 'Not set' },
   { value: 0, ariaLabel: "don't want", tooltip: "Don't want" },
-  { value: 1, ariaLabel: 'want', tooltip: 'Want' },
-  { value: 2, ariaLabel: 'expensive treat', tooltip: 'Expensive treat' },
-  { value: 3, ariaLabel: 'very expensive treat', tooltip: 'Very expensive treat' },
+  { value: 1, ariaLabel: 'wishlisted', tooltip: 'Wishlisted' },
 ]
 
 function normalizeWishlistValue(value: number | null | undefined): WishlistValue {
-  if (value === 0 || value === 1 || value === 2 || value === 3) return value
+  if (value != null && value >= 1) return 1
+  if (value === 0) return 0
   return null
 }
 

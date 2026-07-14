@@ -1,11 +1,13 @@
 import { supabase } from '@/lib/supabase'
 import type { WineReview } from '@/components/wine-table'
 
-export type WishlistValue = 0 | 1 | 2 | 3 | null
+export type WishlistValue = 0 | 1 | null
 
-export type TriedStatusValue = 0 | 1 | 2 | null
+export type TriedStatusValue = 1 | 2 | null
 
 export type ShortlistValue = 1 | null
+
+export type HideValue = boolean | null
 
 export type ReviewBoolField = 'want_to_try' | 'tried' | 'would_buy_again'
 
@@ -16,6 +18,7 @@ export type ReviewEditableField =
   | 'wishlist'
   | 'tried_status'
   | 'shortlist'
+  | 'hide'
 
 const reviewSelect = `
   id,
@@ -24,6 +27,7 @@ const reviewSelect = `
   wishlist,
   tried_status,
   shortlist,
+  hide,
   want_to_try,
   tried,
   would_buy_again,
