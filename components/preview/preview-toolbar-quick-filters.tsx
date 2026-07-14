@@ -1,6 +1,7 @@
 'use client'
 
 import type { CSSProperties } from 'react'
+import { ArrowUpDown } from 'lucide-react'
 import {
   BEST_UNDER_PRICE_PRESETS,
   buildReviewFilterGroups,
@@ -36,10 +37,10 @@ type PreviewToolbarQuickFiltersProps = {
 
 function chipStyle(colors: PreviewColors, active: boolean): CSSProperties {
   return {
-    padding: '4px 8px',
-    fontSize: 11,
+    padding: '6px 10px',
+    fontSize: 12,
     lineHeight: 1.2,
-    borderRadius: 6,
+    borderRadius: 8,
     cursor: 'pointer',
     fontFamily: 'var(--font-dm-sans), sans-serif',
     background: active ? colors.searchBg : colors.buttonBg,
@@ -51,7 +52,7 @@ function chipStyle(colors: PreviewColors, active: boolean): CSSProperties {
 
 function sliderLabelStyle(colors: PreviewColors): CSSProperties {
   return {
-    fontSize: 11,
+    fontSize: 12,
     color: colors.muted,
     fontFamily: 'var(--font-dm-sans), sans-serif',
     whiteSpace: 'nowrap',
@@ -104,10 +105,10 @@ function isQuickSortActive(
 
 function filterSelectStyle(colors: PreviewColors, active: boolean): CSSProperties {
   return {
-    fontSize: 11,
+    fontSize: 12,
     lineHeight: 1.2,
-    padding: '6px 10px',
-    borderRadius: 6,
+    padding: '8px 12px',
+    borderRadius: 8,
     cursor: 'pointer',
     fontFamily: 'var(--font-dm-sans), sans-serif',
     background: active ? colors.searchBg : colors.buttonBg,
@@ -135,6 +136,9 @@ function buildPriceOptions(maxBound: number): number[] {
   while (price <= maxBound) {
     options.push(price)
     price += 5000
+  }
+  if (options.length > 0 && options[options.length - 1] < maxBound) {
+    options.push(maxBound)
   }
   return options
 }
@@ -221,6 +225,24 @@ export function PreviewToolbarQuickFilters({
               </button>
             )
           })}
+          <button
+            type="button"
+            title="Reverse sort direction"
+            aria-label="Reverse sort direction"
+            style={{
+              ...chipStyle(colors, false),
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '6px 8px',
+            }}
+            onClick={() => {
+              const reversed = primarySort.dir === 'asc' ? 'desc' : 'asc'
+              onPrimarySortChange({ ...primarySort, dir: reversed })
+            }}
+          >
+            <ArrowUpDown size={13} strokeWidth={2} />
+          </button>
         </UsageTipTarget>
 
         <UsageTipTarget
@@ -255,7 +277,7 @@ export function PreviewToolbarQuickFilters({
           <option value="">Highest price: Show all</option>
           {buildPriceOptions(priceMaxBound).map((price) => (
             <option key={price} value={String(price)}>
-              {price.toLocaleString()} KSh
+              Max price: {price.toLocaleString()} KSh
             </option>
           ))}
         </select>
@@ -270,7 +292,7 @@ export function PreviewToolbarQuickFilters({
           <option value="">Lowest rating: Show all</option>
           {buildRatingOptions().map((rating) => (
             <option key={rating} value={rating}>
-              {rating}
+              {rating} and above
             </option>
           ))}
         </select>
