@@ -34,8 +34,6 @@ type PreviewToolbarQuickFiltersProps = {
   onSecondarySortChange: (next: SortCriterion) => void
 }
 
-const SLIDER_WIDTH = '4.21875rem'
-
 function chipStyle(colors: PreviewColors, active: boolean): CSSProperties {
   return {
     padding: '4px 8px',
@@ -87,13 +85,6 @@ function isBestUnderActive(filters: WineFilters, primarySort: SortCriterion, pri
 }
 
 const PRODUCER_SORT: SortCriterion = { key: 'winery', dir: 'asc' }
-const PRICE_SLIDER_STEPS = 1000
-const MEDIAN_SLIDER_POSITION = Math.round((2 / 3) * PRICE_SLIDER_STEPS)
-
-const RATING_SLIDER_STEPS = 100
-const RATING_LOW_MAX = 3.5
-const RATING_HIGH_MAX = 5
-const RATING_LOW_SLIDER_POSITION = 30
 
 const QUICK_SORT_OPTIONS: Array<{ key: SortFieldKey; label: string; dir: 'asc' | 'desc' }> = [
   { key: 'value_score', label: 'Value', dir: 'desc' },
@@ -111,98 +102,49 @@ function isQuickSortActive(
   return primarySort.key === key && primarySort.dir === dir
 }
 
-function sliderValueStyle(colors: PreviewColors): CSSProperties {
+function filterSelectStyle(colors: PreviewColors, active: boolean): CSSProperties {
   return {
     fontSize: 11,
-    color: colors.searchText,
+    lineHeight: 1.2,
+    padding: '6px 10px',
+    borderRadius: 6,
+    cursor: 'pointer',
     fontFamily: 'var(--font-dm-sans), sans-serif',
-    minWidth: 32,
-    textAlign: 'right',
-    fontVariantNumeric: 'tabular-nums',
+    background: active ? colors.searchBg : colors.buttonBg,
+    border: `1px solid ${active ? '#C93048' : colors.buttonBorder}`,
+    color: active ? colors.searchText : colors.buttonText,
+    whiteSpace: 'nowrap' as const,
   }
 }
 
-function logPrice(value: number): number {
-  return Math.log10(Math.max(value, 100))
-}
-
-function interpolateLogPrice(low: number, high: number, t: number): number {
-  const logLow = logPrice(low)
-  const logHigh = logPrice(high)
-  return Math.pow(10, logLow + t * (logHigh - logLow))
-}
-
-function inverseLogT(price: number, low: number, high: number): number {
-  const logLow = logPrice(low)
-  const logHigh = logPrice(high)
-  const logPriceValue = logPrice(price)
-  if (logHigh === logLow) return 0
-  return (logPriceValue - logLow) / (logHigh - logLow)
-}
-
-function maxPriceToSliderPosition(
-  priceMax: string,
-  min: number,
-  median: number,
-  max: number,
-): number {
-  if (!priceMax.trim()) return PRICE_SLIDER_STEPS
-  const price = parseFloat(priceMax)
-  if (!Number.isFinite(price)) return PRICE_SLIDER_STEPS
-
-  if (price <= median) {
-    const t = inverseLogT(price, min, median)
-    return Math.round(Math.min(1, Math.max(0, t)) * MEDIAN_SLIDER_POSITION)
+function buildPriceOptions(maxBound: number): number[] {
+  const options: number[] = []
+  let price = 1000
+  while (price <= 3000 && price <= maxBound) {
+    options.push(price)
+    price += 250
   }
-
-  const t = inverseLogT(price, median, max)
-  return Math.round(
-    MEDIAN_SLIDER_POSITION + Math.min(1, Math.max(0, t)) * (PRICE_SLIDER_STEPS - MEDIAN_SLIDER_POSITION),
-  )
+  while (price <= 6000 && price <= maxBound) {
+    options.push(price)
+    price += 500
+  }
+  while (price <= 10000 && price <= maxBound) {
+    options.push(price)
+    price += 1000
+  }
+  while (price <= maxBound) {
+    options.push(price)
+    price += 5000
+  }
+  return options
 }
 
-function sliderPositionToMaxPrice(
-  position: number,
-  min: number,
-  median: number,
-  max: number,
-): number | null {
-  if (position >= PRICE_SLIDER_STEPS) return null
-
-  if (position <= MEDIAN_SLIDER_POSITION) {
-    const t = MEDIAN_SLIDER_POSITION === 0 ? 0 : position / MEDIAN_SLIDER_POSITION
-    const raw = interpolateLogPrice(min, median, t)
-    return Math.max(min, Math.round(raw / 100) * 100)
+function buildRatingOptions(): string[] {
+  const options: string[] = []
+  for (let r = 3.0; r <= 5.0; r = Math.round((r + 0.1) * 10) / 10) {
+    options.push(r.toFixed(1))
   }
-
-  const span = PRICE_SLIDER_STEPS - MEDIAN_SLIDER_POSITION
-  const t = span === 0 ? 1 : (position - MEDIAN_SLIDER_POSITION) / span
-  const raw = interpolateLogPrice(median, max, t)
-  return Math.max(median, Math.round(raw / 100) * 100)
-}
-
-function ratingToSliderPosition(rating: number): number {
-  if (rating <= RATING_LOW_MAX) {
-    const t = rating / RATING_LOW_MAX
-    return Math.round(Math.min(1, Math.max(0, t)) * RATING_LOW_SLIDER_POSITION)
-  }
-
-  const t = (rating - RATING_LOW_MAX) / (RATING_HIGH_MAX - RATING_LOW_MAX)
-  return Math.round(
-    RATING_LOW_SLIDER_POSITION +
-      Math.min(1, Math.max(0, t)) * (RATING_SLIDER_STEPS - RATING_LOW_SLIDER_POSITION),
-  )
-}
-
-function sliderPositionToRating(position: number): number {
-  if (position <= RATING_LOW_SLIDER_POSITION) {
-    const t = position / RATING_LOW_SLIDER_POSITION
-    return Math.min(RATING_LOW_MAX, Math.max(0, t * RATING_LOW_MAX))
-  }
-
-  const span = RATING_SLIDER_STEPS - RATING_LOW_SLIDER_POSITION
-  const t = span === 0 ? 1 : (position - RATING_LOW_SLIDER_POSITION) / span
-  return RATING_LOW_MAX + t * (RATING_HIGH_MAX - RATING_LOW_MAX)
+  return options
 }
 
 export function PreviewToolbarQuickFilters({
@@ -217,23 +159,7 @@ export function PreviewToolbarQuickFilters({
   onPrimarySortChange,
   onSecondarySortChange,
 }: PreviewToolbarQuickFiltersProps) {
-  const priceMinBound = priceBounds?.min ?? 100
-  const priceMedianBound = priceBounds?.median ?? 2000
   const priceMaxBound = priceBounds?.max ?? 10000
-  const priceMaxValue = filters.priceMax.trim()
-    ? Math.min(parseFloat(filters.priceMax), priceMaxBound)
-    : priceMaxBound
-  const priceMaxAll = !filters.priceMax.trim() || priceMaxValue >= priceMaxBound
-  const priceSliderPosition = maxPriceToSliderPosition(
-    filters.priceMax,
-    priceMinBound,
-    priceMedianBound,
-    priceMaxBound,
-  )
-
-  const vivinoMinValue = filters.vivinoMin.trim() ? parseFloat(filters.vivinoMin) : 0
-  const vivinoMinAll = !filters.vivinoMin.trim() || vivinoMinValue <= 0
-  const ratingSliderPosition = vivinoMinAll ? 0 : ratingToSliderPosition(vivinoMinValue)
 
   const reviewFilterSelection = encodeReviewFilterSelection(filters.wishlist, filters.triedStatus)
   const selectedCountries = selectedCountriesFromRegionFilters(filters.regions)
@@ -319,56 +245,35 @@ export function PreviewToolbarQuickFilters({
 
       <div className="flex flex-wrap items-center gap-2">
         <span style={sliderLabelStyle(colors)}>Filters:</span>
-        <label className="flex-none" style={sliderGroupStyle(colors)}>
-          <span style={sliderLabelStyle(colors)}>Highest price</span>
-          <input
-            type="range"
-            min={0}
-            max={PRICE_SLIDER_STEPS}
-            step={1}
-            value={priceSliderPosition}
-            aria-label="Highest price"
-            className="flex-none accent-[#C93048]"
-            style={{ width: SLIDER_WIDTH }}
-            onChange={(event) => {
-              const nextPrice = sliderPositionToMaxPrice(
-                Number(event.target.value),
-                priceMinBound,
-                priceMedianBound,
-                priceMaxBound,
-              )
-              updateFilters({ priceMax: nextPrice == null ? '' : String(nextPrice) })
-            }}
-          />
-          <span style={sliderValueStyle(colors)}>
-            {priceMaxAll ? 'All' : Math.round(priceMaxValue).toLocaleString()}
-          </span>
-        </label>
+        <select
+          aria-label="Highest price"
+          className="flex-none"
+          style={filterSelectStyle(colors, !!filters.priceMax.trim())}
+          value={filters.priceMax.trim() || ''}
+          onChange={(event) => updateFilters({ priceMax: event.target.value })}
+        >
+          <option value="">Highest price: Show all</option>
+          {buildPriceOptions(priceMaxBound).map((price) => (
+            <option key={price} value={String(price)}>
+              {price.toLocaleString()} KSh
+            </option>
+          ))}
+        </select>
 
-        <label className="flex-none" style={sliderGroupStyle(colors)}>
-          <span style={sliderLabelStyle(colors)}>Lowest rating</span>
-          <input
-            type="range"
-            min={0}
-            max={RATING_SLIDER_STEPS}
-            step={1}
-            value={ratingSliderPosition}
-            aria-label="Lowest rating"
-            className="flex-none accent-[#C93048]"
-            style={{ width: SLIDER_WIDTH }}
-            onChange={(event) => {
-              const next = sliderPositionToRating(Number(event.target.value))
-              if (next <= 0) {
-                updateFilters({ vivinoMin: '' })
-                return
-              }
-              updateFilters({ vivinoMin: next.toFixed(1) })
-            }}
-          />
-          <span style={sliderValueStyle(colors)}>
-            {vivinoMinAll ? 'Any' : vivinoMinValue.toFixed(1)}
-          </span>
-        </label>
+        <select
+          aria-label="Lowest rating"
+          className="flex-none"
+          style={filterSelectStyle(colors, !!filters.vivinoMin.trim())}
+          value={filters.vivinoMin.trim() || ''}
+          onChange={(event) => updateFilters({ vivinoMin: event.target.value })}
+        >
+          <option value="">Lowest rating: Show all</option>
+          {buildRatingOptions().map((rating) => (
+            <option key={rating} value={rating}>
+              {rating}
+            </option>
+          ))}
+        </select>
 
         <PreviewFilterMultiSelect
           colors={colors}

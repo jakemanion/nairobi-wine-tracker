@@ -240,7 +240,7 @@ function HideButton({
         border: 'none',
         padding: 0,
         cursor: saving ? 'wait' : 'pointer',
-        opacity: saving ? 0.5 : 1,
+        opacity: saving ? 0.5 : active ? 1 : 0.5,
       }}
       onClick={onClick}
     >

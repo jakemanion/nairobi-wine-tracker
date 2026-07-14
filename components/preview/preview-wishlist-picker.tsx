@@ -171,13 +171,13 @@ export function getReviewPanelStyle(
 ): CSSProperties {
   if (mode === 'light') {
     if (tint === 'shortlist') return { background: '#C4D8F0' }
-    if (tint === 'thumbsUp') return { background: '#FFF0C8' }
+    if (tint === 'thumbsUp') return { background: 'linear-gradient(145deg, #FFF4D0 0%, #FFE8A0 52%, #FFF0C0 100%)' }
     if (tint === 'wishlist') return { background: '#C4F0CC' }
     return { background: '#F5F3EF' }
   }
 
   if (tint === 'shortlist') return { background: '#1A3060' }
-  if (tint === 'thumbsUp') return { background: '#5A4810' }
+  if (tint === 'thumbsUp') return { background: 'linear-gradient(145deg, #3A2C08 0%, #6A5010 52%, #4A3808 100%)' }
   if (tint === 'wishlist') return { background: '#1E6A30' }
   return { background: '#1C1C24' }
 }
