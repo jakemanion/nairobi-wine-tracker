@@ -6,13 +6,12 @@ import type { CSSProperties } from 'react'
 import type { WineReview } from '@/components/wine-table'
 import { saveReviewWishlistField, type WishlistValue } from '@/lib/reviews'
 import type { PreviewThemeMode, PanelTint } from '@/lib/preview/preview-colors'
-import { getReviewPanelTextColors } from '@/lib/preview/preview-colors'
-import { usePreviewTheme } from '@/components/preview/preview-theme-context'
 
 type PreviewWishlistPickerProps = {
   wineId: string
   userId: string
   review?: WineReview | null
+  labelColor?: string
   onReviewChange: (review: WineReview | null) => void
 }
 
@@ -56,15 +55,13 @@ export function PreviewWishlistPicker({
   wineId,
   userId,
   review,
+  labelColor,
   onReviewChange,
 }: PreviewWishlistPickerProps) {
-  const { mode } = usePreviewTheme()
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const value = normalizeWishlist(review?.wishlist)
   const active = value === 1
-  const tint: PanelTint = active ? 'wishlist' : 'none'
-  const panelText = getReviewPanelTextColors(mode, tint)
 
   async function toggle() {
     if (saving) return
@@ -103,7 +100,7 @@ export function PreviewWishlistPicker({
     <div className="flex flex-col items-center gap-0.5 flex-shrink-0">
       <p
         className="text-[6px] uppercase tracking-wider leading-tight text-center max-w-[54px]"
-        style={{ color: panelText.label, fontFamily: 'var(--font-dm-sans), sans-serif' }}
+        style={{ color: labelColor ?? '#9894A4', fontFamily: 'var(--font-dm-sans), sans-serif' }}
       >
         {getWishlistStateLabel(value)}
       </p>
@@ -140,17 +137,21 @@ export function PreviewWishlistPicker({
   )
 }
 
-export function getWishlistAccentColor(
-  wishlist: WishlistValue,
+export function getCardBorderColor(
+  tint: PanelTint,
   mode: PreviewThemeMode = 'dark',
-): string {
+): string | null {
   if (mode === 'light') {
-    if (wishlist === 1) return '#38A050'
-    return '#D8D4CC'
+    if (tint === 'shortlist') return '#4080D0'
+    if (tint === 'thumbsUp') return '#D0A828'
+    if (tint === 'wishlist') return '#38A050'
+    return null
   }
 
-  if (wishlist === 1) return '#48C868'
-  return '#3A3848'
+  if (tint === 'shortlist') return '#4888E0'
+  if (tint === 'thumbsUp') return '#E0C040'
+  if (tint === 'wishlist') return '#48C868'
+  return null
 }
 
 export function getReviewPanelTint(

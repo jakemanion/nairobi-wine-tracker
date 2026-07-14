@@ -6,9 +6,9 @@ import type { WineReview } from '@/components/wine-table'
 import { LoggedOutLoginPromptOverlay } from '@/components/preview/logged-out-login-prompt'
 import { PreviewBottleImage } from '@/components/preview/preview-bottle-image'
 import {
+  getCardBorderColor,
   getReviewPanelStyle,
   getReviewPanelTint,
-  getWishlistAccentColor,
   PreviewWishlistPicker,
 } from '@/components/preview/preview-wishlist-picker'
 import { PreviewShortlistButton } from '@/components/preview/preview-shortlist-button'
@@ -258,7 +258,7 @@ function HideButton({
       <span
         className="text-[5px] uppercase tracking-wider leading-none"
         style={{
-          color: active ? '#F08080' : panelLabelColor,
+          color: panelLabelColor,
           fontFamily: 'var(--font-dm-sans), sans-serif',
         }}
       >
@@ -286,10 +286,10 @@ export function PreviewWineCard({
   const ribbon = colourRibbonStyle(wine.colour)
   const panelTint = getReviewPanelTint(shortlisted, triedStatus === 1, wishlist === 1)
   const panelText = getReviewPanelTextColors(mode, panelTint)
-  const wishlistOutline =
-    wishlist === 1
-      ? `3px solid ${getWishlistAccentColor(wishlist, mode)}`
-      : `1px solid ${colors.cardBorder}`
+  const cardBorderColor = getCardBorderColor(panelTint, mode)
+  const cardBorder = cardBorderColor
+    ? `3px solid ${cardBorderColor}`
+    : `1px solid ${colors.cardBorder}`
   const infoOnDark = mode === 'light'
   const infoProducer = colors.producer
   const infoWineName = infoOnDark ? '#F5F2EC' : colors.wineName
@@ -379,7 +379,7 @@ export function PreviewWineCard({
       className="relative flex items-stretch overflow-hidden transition-opacity duration-300"
       style={{
         background: colors.cardBg,
-        border: wishlistOutline,
+        border: cardBorder,
         borderRadius: '0 12px 12px 12px',
         boxShadow: isDimmed ? 'none' : colors.cardShadow,
         opacity: isDimmed ? 0.4 : 1,
@@ -535,7 +535,7 @@ export function PreviewWineCard({
           <HideButton
             active={isHidden}
             saving={savingHide}
-            panelLabelColor={panelText.muted}
+            panelLabelColor={panelText.label}
             onClick={() => void toggleHide()}
           />
         </div>
@@ -553,6 +553,7 @@ export function PreviewWineCard({
                 wineId={wine.id}
                 userId={userId}
                 review={review}
+                labelColor={panelText.label}
                 onReviewChange={onReviewChange}
               />
             </UsageTipTarget>
@@ -562,7 +563,7 @@ export function PreviewWineCard({
                 userId={userId}
                 review={review}
                 disabled={!isLoggedIn}
-                labelColor={panelTint !== 'none' && panelTint !== 'shortlist' ? panelText.label : undefined}
+                labelColor={panelText.label}
                 onReviewChange={onReviewChange}
               />
             </UsageTipTarget>

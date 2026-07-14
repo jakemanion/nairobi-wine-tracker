@@ -96,9 +96,9 @@ export function PreviewTriedStatusPicker({
           style={{
             width: 28,
             height: 28,
-            border: `1.5px solid ${upActive ? '#2A5030' : '#3A3848'}`,
-            background: upActive ? '#162010' : '#22222C',
-            color: upActive ? '#70D080' : '#9894A4',
+            border: `1.5px solid ${upActive ? '#8A7020' : '#3A3848'}`,
+            background: upActive ? '#3A2E08' : '#22222C',
+            color: upActive ? '#E0C040' : '#9894A4',
             boxShadow: '0 1px 4px rgba(0,0,0,0.3)',
             opacity: saving ? 0.5 : 1,
             cursor: saving ? 'wait' : 'pointer',

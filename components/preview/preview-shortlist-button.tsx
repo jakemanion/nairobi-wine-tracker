@@ -95,7 +95,7 @@ export function PreviewShortlistButton({
       <p
         className="text-[6px] uppercase tracking-wider leading-tight text-center max-w-[54px]"
         style={{
-          color: shortlisted ? activeStyle.color : inactiveColor,
+          color: inactiveColor,
           fontFamily: 'var(--font-dm-sans), sans-serif',
         }}
       >
