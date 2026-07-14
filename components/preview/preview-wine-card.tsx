@@ -564,36 +564,61 @@ export function PreviewWineCard({
             </UsageTipTarget>
           </div>
 
-          <div className="flex items-start gap-1.5">
-            <UsageTipTarget tipId="notes-textfield" className="flex-1 min-w-0">
-              <textarea
-                value={notesDraft}
-                disabled={savingNotes}
-                placeholder="Notes"
-                rows={2}
-                className="w-full text-[11px] resize-none focus:outline-none transition-colors leading-relaxed rounded-lg px-2 py-1.5 disabled:opacity-60"
-                style={{
-                  background: panelText.notesBg,
-                  border: `1px solid ${panelText.notesBorder}`,
-                  color: panelText.notesText,
-                  fontFamily: 'var(--font-dm-sans), sans-serif',
-                  caretColor: colors.producer,
-                }}
-                onChange={(e) => {
-                  notesDirtyRef.current = true
-                  setNotesDraft(e.target.value)
-                }}
-                onBlur={() => void saveNotes()}
-              />
-            </UsageTipTarget>
-            <UsageTipTarget tipId="tried-button" className="flex-shrink-0 pt-1">
-              <PreviewTriedStatusPicker
-                wineId={wine.id}
-                userId={userId}
-                review={review}
-                onReviewChange={onReviewChange}
-              />
-            </UsageTipTarget>
+          <div
+            style={{
+              height: 1,
+              background: panelText.notesBorder,
+              opacity: 0.5,
+            }}
+          />
+
+          <div className="flex items-end gap-1.5">
+            <div className="flex-1 min-w-0 flex flex-col gap-0.5">
+              <p
+                className="text-[6px] uppercase tracking-wider leading-none"
+                style={{ color: panelText.label, fontFamily: 'var(--font-dm-sans), sans-serif' }}
+              >
+                Tried it?
+              </p>
+              <UsageTipTarget tipId="notes-textfield">
+                <input
+                  type="text"
+                  value={notesDraft}
+                  disabled={savingNotes}
+                  placeholder="Notes"
+                  className="w-full text-[11px] focus:outline-none transition-colors rounded-lg px-2 disabled:opacity-60"
+                  style={{
+                    height: 28,
+                    background: panelText.notesBg,
+                    border: `1px solid ${panelText.notesBorder}`,
+                    color: panelText.notesText,
+                    fontFamily: 'var(--font-dm-sans), sans-serif',
+                    caretColor: colors.producer,
+                  }}
+                  onChange={(e) => {
+                    notesDirtyRef.current = true
+                    setNotesDraft(e.target.value)
+                  }}
+                  onBlur={() => void saveNotes()}
+                />
+              </UsageTipTarget>
+            </div>
+            <div className="flex flex-col gap-0.5 flex-shrink-0">
+              <p
+                className="text-[6px] uppercase tracking-wider leading-none text-center"
+                style={{ color: panelText.label, fontFamily: 'var(--font-dm-sans), sans-serif' }}
+              >
+                Buy again?
+              </p>
+              <UsageTipTarget tipId="tried-button">
+                <PreviewTriedStatusPicker
+                  wineId={wine.id}
+                  userId={userId}
+                  review={review}
+                  onReviewChange={onReviewChange}
+                />
+              </UsageTipTarget>
+            </div>
           </div>
 
           {error ? (

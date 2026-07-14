@@ -95,8 +95,10 @@ export function PreviewTriedStatusPicker({
           aria-label={upActive ? 'Remove thumbs up' : 'Thumbs up'}
           aria-pressed={upActive}
           disabled={saving}
-          className="w-5 h-5 rounded flex items-center justify-center transition-all hover:scale-110 flex-shrink-0"
+          className="rounded-lg flex items-center justify-center transition-all hover:scale-105 flex-shrink-0"
           style={{
+            width: 28,
+            height: 28,
             border: `1.5px solid ${upActive ? '#2A5030' : '#3A3848'}`,
             background: upActive ? '#162010' : '#22222C',
             color: upActive ? '#70D080' : '#9894A4',
@@ -106,7 +108,7 @@ export function PreviewTriedStatusPicker({
           }}
           onClick={() => void setStatus(1)}
         >
-          <ThumbsUp size={12} strokeWidth={2.5} />
+          <ThumbsUp size={15} strokeWidth={2} />
         </button>
         <button
           type="button"
@@ -114,8 +116,10 @@ export function PreviewTriedStatusPicker({
           aria-label={downActive ? 'Remove thumbs down' : 'Thumbs down'}
           aria-pressed={downActive}
           disabled={saving}
-          className="w-5 h-5 rounded flex items-center justify-center transition-all hover:scale-110 flex-shrink-0"
+          className="rounded-lg flex items-center justify-center transition-all hover:scale-105 flex-shrink-0"
           style={{
+            width: 28,
+            height: 28,
             border: `1.5px solid ${downActive ? '#5A3030' : '#3A3848'}`,
             background: downActive ? '#2A1C1C' : '#22222C',
             color: downActive ? '#F08080' : '#9894A4',
@@ -125,7 +129,7 @@ export function PreviewTriedStatusPicker({
           }}
           onClick={() => void setStatus(2)}
         >
-          <ThumbsDown size={12} strokeWidth={2.5} />
+          <ThumbsDown size={15} strokeWidth={2} />
         </button>
       </div>
       {error ? (
