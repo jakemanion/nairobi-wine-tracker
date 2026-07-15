@@ -1,12 +1,9 @@
 'use client'
 
 import { PreviewToolbarQuickFilters } from '@/components/preview/preview-toolbar-quick-filters'
-import { UsageTipTarget } from '@/components/preview/usage-tip-target'
 import type { SortCriterion } from '@/components/wine-filter-panel'
 import { usePreviewTheme } from '@/components/preview/preview-theme-context'
 import {
-  applyHideUnwantedToggle,
-  isHideUnwantedPreset,
   type RegionFilterGroup,
   type WineFilters,
 } from '@/lib/wine-filters'
@@ -51,14 +48,9 @@ export function PreviewToolbar({
   priceBounds,
   isLoggedIn = false,
 }: PreviewToolbarProps) {
-  const { colors, mode } = usePreviewTheme()
+  const { colors } = usePreviewTheme()
   const toolsActive = activeFilterCount > 0
   const resultCountText = buildResultCountText(resultCount, totalCount)
-  const hideUnwantedActive =
-    isHideUnwantedPreset(filters) ||
-    (filters.hideUnwanted &&
-      filters.wishlist.length === 0 &&
-      filters.triedStatus.length === 0)
 
   return (
     <div
@@ -68,31 +60,6 @@ export function PreviewToolbar({
         background: colors.toolbarBg,
       }}
     >
-      <div className="flex items-center gap-2 p-3 flex-wrap justify-end">
-        {isLoggedIn ? (
-          <UsageTipTarget tipId="hide-unwanted">
-            <button
-              type="button"
-              aria-pressed={hideUnwantedActive}
-              className="flex items-center text-xs px-3 py-2 rounded-lg flex-shrink-0"
-              style={{
-                background: hideUnwantedActive ? colors.searchBg : colors.buttonBg,
-                border: `1px solid ${hideUnwantedActive ? '#C93048' : colors.buttonBorder}`,
-                color: hideUnwantedActive ? colors.searchText : colors.buttonText,
-                fontFamily: 'var(--font-dm-sans), sans-serif',
-                cursor: 'pointer',
-                whiteSpace: 'nowrap',
-              }}
-              onClick={() =>
-                onFiltersChange(applyHideUnwantedToggle(filters, !hideUnwantedActive))
-              }
-            >
-              {hideUnwantedActive ? 'Show unwanted' : 'Hide unwanted'}
-            </button>
-          </UsageTipTarget>
-        ) : null}
-      </div>
-
       <PreviewToolbarQuickFilters
         colors={colors}
         filters={filters}
@@ -104,6 +71,7 @@ export function PreviewToolbar({
         primarySort={primarySort}
         onPrimarySortChange={onPrimarySortChange}
         onSecondarySortChange={onSecondarySortChange}
+        isLoggedIn={isLoggedIn}
       />
       <p
         className="m-0 px-3 pb-2 truncate"

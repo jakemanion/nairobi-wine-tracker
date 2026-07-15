@@ -1,10 +1,12 @@
 'use client'
 
 import type { CSSProperties } from 'react'
-import { ArrowUpDown, Heart, ListChecks, ThumbsUp } from 'lucide-react'
+import { ArrowUpDown, EyeOff, Heart, ListChecks, ThumbsUp } from 'lucide-react'
 import {
+  applyHideUnwantedToggle,
   BEST_UNDER_PRICE_PRESETS,
   countryFiltersFromSelection,
+  isHideUnwantedPreset,
   selectedCountriesFromRegionFilters,
   type WineFilters,
 } from '@/lib/wine-filters'
@@ -30,6 +32,7 @@ type PreviewToolbarQuickFiltersProps = {
   primarySort: SortCriterion
   onPrimarySortChange: (next: SortCriterion) => void
   onSecondarySortChange: (next: SortCriterion) => void
+  isLoggedIn?: boolean
 }
 
 function chipStyle(colors: PreviewColors, active: boolean): CSSProperties {
@@ -103,12 +106,13 @@ const REVIEW_FILTER_COLORS = {
   wishlist: { bg: '#162010', border: '#2A5030', color: '#50A060' },
   shortlist: { bg: '#101830', border: '#2040A0', color: '#6090E0' },
   thumbsUp: { bg: '#3A2E08', border: '#8A7020', color: '#E0C040' },
+  hide: { bg: '#2A1C1C', border: '#5A3030', color: '#F08080' },
 } as const
 
 function reviewFilterButtonStyle(
   colors: PreviewColors,
   active: boolean,
-  kind: 'wishlist' | 'shortlist' | 'thumbsUp',
+  kind: 'wishlist' | 'shortlist' | 'thumbsUp' | 'hide',
 ): CSSProperties {
   const accent = REVIEW_FILTER_COLORS[kind]
   return {
@@ -187,8 +191,14 @@ export function PreviewToolbarQuickFilters({
   primarySort,
   onPrimarySortChange,
   onSecondarySortChange,
+  isLoggedIn = false,
 }: PreviewToolbarQuickFiltersProps) {
   const priceMaxBound = priceBounds?.max ?? 10000
+  const hideUnwantedActive =
+    isHideUnwantedPreset(filters) ||
+    (filters.hideUnwanted &&
+      filters.wishlist.length === 0 &&
+      filters.triedStatus.length === 0)
 
   const selectedCountries = selectedCountriesFromRegionFilters(filters.regions)
 
@@ -219,67 +229,6 @@ export function PreviewToolbarQuickFilters({
 
   return (
     <div className="flex flex-col gap-2.5 px-3 pb-3">
-      <div className="flex flex-wrap items-center gap-2">
-        <UsageTipTarget
-          tipId="sort-panel"
-          className="flex flex-wrap items-center gap-1.5"
-          style={sliderGroupStyle(colors)}
-        >
-          <span style={sliderLabelStyle(colors)}>Sort by:</span>
-          {QUICK_SORT_OPTIONS.map((option) => {
-            const active = isQuickSortActive(primarySort, option.key)
-            return (
-              <button
-                key={option.key}
-                type="button"
-                aria-pressed={active}
-                style={chipStyle(colors, active)}
-                onClick={() => applyQuickSort(option.key, option.dir)}
-              >
-                {option.label}
-              </button>
-            )
-          })}
-          <button
-            type="button"
-            title="Reverse sort direction"
-            aria-label="Reverse sort direction"
-            style={{
-              ...chipStyle(colors, false),
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: '6px 8px',
-            }}
-            onClick={() => {
-              const reversed = primarySort.dir === 'asc' ? 'desc' : 'asc'
-              onPrimarySortChange({ ...primarySort, dir: reversed })
-            }}
-          >
-            <ArrowUpDown size={13} strokeWidth={2} />
-          </button>
-        </UsageTipTarget>
-
-        <UsageTipTarget
-          tipId="best-under-panel"
-          className="flex flex-wrap items-center gap-1.5"
-          style={sliderGroupStyle(colors)}
-        >
-          <span style={sliderLabelStyle(colors)}>Best wines under:</span>
-          {BEST_UNDER_PRICE_PRESETS.map((price) => (
-            <button
-              key={price}
-              type="button"
-              aria-pressed={isBestUnderActive(filters, primarySort, price)}
-              style={chipStyle(colors, isBestUnderActive(filters, primarySort, price))}
-              onClick={() => applyBestUnder(price)}
-            >
-              {price.toLocaleString()}
-            </button>
-          ))}
-        </UsageTipTarget>
-      </div>
-
       <div className="flex flex-wrap items-center gap-2">
         <span style={sliderLabelStyle(colors)}>Filters:</span>
         <select
@@ -360,6 +309,18 @@ export function PreviewToolbarQuickFilters({
         >
           <ThumbsUp size={14} strokeWidth={2} />
         </button>
+        {isLoggedIn ? (
+          <button
+            type="button"
+            title={hideUnwantedActive ? 'Show unwanted wines' : 'Hide unwanted wines'}
+            aria-label={hideUnwantedActive ? 'Show unwanted wines' : 'Hide unwanted wines'}
+            aria-pressed={hideUnwantedActive}
+            style={reviewFilterButtonStyle(colors, hideUnwantedActive, 'hide')}
+            onClick={() => onFiltersChange(applyHideUnwantedToggle(filters, !hideUnwantedActive))}
+          >
+            <EyeOff size={14} strokeWidth={2} />
+          </button>
+        ) : null}
       </div>
 
       {stores.length > 0 ? (
@@ -386,6 +347,67 @@ export function PreviewToolbarQuickFilters({
           })}
         </div>
       ) : null}
+
+      <div className="flex flex-wrap items-center gap-2">
+        <UsageTipTarget
+          tipId="sort-panel"
+          className="flex flex-wrap items-center gap-1.5"
+          style={sliderGroupStyle(colors)}
+        >
+          <span style={sliderLabelStyle(colors)}>Sort by:</span>
+          {QUICK_SORT_OPTIONS.map((option) => {
+            const active = isQuickSortActive(primarySort, option.key)
+            return (
+              <button
+                key={option.key}
+                type="button"
+                aria-pressed={active}
+                style={chipStyle(colors, active)}
+                onClick={() => applyQuickSort(option.key, option.dir)}
+              >
+                {option.label}
+              </button>
+            )
+          })}
+          <button
+            type="button"
+            title="Reverse sort direction"
+            aria-label="Reverse sort direction"
+            style={{
+              ...chipStyle(colors, false),
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '6px 8px',
+            }}
+            onClick={() => {
+              const reversed = primarySort.dir === 'asc' ? 'desc' : 'asc'
+              onPrimarySortChange({ ...primarySort, dir: reversed })
+            }}
+          >
+            <ArrowUpDown size={13} strokeWidth={2} />
+          </button>
+        </UsageTipTarget>
+
+        <UsageTipTarget
+          tipId="best-under-panel"
+          className="flex flex-wrap items-center gap-1.5"
+          style={sliderGroupStyle(colors)}
+        >
+          <span style={sliderLabelStyle(colors)}>Best wines under:</span>
+          {BEST_UNDER_PRICE_PRESETS.map((price) => (
+            <button
+              key={price}
+              type="button"
+              aria-pressed={isBestUnderActive(filters, primarySort, price)}
+              style={chipStyle(colors, isBestUnderActive(filters, primarySort, price))}
+              onClick={() => applyBestUnder(price)}
+            >
+              {price.toLocaleString()}
+            </button>
+          ))}
+        </UsageTipTarget>
+      </div>
     </div>
   )
 }
