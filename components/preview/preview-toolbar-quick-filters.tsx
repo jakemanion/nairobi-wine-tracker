@@ -95,9 +95,37 @@ const QUICK_SORT_OPTIONS: Array<{ key: SortFieldKey; label: string; dir: 'asc' |
 function isQuickSortActive(
   primarySort: SortCriterion,
   key: SortFieldKey,
-  dir: 'asc' | 'desc',
 ): boolean {
-  return primarySort.key === key && primarySort.dir === dir
+  return primarySort.key === key
+}
+
+const REVIEW_FILTER_COLORS = {
+  wishlist: { bg: '#162010', border: '#2A5030', color: '#50A060' },
+  shortlist: { bg: '#101830', border: '#2040A0', color: '#6090E0' },
+  thumbsUp: { bg: '#3A2E08', border: '#8A7020', color: '#E0C040' },
+} as const
+
+function reviewFilterButtonStyle(
+  colors: PreviewColors,
+  active: boolean,
+  kind: 'wishlist' | 'shortlist' | 'thumbsUp',
+): CSSProperties {
+  const accent = REVIEW_FILTER_COLORS[kind]
+  return {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '7px 9px',
+    fontSize: 12,
+    lineHeight: 1.2,
+    borderRadius: 8,
+    cursor: 'pointer',
+    fontFamily: 'var(--font-dm-sans), sans-serif',
+    background: active ? accent.bg : colors.buttonBg,
+    border: `1px solid ${active ? accent.border : colors.buttonBorder}`,
+    color: active ? accent.color : colors.buttonText,
+    whiteSpace: 'nowrap' as const,
+  }
 }
 
 function filterSelectStyle(colors: PreviewColors, active: boolean): CSSProperties {
@@ -169,7 +197,7 @@ export function PreviewToolbarQuickFilters({
   }
 
   function applyQuickSort(key: SortFieldKey, dir: 'asc' | 'desc') {
-    if (isQuickSortActive(primarySort, key, dir)) {
+    if (isQuickSortActive(primarySort, key)) {
       onPrimarySortChange(PRODUCER_SORT)
       onSecondarySortChange({ key: 'none', dir: 'asc' })
       return
@@ -199,7 +227,7 @@ export function PreviewToolbarQuickFilters({
         >
           <span style={sliderLabelStyle(colors)}>Sort by:</span>
           {QUICK_SORT_OPTIONS.map((option) => {
-            const active = isQuickSortActive(primarySort, option.key, option.dir)
+            const active = isQuickSortActive(primarySort, option.key)
             return (
               <button
                 key={option.key}
@@ -304,45 +332,33 @@ export function PreviewToolbarQuickFilters({
 
         <button
           type="button"
+          title="Show wishlisted only"
+          aria-label="Show wishlisted only"
           aria-pressed={filters.showWishlistOnly}
-          style={{
-            ...chipStyle(colors, filters.showWishlistOnly),
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 4,
-          }}
+          style={reviewFilterButtonStyle(colors, filters.showWishlistOnly, 'wishlist')}
           onClick={() => updateFilters({ showWishlistOnly: !filters.showWishlistOnly, showShortlistOnly: false, showThumbsUpOnly: false })}
         >
-          <Heart size={13} strokeWidth={2} className={filters.showWishlistOnly ? 'fill-current' : undefined} />
-          Wishlist
+          <Heart size={14} strokeWidth={2} className={filters.showWishlistOnly ? 'fill-current' : undefined} />
         </button>
         <button
           type="button"
+          title="Show shortlisted only"
+          aria-label="Show shortlisted only"
           aria-pressed={filters.showShortlistOnly}
-          style={{
-            ...chipStyle(colors, filters.showShortlistOnly),
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 4,
-          }}
+          style={reviewFilterButtonStyle(colors, filters.showShortlistOnly, 'shortlist')}
           onClick={() => updateFilters({ showShortlistOnly: !filters.showShortlistOnly, showWishlistOnly: false, showThumbsUpOnly: false })}
         >
-          <ListChecks size={13} strokeWidth={2} />
-          Shortlist
+          <ListChecks size={14} strokeWidth={2} />
         </button>
         <button
           type="button"
+          title="Show buy-again only"
+          aria-label="Show buy-again only"
           aria-pressed={filters.showThumbsUpOnly}
-          style={{
-            ...chipStyle(colors, filters.showThumbsUpOnly),
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 4,
-          }}
+          style={reviewFilterButtonStyle(colors, filters.showThumbsUpOnly, 'thumbsUp')}
           onClick={() => updateFilters({ showThumbsUpOnly: !filters.showThumbsUpOnly, showWishlistOnly: false, showShortlistOnly: false })}
         >
-          <ThumbsUp size={13} strokeWidth={2} />
-          Buy again
+          <ThumbsUp size={14} strokeWidth={2} />
         </button>
       </div>
 
