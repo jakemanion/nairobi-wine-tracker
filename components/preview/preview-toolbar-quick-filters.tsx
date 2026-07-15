@@ -85,8 +85,6 @@ function isBestUnderActive(filters: WineFilters, primarySort: SortCriterion, pri
   )
 }
 
-const PRODUCER_SORT: SortCriterion = { key: 'winery', dir: 'asc' }
-
 const QUICK_SORT_OPTIONS: Array<{ key: SortFieldKey; label: string; dir: 'asc' | 'desc' }> = [
   { key: 'value_score', label: 'Value', dir: 'desc' },
   { key: 'winery', label: 'Producer', dir: 'asc' },
@@ -95,12 +93,6 @@ const QUICK_SORT_OPTIONS: Array<{ key: SortFieldKey; label: string; dir: 'asc' |
   { key: 'vivino_rating', label: 'Rating', dir: 'desc' },
 ]
 
-function isQuickSortActive(
-  primarySort: SortCriterion,
-  key: SortFieldKey,
-): boolean {
-  return primarySort.key === key
-}
 
 const REVIEW_FILTER_COLORS = {
   wishlist: { bg: '#162010', border: '#2A5030', color: '#50A060' },
@@ -204,16 +196,6 @@ export function PreviewToolbarQuickFilters({
 
   function updateFilters(patch: Partial<WineFilters>) {
     onFiltersChange({ ...filters, ...patch })
-  }
-
-  function applyQuickSort(key: SortFieldKey, dir: 'asc' | 'desc') {
-    if (isQuickSortActive(primarySort, key)) {
-      onPrimarySortChange(PRODUCER_SORT)
-      onSecondarySortChange({ key: 'none', dir: 'asc' })
-      return
-    }
-    onPrimarySortChange({ key, dir })
-    onSecondarySortChange({ key: 'none', dir: 'asc' })
   }
 
   function applyBestUnder(price: number) {
@@ -365,24 +347,26 @@ export function PreviewToolbarQuickFilters({
       <div className="flex flex-wrap items-center gap-2">
         <UsageTipTarget
           tipId="sort-panel"
-          className="flex flex-wrap items-center gap-1.5"
+          className="flex items-center gap-1.5"
           style={sliderGroupStyle(colors)}
         >
-          <span style={sliderLabelStyle(colors)}>Sort by:</span>
-          {QUICK_SORT_OPTIONS.map((option) => {
-            const active = isQuickSortActive(primarySort, option.key)
-            return (
-              <button
-                key={option.key}
-                type="button"
-                aria-pressed={active}
-                style={chipStyle(colors, active)}
-                onClick={() => applyQuickSort(option.key, option.dir)}
-              >
-                {option.label}
-              </button>
-            )
-          })}
+          <select
+            aria-label="Sort by"
+            style={filterSelectStyle(colors, primarySort.key !== 'winery')}
+            value={primarySort.key}
+            onChange={(event) => {
+              const key = event.target.value as SortFieldKey
+              const match = QUICK_SORT_OPTIONS.find((o) => o.key === key)
+              onPrimarySortChange({ key, dir: match?.dir ?? 'asc' })
+              onSecondarySortChange({ key: 'none', dir: 'asc' })
+            }}
+          >
+            {QUICK_SORT_OPTIONS.map((option) => (
+              <option key={option.key} value={option.key}>
+                Sort by: {option.label}
+              </option>
+            ))}
+          </select>
           <button
             type="button"
             title="Reverse sort direction"
@@ -392,7 +376,7 @@ export function PreviewToolbarQuickFilters({
               display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'center',
-              padding: '6px 8px',
+              padding: '7px 9px',
             }}
             onClick={() => {
               const reversed = primarySort.dir === 'asc' ? 'desc' : 'asc'
