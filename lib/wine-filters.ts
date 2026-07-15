@@ -386,10 +386,16 @@ export function filterWines<T extends WineRow>(wines: T[], filters: WineFilters)
   const countryFilter = filters.country.trim()
   const selectedGrapes = filters.grapes.map((grape) => grape.toLowerCase())
 
+  const hasMyWinesFilter = filters.showWishlistOnly || filters.showShortlistOnly || filters.showThumbsUpOnly
+
   return wines.filter((wine) => {
-    if (filters.showWishlistOnly && normalizeWishlist(wine.review?.wishlist) !== 1) return false
-    if (filters.showShortlistOnly && wine.review?.shortlist !== 1) return false
-    if (filters.showThumbsUpOnly && normalizeTriedStatus(wine.review?.tried_status) !== 1) return false
+    if (hasMyWinesFilter) {
+      const matchesAny =
+        (filters.showWishlistOnly && normalizeWishlist(wine.review?.wishlist) === 1) ||
+        (filters.showShortlistOnly && wine.review?.shortlist === 1) ||
+        (filters.showThumbsUpOnly && normalizeTriedStatus(wine.review?.tried_status) === 1)
+      if (!matchesAny) return false
+    }
 
     const price = minWinePriceKES(wine.store_listings)
     if (priceMin != null && (price == null || price < priceMin)) return false

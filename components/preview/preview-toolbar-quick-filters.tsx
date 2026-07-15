@@ -230,101 +230,115 @@ export function PreviewToolbarQuickFilters({
   return (
     <div className="flex flex-col gap-2.5 px-3 pb-3">
       <div className="flex flex-wrap items-center gap-2">
-        <span style={sliderLabelStyle(colors)}>Filters:</span>
-        <select
-          aria-label="Highest price"
-          className="flex-none"
-          style={filterSelectStyle(colors, !!filters.priceMax.trim())}
-          value={filters.priceMax.trim() || ''}
-          onChange={(event) => updateFilters({ priceMax: event.target.value })}
+        <div
+          className="flex flex-wrap items-center gap-1.5"
+          style={sliderGroupStyle(colors)}
         >
-          <option value="">Highest price: Show all</option>
-          {buildPriceOptions(priceMaxBound).map((price) => (
-            <option key={price} value={String(price)}>
-              Max price: {price.toLocaleString()} KSh
-            </option>
-          ))}
-        </select>
-
-        <select
-          aria-label="Lowest rating"
-          className="flex-none"
-          style={filterSelectStyle(colors, !!filters.vivinoMin.trim())}
-          value={filters.vivinoMin.trim() || ''}
-          onChange={(event) => updateFilters({ vivinoMin: event.target.value })}
-        >
-          <option value="">Lowest rating: Show all</option>
-          {buildRatingOptions().map((rating) => (
-            <option key={rating} value={rating}>
-              {rating} and above
-            </option>
-          ))}
-        </select>
-
-        <PreviewFilterMultiSelect
-          colors={colors}
-          label="Grapes"
-          emptyMessage="No grapes in list"
-          options={grapes}
-          selected={filters.grapes}
-          onChange={(next) => updateFilters({ grapes: next })}
-        />
-
-        <PreviewFilterMultiSelect
-          colors={colors}
-          label="Countries"
-          emptyMessage="No countries in list"
-          options={countries}
-          selected={selectedCountries}
-          onChange={(next) => updateFilters({ regions: countryFiltersFromSelection(next) })}
-        />
-
-        <button
-          type="button"
-          title="Show wishlisted only"
-          aria-label="Show wishlisted only"
-          aria-pressed={filters.showWishlistOnly}
-          style={reviewFilterButtonStyle(colors, filters.showWishlistOnly, 'wishlist')}
-          onClick={() => updateFilters({ showWishlistOnly: !filters.showWishlistOnly, showShortlistOnly: false, showThumbsUpOnly: false })}
-        >
-          <Heart size={14} strokeWidth={2} className={filters.showWishlistOnly ? 'fill-current' : undefined} />
-        </button>
-        <button
-          type="button"
-          title="Show shortlisted only"
-          aria-label="Show shortlisted only"
-          aria-pressed={filters.showShortlistOnly}
-          style={reviewFilterButtonStyle(colors, filters.showShortlistOnly, 'shortlist')}
-          onClick={() => updateFilters({ showShortlistOnly: !filters.showShortlistOnly, showWishlistOnly: false, showThumbsUpOnly: false })}
-        >
-          <ListChecks size={14} strokeWidth={2} />
-        </button>
-        <button
-          type="button"
-          title="Show buy-again only"
-          aria-label="Show buy-again only"
-          aria-pressed={filters.showThumbsUpOnly}
-          style={reviewFilterButtonStyle(colors, filters.showThumbsUpOnly, 'thumbsUp')}
-          onClick={() => updateFilters({ showThumbsUpOnly: !filters.showThumbsUpOnly, showWishlistOnly: false, showShortlistOnly: false })}
-        >
-          <ThumbsUp size={14} strokeWidth={2} />
-        </button>
-        {isLoggedIn ? (
+          <span style={sliderLabelStyle(colors)}>My Wines:</span>
           <button
             type="button"
-            title={hideUnwantedActive ? 'Show unwanted wines' : 'Hide unwanted wines'}
-            aria-label={hideUnwantedActive ? 'Show unwanted wines' : 'Hide unwanted wines'}
-            aria-pressed={hideUnwantedActive}
-            style={reviewFilterButtonStyle(colors, hideUnwantedActive, 'hide')}
-            onClick={() => onFiltersChange(applyHideUnwantedToggle(filters, !hideUnwantedActive))}
+            title="Show wishlisted only"
+            aria-label="Show wishlisted only"
+            aria-pressed={filters.showWishlistOnly}
+            style={reviewFilterButtonStyle(colors, filters.showWishlistOnly, 'wishlist')}
+            onClick={() => updateFilters({ showWishlistOnly: !filters.showWishlistOnly })}
           >
-            <EyeOff size={14} strokeWidth={2} />
+            <Heart size={14} strokeWidth={2} className={filters.showWishlistOnly ? 'fill-current' : undefined} />
           </button>
-        ) : null}
+          <button
+            type="button"
+            title="Show shortlisted only"
+            aria-label="Show shortlisted only"
+            aria-pressed={filters.showShortlistOnly}
+            style={reviewFilterButtonStyle(colors, filters.showShortlistOnly, 'shortlist')}
+            onClick={() => updateFilters({ showShortlistOnly: !filters.showShortlistOnly })}
+          >
+            <ListChecks size={14} strokeWidth={2} />
+          </button>
+          <button
+            type="button"
+            title="Show buy-again only"
+            aria-label="Show buy-again only"
+            aria-pressed={filters.showThumbsUpOnly}
+            style={reviewFilterButtonStyle(colors, filters.showThumbsUpOnly, 'thumbsUp')}
+            onClick={() => updateFilters({ showThumbsUpOnly: !filters.showThumbsUpOnly })}
+          >
+            <ThumbsUp size={14} strokeWidth={2} />
+          </button>
+          {isLoggedIn ? (
+            <button
+              type="button"
+              title={hideUnwantedActive ? 'Show unwanted wines' : 'Hide unwanted wines'}
+              aria-label={hideUnwantedActive ? 'Show unwanted wines' : 'Hide unwanted wines'}
+              aria-pressed={hideUnwantedActive}
+              style={reviewFilterButtonStyle(colors, hideUnwantedActive, 'hide')}
+              onClick={() => onFiltersChange(applyHideUnwantedToggle(filters, !hideUnwantedActive))}
+            >
+              <EyeOff size={14} strokeWidth={2} />
+            </button>
+          ) : null}
+        </div>
+
+        <div
+          className="flex flex-wrap items-center gap-1.5"
+          style={sliderGroupStyle(colors)}
+        >
+          <span style={sliderLabelStyle(colors)}>Filters:</span>
+          <select
+            aria-label="Highest price"
+            className="flex-none"
+            style={filterSelectStyle(colors, !!filters.priceMax.trim())}
+            value={filters.priceMax.trim() || ''}
+            onChange={(event) => updateFilters({ priceMax: event.target.value })}
+          >
+            <option value="">Highest price: Show all</option>
+            {buildPriceOptions(priceMaxBound).map((price) => (
+              <option key={price} value={String(price)}>
+                Max price: {price.toLocaleString()} KSh
+              </option>
+            ))}
+          </select>
+
+          <select
+            aria-label="Lowest rating"
+            className="flex-none"
+            style={filterSelectStyle(colors, !!filters.vivinoMin.trim())}
+            value={filters.vivinoMin.trim() || ''}
+            onChange={(event) => updateFilters({ vivinoMin: event.target.value })}
+          >
+            <option value="">Lowest rating: Show all</option>
+            {buildRatingOptions().map((rating) => (
+              <option key={rating} value={rating}>
+                {rating} and above
+              </option>
+            ))}
+          </select>
+
+          <PreviewFilterMultiSelect
+            colors={colors}
+            label="Grapes"
+            emptyMessage="No grapes in list"
+            options={grapes}
+            selected={filters.grapes}
+            onChange={(next) => updateFilters({ grapes: next })}
+          />
+
+          <PreviewFilterMultiSelect
+            colors={colors}
+            label="Countries"
+            emptyMessage="No countries in list"
+            options={countries}
+            selected={selectedCountries}
+            onChange={(next) => updateFilters({ regions: countryFiltersFromSelection(next) })}
+          />
+        </div>
       </div>
 
       {stores.length > 0 ? (
-        <div className="flex flex-wrap items-center gap-1.5">
+        <div
+          className="flex flex-wrap items-center gap-1.5"
+          style={sliderGroupStyle(colors)}
+        >
           <span style={sliderLabelStyle(colors)}>Shops:</span>
           {stores.map((store) => {
             const enabled = !filters.disabledStores.includes(store)
