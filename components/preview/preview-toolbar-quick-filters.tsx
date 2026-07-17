@@ -279,40 +279,40 @@ export function PreviewToolbarQuickFilters({
             />
           </UsageTipTarget>
 
-          <UsageTipTarget tipId="my-wines-filters" className="ml-auto flex flex-col gap-1.5 pl-2">
-            <span style={sliderLabelStyle(colors)}>My Wines</span>
-            <div className="flex items-center gap-1.5">
-              <button
-                type="button"
-                title="Show wishlisted only"
-                aria-label="Show wishlisted only"
-                aria-pressed={filters.showWishlistOnly}
-                style={reviewFilterButtonStyle(colors, filters.showWishlistOnly, 'wishlist')}
-                onClick={() => updateFilters({ showWishlistOnly: !filters.showWishlistOnly })}
-              >
-                <Heart size={14} strokeWidth={2} className={filters.showWishlistOnly ? 'fill-current' : undefined} />
-              </button>
-              <button
-                type="button"
-                title="Show shortlisted only"
-                aria-label="Show shortlisted only"
-                aria-pressed={filters.showShortlistOnly}
-                style={reviewFilterButtonStyle(colors, filters.showShortlistOnly, 'shortlist')}
-                onClick={() => updateFilters({ showShortlistOnly: !filters.showShortlistOnly })}
-              >
-                <ListChecks size={14} strokeWidth={2} />
-              </button>
-              <button
-                type="button"
-                title="Show buy-again only"
-                aria-label="Show buy-again only"
-                aria-pressed={filters.showThumbsUpOnly}
-                style={reviewFilterButtonStyle(colors, filters.showThumbsUpOnly, 'thumbsUp')}
-                onClick={() => updateFilters({ showThumbsUpOnly: !filters.showThumbsUpOnly })}
-              >
-                <ThumbsUp size={14} strokeWidth={2} />
-              </button>
-              {isLoggedIn ? (
+          {isLoggedIn ? (
+            <UsageTipTarget tipId="my-wines-filters" className="ml-auto flex flex-col gap-1.5 pl-2">
+              <span style={sliderLabelStyle(colors)}>My Wines</span>
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  title="Show wishlisted only"
+                  aria-label="Show wishlisted only"
+                  aria-pressed={filters.showWishlistOnly}
+                  style={reviewFilterButtonStyle(colors, filters.showWishlistOnly, 'wishlist')}
+                  onClick={() => updateFilters({ showWishlistOnly: !filters.showWishlistOnly })}
+                >
+                  <Heart size={14} strokeWidth={2} className={filters.showWishlistOnly ? 'fill-current' : undefined} />
+                </button>
+                <button
+                  type="button"
+                  title="Show shortlisted only"
+                  aria-label="Show shortlisted only"
+                  aria-pressed={filters.showShortlistOnly}
+                  style={reviewFilterButtonStyle(colors, filters.showShortlistOnly, 'shortlist')}
+                  onClick={() => updateFilters({ showShortlistOnly: !filters.showShortlistOnly })}
+                >
+                  <ListChecks size={14} strokeWidth={2} />
+                </button>
+                <button
+                  type="button"
+                  title="Show buy-again only"
+                  aria-label="Show buy-again only"
+                  aria-pressed={filters.showThumbsUpOnly}
+                  style={reviewFilterButtonStyle(colors, filters.showThumbsUpOnly, 'thumbsUp')}
+                  onClick={() => updateFilters({ showThumbsUpOnly: !filters.showThumbsUpOnly })}
+                >
+                  <ThumbsUp size={14} strokeWidth={2} />
+                </button>
                 <button
                   type="button"
                   title={hideUnwantedActive ? 'Show unwanted wines' : 'Hide unwanted wines'}
@@ -323,9 +323,9 @@ export function PreviewToolbarQuickFilters({
                 >
                   <EyeOff size={14} strokeWidth={2} />
                 </button>
-              ) : null}
-            </div>
-          </UsageTipTarget>
+              </div>
+            </UsageTipTarget>
+          ) : null}
         </div>
       </div>
 
