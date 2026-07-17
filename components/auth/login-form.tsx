@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState, type FormEvent } from 'react'
+import { LegalAgreementNotice } from '@/components/auth/legal-agreement-notice'
 import { signInWithEmail } from '@/lib/auth/sign-in'
 import { validateEmail } from '@/lib/auth/validation'
 import { getPreviewColors } from '@/lib/preview/preview-colors'
@@ -144,6 +145,8 @@ export function LoginForm({ nextPath = '/', initialError = null }: LoginFormProp
           {message}
         </p>
       ) : null}
+
+      <LegalAgreementNotice mutedColor={colors.muted} accentColor={accent} />
 
       <button
         type="submit"

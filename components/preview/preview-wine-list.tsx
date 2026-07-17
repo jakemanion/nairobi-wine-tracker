@@ -12,6 +12,7 @@ import { UsageTipsProvider } from '@/components/preview/usage-tips-context'
 import { UsageTipsToggle } from '@/components/preview/usage-tips-toggle'
 import { WelcomePanel } from '@/components/preview/welcome-panel'
 import { usePreviewTheme } from '@/components/preview/preview-theme-context'
+import { SiteFooter } from '@/components/site-footer'
 import type { SortCriterion } from '@/components/wine-filter-panel'
 import type { WineReview, WineRow } from '@/components/wine-table'
 import { sortWines } from '@/components/wine-table'
@@ -90,7 +91,7 @@ export function PreviewWineList({
 
   return (
     <UsageTipsProvider>
-      <div className="min-h-screen" style={{ background: colors.pageBg }}>
+      <div className="min-h-screen flex flex-col" style={{ background: colors.pageBg }}>
       <div
         className="sticky top-0 z-50"
         style={{
@@ -191,7 +192,7 @@ export function PreviewWineList({
         </div>
       </div>
 
-      <main className="mx-auto px-6 py-5 space-y-2.5" style={{ maxWidth: PREVIEW_CONTENT_MAX_WIDTH }}>
+      <main className="mx-auto px-6 py-5 space-y-2.5 flex-1 w-full" style={{ maxWidth: PREVIEW_CONTENT_MAX_WIDTH }}>
         <WelcomePanel />
         {previewWines.length === 0 ? (
           <p className="text-center text-sm py-12" style={{ color: colors.emptyText }}>
@@ -216,6 +217,7 @@ export function PreviewWineList({
           })
         )}
       </main>
+      <SiteFooter />
       </div>
       {isLoggedIn ? (
         <ShareListsModal open={shareOpen} onClose={() => setShareOpen(false)} />

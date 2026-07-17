@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import type { ReactNode } from 'react'
+import { SiteFooter } from '@/components/site-footer'
 import { getPreviewColors } from '@/lib/preview/preview-colors'
 
 const colors = getPreviewColors('dark')
@@ -81,6 +82,7 @@ export function AuthScreen({
           {children}
         </div>
       </main>
+      <SiteFooter />
     </div>
   )
 }

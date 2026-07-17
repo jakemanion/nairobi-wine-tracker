@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useState, type FormEvent } from 'react'
+import { LegalAgreementNotice } from '@/components/auth/legal-agreement-notice'
 import { MIN_PASSWORD_LENGTH } from '@/lib/auth/constants'
 import { signUpWithEmail } from '@/lib/auth/sign-up'
 import { validateRegistrationForm } from '@/lib/auth/validation'
@@ -163,21 +164,24 @@ export function RegisterForm() {
       ) : null}
 
       {!isSuccess ? (
-        <button
-          type="submit"
-          disabled={isLoading}
-          className="w-full text-sm font-medium px-4 py-2.5 rounded-lg"
-          style={{
-            background: accent,
-            border: `1px solid ${accent}`,
-            color: '#FFFFFF',
-            fontFamily: 'var(--font-dm-sans), sans-serif',
-            cursor: isLoading ? 'wait' : 'pointer',
-            opacity: isLoading ? 0.7 : 1,
-          }}
-        >
-          Register
-        </button>
+        <>
+          <LegalAgreementNotice mutedColor={colors.muted} accentColor={accent} />
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full text-sm font-medium px-4 py-2.5 rounded-lg"
+            style={{
+              background: accent,
+              border: `1px solid ${accent}`,
+              color: '#FFFFFF',
+              fontFamily: 'var(--font-dm-sans), sans-serif',
+              cursor: isLoading ? 'wait' : 'pointer',
+              opacity: isLoading ? 0.7 : 1,
+            }}
+          >
+            Register
+          </button>
+        </>
       ) : needsEmailConfirmation ? (
         <p
           className="text-xs"

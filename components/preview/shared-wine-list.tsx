@@ -10,6 +10,7 @@ import { PreviewWineCard } from '@/components/preview/preview-wine-card'
 import { UsageTipsProvider } from '@/components/preview/usage-tips-context'
 import { UsageTipsToggle } from '@/components/preview/usage-tips-toggle'
 import { usePreviewTheme } from '@/components/preview/preview-theme-context'
+import { SiteFooter } from '@/components/site-footer'
 import type { WineReview, WineRow } from '@/components/wine-table'
 import { toPreviewWineCard } from '@/lib/preview/wine-card-model'
 import { createWineSearchIndex, hasActiveWineSearch, searchWinesFromIndex } from '@/lib/wine-search'
@@ -64,7 +65,7 @@ export function SharedWineList({
 
   return (
     <UsageTipsProvider>
-      <div className="min-h-screen" style={{ background: colors.pageBg }}>
+      <div className="min-h-screen flex flex-col" style={{ background: colors.pageBg }}>
         <div
           className="sticky top-0 z-50"
           style={{
@@ -136,7 +137,7 @@ export function SharedWineList({
           </header>
         </div>
 
-        <main className="mx-auto px-6 py-5 space-y-2.5" style={{ maxWidth: PREVIEW_CONTENT_MAX_WIDTH }}>
+        <main className="mx-auto px-6 py-5 space-y-2.5 flex-1 w-full" style={{ maxWidth: PREVIEW_CONTENT_MAX_WIDTH }}>
           <div
             className="rounded-lg px-4 py-3"
             style={{
@@ -202,6 +203,7 @@ export function SharedWineList({
             })
           )}
         </main>
+        <SiteFooter />
       </div>
     </UsageTipsProvider>
   )

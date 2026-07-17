@@ -59,14 +59,15 @@ export function AgeGate() {
           className="m-0 mt-3 text-[13px] leading-relaxed"
           style={{ color: '#D0CED4', fontFamily: 'var(--font-dm-sans), sans-serif' }}
         >
-          You must be of legal drinking age to enter this website. Are you 18 years of age or older?
+          You must be of legal drinking age in your country of residence to enter this website. Are
+          you of legal drinking age?
         </p>
         <p
           className="m-0 mt-2 text-[11px] leading-relaxed"
           style={{ color: '#9A98A8', fontFamily: 'var(--font-dm-sans), sans-serif' }}
         >
-          By entering, you confirm that you are of legal age to purchase and consume alcohol in your
-          country of residence.
+          By entering, you confirm that you are legally permitted to purchase and consume alcohol
+          where you live.
         </p>
         <div className="mt-5 flex items-center justify-center gap-2.5">
           <button
@@ -81,7 +82,7 @@ export function AgeGate() {
             }}
             onClick={confirmAge}
           >
-            Yes, I am 18+
+            Yes
           </button>
           <button
             type="button"
