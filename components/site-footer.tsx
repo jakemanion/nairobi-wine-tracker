@@ -18,54 +18,44 @@ type SiteFooterProps = {
 
 export function SiteFooter({ className = '' }: SiteFooterProps) {
   return (
-    <footer
-      className={`mt-auto ${className}`}
-      style={{
-        background: colors.headerBg,
-        borderTop: `1px solid ${colors.headerBorder}`,
-      }}
-    >
-      <div
-        className="mx-auto px-6 py-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between"
-        style={{ maxWidth: CONTENT_MAX_WIDTH }}
+    <>
+      {/* Reserves space so fixed footer does not cover page content */}
+      <div className="h-10 shrink-0" aria-hidden />
+      <footer
+        className={`fixed bottom-0 left-0 right-0 z-40 ${className}`}
+        style={{
+          background: colors.headerBg,
+          borderTop: `1px solid ${colors.headerBorder}`,
+        }}
       >
-        <div className="min-w-0">
+        <div
+          className="mx-auto px-4 h-10 flex items-center justify-between gap-3 min-w-0"
+          style={{ maxWidth: CONTENT_MAX_WIDTH }}
+        >
           <p
-            className="m-0 text-sm font-semibold"
+            className="m-0 text-xs font-semibold truncate shrink-0"
             style={{ color: colors.headerTitle, fontFamily: 'var(--font-playfair), serif' }}
           >
             WineDiviner: Nairobi
           </p>
-          <p
-            className="m-0 mt-1 text-[11px] leading-relaxed max-w-sm"
-            style={{ color: colors.headerSub, fontFamily: 'var(--font-dm-sans), sans-serif' }}
-          >
-            Find Nairobi&apos;s best wine for your money. For adults of legal drinking age only.
-          </p>
-        </div>
 
-        <nav aria-label="Legal" className="min-w-0">
-          <p
-            className="m-0 text-[10px] uppercase tracking-wider"
-            style={{ color: colors.muted, fontFamily: 'var(--font-dm-sans), sans-serif' }}
-          >
-            Legal
-          </p>
-          <ul className="m-0 mt-2 p-0 list-none flex flex-col gap-1.5">
-            {LEGAL_LINKS.map((link) => (
-              <li key={link.href}>
-                <Link
-                  href={link.href}
-                  className="text-[12px] no-underline hover:underline underline-offset-2"
-                  style={{ color: accent, fontFamily: 'var(--font-dm-sans), sans-serif' }}
-                >
-                  {link.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
-      </div>
-    </footer>
+          <nav aria-label="Legal" className="min-w-0 overflow-x-auto">
+            <ul className="m-0 p-0 list-none flex items-center gap-x-3 whitespace-nowrap">
+              {LEGAL_LINKS.map((link) => (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    className="text-[11px] no-underline hover:underline underline-offset-2"
+                    style={{ color: accent, fontFamily: 'var(--font-dm-sans), sans-serif' }}
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        </div>
+      </footer>
+    </>
   )
 }
