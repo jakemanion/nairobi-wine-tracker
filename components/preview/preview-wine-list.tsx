@@ -1,12 +1,13 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { Search } from 'lucide-react'
+import { Search, Share2 } from 'lucide-react'
 import { LoginNavLink } from '@/components/auth/login-nav-link'
 import { RegisterNavLink } from '@/components/auth/register-nav-link'
 import { PreviewToolbar } from '@/components/preview/preview-toolbar'
 import { PreviewUserMenu } from '@/components/preview/preview-user-menu'
 import { PreviewWineCard } from '@/components/preview/preview-wine-card'
+import { ShareListsModal } from '@/components/preview/share-lists-modal'
 import { UsageTipsProvider } from '@/components/preview/usage-tips-context'
 import { UsageTipsToggle } from '@/components/preview/usage-tips-toggle'
 import { WelcomePanel } from '@/components/preview/welcome-panel'
@@ -67,6 +68,7 @@ export function PreviewWineList({
   const [searchQuery, setSearchQuery] = useState('')
   const [primarySort, setPrimarySort] = useState<SortCriterion>({ key: 'winery', dir: 'asc' })
   const [secondarySort, setSecondarySort] = useState<SortCriterion>({ key: 'none', dir: 'asc' })
+  const [shareOpen, setShareOpen] = useState(false)
   const filterOptions = useMemo(() => collectFilterOptions(wines), [wines])
   const priceBounds = useMemo(() => computeListPriceBounds(wines), [wines])
   const activeFilterCount = useMemo(() => countActiveFilters(filters), [filters])
@@ -137,12 +139,30 @@ export function PreviewWineList({
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
               {isLoggedIn ? (
-                <PreviewUserMenu
-                  colors={colors}
-                  theme={mode}
-                  userName={userName}
-                  userEmail={userEmail}
-                />
+                <>
+                  <button
+                    type="button"
+                    className="inline-flex items-center gap-1.5 text-[11px] px-2.5 py-1.5 rounded-lg"
+                    style={{
+                      background: colors.buttonBg,
+                      border: `1px solid ${colors.buttonBorder}`,
+                      color: colors.buttonText,
+                      fontFamily: 'var(--font-dm-sans), sans-serif',
+                      cursor: 'pointer',
+                    }}
+                    onClick={() => setShareOpen(true)}
+                  >
+                    <Share2 size={13} strokeWidth={2} />
+                    Share
+                  </button>
+                  <PreviewUserMenu
+                    colors={colors}
+                    theme={mode}
+                    userName={userName}
+                    userEmail={userEmail}
+                    onShareClick={() => setShareOpen(true)}
+                  />
+                </>
               ) : (
                 <>
                   <UsageTipsToggle colors={colors} />
@@ -197,6 +217,9 @@ export function PreviewWineList({
         )}
       </main>
       </div>
+      {isLoggedIn ? (
+        <ShareListsModal open={shareOpen} onClose={() => setShareOpen(false)} />
+      ) : null}
     </UsageTipsProvider>
   )
 }

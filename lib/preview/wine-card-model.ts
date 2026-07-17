@@ -9,6 +9,7 @@ export type PreviewWineCardData = {
   id: string
   producer: string
   name: string
+  vintage: string | null
   country: string
   region: string
   colour: WineColour
@@ -84,6 +85,7 @@ export function toPreviewWineCard(wine: WineRow): PreviewWineCardData {
     id: String(wine.id),
     producer: wine.producer?.trim() || 'Unknown producer',
     name: wine.wine_name?.trim() || 'Unnamed wine',
+    vintage: wine.vintage != null && String(wine.vintage).trim() ? String(wine.vintage).trim() : null,
     country: wine.country?.trim() || '—',
     region: wine.region?.trim() || '—',
     colour: parseColour(wine.style),

@@ -9,6 +9,7 @@ type PreviewUserMenuProps = {
   theme: PreviewThemeMode
   userName: string
   userEmail: string
+  onShareClick?: () => void
 }
 
 export function PreviewUserMenu({
@@ -16,6 +17,7 @@ export function PreviewUserMenu({
   theme,
   userName,
   userEmail,
+  onShareClick,
 }: PreviewUserMenuProps) {
   const accountLabel = userName.trim() || userEmail.trim() || 'Account'
   const initial = accountLabel.charAt(0).toUpperCase()
@@ -54,6 +56,22 @@ export function PreviewUserMenu({
             colors={colors}
             className="w-full justify-between"
           />
+          {onShareClick ? (
+            <button
+              type="button"
+              className="w-full inline-flex items-center justify-center gap-1.5 text-[11px] px-2 py-1.5 rounded-lg"
+              style={{
+                background: colors.buttonBg,
+                border: `1px solid ${colors.buttonBorder}`,
+                color: colors.buttonText,
+                fontFamily: 'var(--font-dm-sans), sans-serif',
+                cursor: 'pointer',
+              }}
+              onClick={onShareClick}
+            >
+              Share lists
+            </button>
+          ) : null}
           <LogoutButton
             theme={theme}
             className="w-full justify-center"

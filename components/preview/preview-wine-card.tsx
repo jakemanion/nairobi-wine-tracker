@@ -444,7 +444,7 @@ export function PreviewWineCard({
                 className="text-[11px] truncate"
                 style={{ color: infoMuted, fontFamily: 'var(--font-dm-sans), sans-serif' }}
               >
-                {wine.region} · {wine.country}
+                {[wine.vintage, wine.region, wine.country].filter(Boolean).join(' · ')}
               </span>
             </div>
 
