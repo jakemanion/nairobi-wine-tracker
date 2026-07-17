@@ -2,10 +2,10 @@
 
 import { useMemo, useState } from 'react'
 import { Search } from 'lucide-react'
-import { LogoutButton } from '@/components/auth/logout-button'
 import { LoginNavLink } from '@/components/auth/login-nav-link'
 import { RegisterNavLink } from '@/components/auth/register-nav-link'
 import { PreviewToolbar } from '@/components/preview/preview-toolbar'
+import { PreviewUserMenu } from '@/components/preview/preview-user-menu'
 import { PreviewWineCard } from '@/components/preview/preview-wine-card'
 import { UsageTipsProvider } from '@/components/preview/usage-tips-context'
 import { UsageTipsToggle } from '@/components/preview/usage-tips-toggle'
@@ -136,20 +136,16 @@ export function PreviewWineList({
               />
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
-              <UsageTipsToggle colors={colors} />
               {isLoggedIn ? (
-                <>
-                  <span
-                    className="text-[10px] truncate max-w-[14rem]"
-                    style={{ color: colors.headerSub, fontFamily: 'var(--font-dm-sans), sans-serif' }}
-                    title={userEmail ? `${userName} · ${userEmail}` : userName}
-                  >
-                    {userEmail ? `${userName} · ${userEmail}` : userName}
-                  </span>
-                  <LogoutButton theme={mode} />
-                </>
+                <PreviewUserMenu
+                  colors={colors}
+                  theme={mode}
+                  userName={userName}
+                  userEmail={userEmail}
+                />
               ) : (
                 <>
+                  <UsageTipsToggle colors={colors} />
                   <LoginNavLink theme={mode} nextPath="/" />
                   <RegisterNavLink theme={mode} />
                 </>
