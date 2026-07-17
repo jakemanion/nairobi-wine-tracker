@@ -196,9 +196,10 @@ export function PreviewFilterMultiSelect({
         className="flex items-center gap-1 flex-shrink-0"
 
         style={{
+          height: 32,
           fontSize: 12,
           lineHeight: 1.2,
-          padding: '8px 12px',
+          padding: '0 12px',
           borderRadius: 8,
           background: selected.length > 0 ? colors.searchBg : colors.buttonBg,
           border: `1px solid ${selected.length > 0 ? '#C93048' : colors.buttonBorder}`,

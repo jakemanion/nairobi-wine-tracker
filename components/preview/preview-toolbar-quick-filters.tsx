@@ -35,9 +35,12 @@ type PreviewToolbarQuickFiltersProps = {
   isLoggedIn?: boolean
 }
 
+const CONTROL_HEIGHT = 32
+
 function chipStyle(colors: PreviewColors, active: boolean): CSSProperties {
   return {
-    padding: '6px 10px',
+    height: CONTROL_HEIGHT,
+    padding: '0 10px',
     fontSize: 12,
     lineHeight: 1.2,
     borderRadius: 8,
@@ -64,10 +67,11 @@ function sliderGroupStyle(colors: PreviewColors): CSSProperties {
     display: 'flex',
     alignItems: 'center',
     gap: 8,
-    padding: '6px 10px',
-    borderRadius: 6,
+    padding: 8,
+    borderRadius: 8,
     background: colors.searchBg,
     border: `1px solid ${colors.searchBorder}`,
+    fontFamily: 'var(--font-dm-sans), sans-serif',
   }
 }
 
@@ -111,7 +115,9 @@ function reviewFilterButtonStyle(
     display: 'inline-flex',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: '7px 9px',
+    width: CONTROL_HEIGHT,
+    height: CONTROL_HEIGHT,
+    padding: 0,
     fontSize: 12,
     lineHeight: 1.2,
     borderRadius: 8,
@@ -126,9 +132,10 @@ function reviewFilterButtonStyle(
 
 function filterSelectStyle(colors: PreviewColors, active: boolean): CSSProperties {
   return {
+    height: CONTROL_HEIGHT,
     fontSize: 12,
     lineHeight: 1.2,
-    padding: '8px 12px',
+    padding: '0 12px',
     borderRadius: 8,
     cursor: 'pointer',
     fontFamily: 'var(--font-dm-sans), sans-serif',
@@ -213,59 +220,9 @@ export function PreviewToolbarQuickFilters({
     <div className="flex flex-col gap-2.5 px-3 pb-3">
       <div className="flex flex-wrap items-center gap-2">
         <div
-          className="flex flex-wrap items-center gap-1.5"
+          className="flex flex-1 flex-wrap items-center gap-1.5"
           style={sliderGroupStyle(colors)}
         >
-          <span style={sliderLabelStyle(colors)}>My Wines:</span>
-          <button
-            type="button"
-            title="Show wishlisted only"
-            aria-label="Show wishlisted only"
-            aria-pressed={filters.showWishlistOnly}
-            style={reviewFilterButtonStyle(colors, filters.showWishlistOnly, 'wishlist')}
-            onClick={() => updateFilters({ showWishlistOnly: !filters.showWishlistOnly })}
-          >
-            <Heart size={14} strokeWidth={2} className={filters.showWishlistOnly ? 'fill-current' : undefined} />
-          </button>
-          <button
-            type="button"
-            title="Show shortlisted only"
-            aria-label="Show shortlisted only"
-            aria-pressed={filters.showShortlistOnly}
-            style={reviewFilterButtonStyle(colors, filters.showShortlistOnly, 'shortlist')}
-            onClick={() => updateFilters({ showShortlistOnly: !filters.showShortlistOnly })}
-          >
-            <ListChecks size={14} strokeWidth={2} />
-          </button>
-          <button
-            type="button"
-            title="Show buy-again only"
-            aria-label="Show buy-again only"
-            aria-pressed={filters.showThumbsUpOnly}
-            style={reviewFilterButtonStyle(colors, filters.showThumbsUpOnly, 'thumbsUp')}
-            onClick={() => updateFilters({ showThumbsUpOnly: !filters.showThumbsUpOnly })}
-          >
-            <ThumbsUp size={14} strokeWidth={2} />
-          </button>
-          {isLoggedIn ? (
-            <button
-              type="button"
-              title={hideUnwantedActive ? 'Show unwanted wines' : 'Hide unwanted wines'}
-              aria-label={hideUnwantedActive ? 'Show unwanted wines' : 'Hide unwanted wines'}
-              aria-pressed={hideUnwantedActive}
-              style={reviewFilterButtonStyle(colors, hideUnwantedActive, 'hide')}
-              onClick={() => onFiltersChange(applyHideUnwantedToggle(filters, !hideUnwantedActive))}
-            >
-              <EyeOff size={14} strokeWidth={2} />
-            </button>
-          ) : null}
-        </div>
-
-        <div
-          className="flex flex-wrap items-center gap-1.5"
-          style={sliderGroupStyle(colors)}
-        >
-          <span style={sliderLabelStyle(colors)}>Filters:</span>
           <select
             aria-label="Highest price"
             className="flex-none"
@@ -313,6 +270,54 @@ export function PreviewToolbarQuickFilters({
             selected={selectedCountries}
             onChange={(next) => updateFilters({ regions: countryFiltersFromSelection(next) })}
           />
+
+          <div className="ml-auto flex flex-col gap-1.5 pl-2">
+            <span style={sliderLabelStyle(colors)}>My Wines</span>
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                title="Show wishlisted only"
+                aria-label="Show wishlisted only"
+                aria-pressed={filters.showWishlistOnly}
+                style={reviewFilterButtonStyle(colors, filters.showWishlistOnly, 'wishlist')}
+                onClick={() => updateFilters({ showWishlistOnly: !filters.showWishlistOnly })}
+              >
+                <Heart size={14} strokeWidth={2} className={filters.showWishlistOnly ? 'fill-current' : undefined} />
+              </button>
+              <button
+                type="button"
+                title="Show shortlisted only"
+                aria-label="Show shortlisted only"
+                aria-pressed={filters.showShortlistOnly}
+                style={reviewFilterButtonStyle(colors, filters.showShortlistOnly, 'shortlist')}
+                onClick={() => updateFilters({ showShortlistOnly: !filters.showShortlistOnly })}
+              >
+                <ListChecks size={14} strokeWidth={2} />
+              </button>
+              <button
+                type="button"
+                title="Show buy-again only"
+                aria-label="Show buy-again only"
+                aria-pressed={filters.showThumbsUpOnly}
+                style={reviewFilterButtonStyle(colors, filters.showThumbsUpOnly, 'thumbsUp')}
+                onClick={() => updateFilters({ showThumbsUpOnly: !filters.showThumbsUpOnly })}
+              >
+                <ThumbsUp size={14} strokeWidth={2} />
+              </button>
+              {isLoggedIn ? (
+                <button
+                  type="button"
+                  title={hideUnwantedActive ? 'Show unwanted wines' : 'Hide unwanted wines'}
+                  aria-label={hideUnwantedActive ? 'Show unwanted wines' : 'Hide unwanted wines'}
+                  aria-pressed={hideUnwantedActive}
+                  style={reviewFilterButtonStyle(colors, hideUnwantedActive, 'hide')}
+                  onClick={() => onFiltersChange(applyHideUnwantedToggle(filters, !hideUnwantedActive))}
+                >
+                  <EyeOff size={14} strokeWidth={2} />
+                </button>
+              ) : null}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -376,7 +381,8 @@ export function PreviewToolbarQuickFilters({
               display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'center',
-              padding: '7px 9px',
+              width: CONTROL_HEIGHT,
+              padding: 0,
             }}
             onClick={() => {
               const reversed = primarySort.dir === 'asc' ? 'desc' : 'asc'
