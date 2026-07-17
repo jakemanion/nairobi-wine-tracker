@@ -527,7 +527,7 @@ export function PreviewWineCard({
           ...getReviewPanelStyle(panelTint, mode),
         }}
       >
-        {!isLoggedIn ? <LoggedOutLoginPromptOverlay hoverGroup="review-panel" /> : null}
+        {!isLoggedIn ? <LoggedOutLoginPromptOverlay /> : null}
 
         <div className="absolute top-1.5 right-1.5 z-10"
           style={{ pointerEvents: isLoggedIn ? 'auto' : 'none', opacity: isLoggedIn ? 1 : 0.42 }}

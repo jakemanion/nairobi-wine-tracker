@@ -87,7 +87,7 @@ export function PreviewWineList({
   const previewWines = useMemo(() => sorted.map(toPreviewWineCard), [sorted])
 
   return (
-    <UsageTipsProvider isLoggedIn={isLoggedIn}>
+    <UsageTipsProvider>
       <div className="min-h-screen" style={{ background: colors.pageBg }}>
       <div
         className="sticky top-0 z-50"
@@ -136,6 +136,7 @@ export function PreviewWineList({
               />
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
+              <UsageTipsToggle colors={colors} />
               {isLoggedIn ? (
                 <>
                   <span
@@ -145,7 +146,6 @@ export function PreviewWineList({
                   >
                     {userEmail ? `${userName} · ${userEmail}` : userName}
                   </span>
-                  <UsageTipsToggle colors={colors} />
                   <LogoutButton theme={mode} />
                 </>
               ) : (

@@ -5,17 +5,10 @@ import Link from 'next/link'
 export const LOGIN_PROMPT_MESSAGE =
   'Login or register for free to use wine wishlists and likes'
 
-type LoggedOutLoginPromptOverlayProps = {
-  hoverGroup: 'review-panel'
-}
-
-export function LoggedOutLoginPromptOverlay({ hoverGroup }: LoggedOutLoginPromptOverlayProps) {
-  const hoverVisible = `group-hover/${hoverGroup}:opacity-100 group-hover/${hoverGroup}:pointer-events-auto`
-  const positionClass = 'absolute inset-0 z-20'
-
+export function LoggedOutLoginPromptOverlay() {
   return (
     <div
-      className={`${positionClass} flex flex-col items-center justify-center rounded-lg px-4 py-3 text-center pointer-events-none opacity-0 transition-opacity duration-200 ${hoverVisible}`}
+      className="absolute inset-0 z-20 flex flex-col items-center justify-center rounded-lg px-4 py-3 text-center pointer-events-none opacity-0 transition-opacity duration-200 group-hover/review-panel:opacity-100 group-hover/review-panel:pointer-events-auto"
       aria-hidden={false}
       role="note"
     >

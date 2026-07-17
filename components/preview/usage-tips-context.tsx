@@ -20,14 +20,12 @@ const UsageTipsContext = createContext<UsageTipsContextValue | null>(null)
 
 type UsageTipsProviderProps = {
   children: ReactNode
-  isLoggedIn: boolean
 }
 
-export function UsageTipsProvider({ children, isLoggedIn }: UsageTipsProviderProps) {
+export function UsageTipsProvider({ children }: UsageTipsProviderProps) {
   const [enabled, setEnabledState] = useState(true)
 
   useEffect(() => {
-    if (!isLoggedIn) return
     try {
       const stored = window.localStorage.getItem(USAGE_TIPS_STORAGE_KEY)
       if (stored === 'off') setEnabledState(false)
@@ -35,7 +33,7 @@ export function UsageTipsProvider({ children, isLoggedIn }: UsageTipsProviderPro
     } catch {
       // Ignore storage access errors and keep defaults.
     }
-  }, [isLoggedIn])
+  }, [])
 
   function persistEnabled(next: boolean) {
     setEnabledState(next)
@@ -48,11 +46,11 @@ export function UsageTipsProvider({ children, isLoggedIn }: UsageTipsProviderPro
 
   const value = useMemo<UsageTipsContextValue>(
     () => ({
-      enabled: isLoggedIn && enabled,
+      enabled,
       setEnabled: persistEnabled,
       hideAllTips: () => persistEnabled(false),
     }),
-    [enabled, isLoggedIn],
+    [enabled],
   )
 
   return <UsageTipsContext.Provider value={value}>{children}</UsageTipsContext.Provider>
