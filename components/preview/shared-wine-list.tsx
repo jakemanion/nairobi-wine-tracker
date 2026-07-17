@@ -61,8 +61,6 @@ export function SharedWineList({
   }, [wines, searchIndex, searchQuery])
 
   const previewWines = useMemo(() => searched.map(toPreviewWineCard), [searched])
-  const collectionsText =
-    collectionLabels.length > 0 ? collectionLabels.join(' · ') : 'No collections selected'
 
   return (
     <UsageTipsProvider>
@@ -95,7 +93,7 @@ export function SharedWineList({
                   </h1>
                 </Link>
                 <p className="text-[10px] mt-1 truncate" style={{ color: colors.headerSub }}>
-                  Shared wine collection
+                  Shared wine list
                 </p>
               </div>
               <div className="relative flex-1 max-w-xs">
@@ -150,26 +148,40 @@ export function SharedWineList({
               className="m-0 text-sm font-semibold"
               style={{ color: colors.headerTitle, fontFamily: 'var(--font-playfair), serif' }}
             >
-              Shared collection
+              Shared list
             </h2>
             <p
               className="m-0 mt-1.5 text-[11px] leading-relaxed"
               style={{ color: colors.headerSub, fontFamily: 'var(--font-dm-sans), sans-serif' }}
             >
-              {collectionsText}. Read-only curated list
-              {isLoggedIn ? ' — you can still add wines to your own lists.' : '.'}
+              {isLoggedIn
+                ? 'You are viewing a list from another WineDiviner user. You can still add wines to your own lists.'
+                : 'You are viewing a list from another WineDiviner user. Log in or register to add wines to your own lists.'}
+            </p>
+            <p
+              className="m-0 mt-1.5 text-[11px] leading-relaxed"
+              style={{ fontFamily: 'var(--font-dm-sans), sans-serif' }}
+            >
+              <Link
+                href="/"
+                className="underline underline-offset-2"
+                style={{ color: colors.producer }}
+              >
+                Click here to see and filter all wines.
+              </Link>
             </p>
             <p
               className="m-0 mt-1 text-[10px]"
               style={{ color: colors.muted, fontFamily: 'var(--font-dm-sans), sans-serif' }}
             >
               Showing {previewWines.length} wine{previewWines.length === 1 ? '' : 's'}
+              {collectionLabels.length > 0 ? ` · ${collectionLabels.join(' · ')}` : ''}
             </p>
           </div>
 
           {previewWines.length === 0 ? (
             <p className="text-center text-sm py-12" style={{ color: colors.emptyText }}>
-              No wines in this shared collection right now.
+              No wines in this shared list right now.
             </p>
           ) : (
             previewWines.map((wine, index) => {

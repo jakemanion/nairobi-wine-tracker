@@ -1,5 +1,6 @@
 import { DM_Sans, Playfair_Display } from 'next/font/google'
 import type { Metadata } from 'next'
+import { AgeGate } from '@/components/preview/age-gate'
 import './globals.css'
 
 const playfair = Playfair_Display({
@@ -23,7 +24,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${playfair.variable} ${dmSans.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <AgeGate />
+        {children}
+      </body>
     </html>
   )
 }

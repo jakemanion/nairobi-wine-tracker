@@ -29,7 +29,7 @@ export default async function SharePage({ params }: SharePageProps) {
             Share link not found
           </h1>
           <p className="mt-3 text-sm" style={{ color: '#A8A4B8' }}>
-            This shared collection doesn&apos;t exist or is no longer available.
+            This shared list doesn&apos;t exist or is no longer available.
           </p>
           <Link
             href="/"
