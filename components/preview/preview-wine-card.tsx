@@ -532,12 +532,14 @@ export function PreviewWineCard({
         <div className="absolute top-1.5 right-1.5 z-10"
           style={{ pointerEvents: isLoggedIn ? 'auto' : 'none', opacity: isLoggedIn ? 1 : 0.42 }}
         >
-          <HideButton
-            active={isHidden}
-            saving={savingHide}
-            panelLabelColor={panelText.label}
-            onClick={() => void toggleHide()}
-          />
+          <UsageTipTarget tipId="hide-wine">
+            <HideButton
+              active={isHidden}
+              saving={savingHide}
+              panelLabelColor={panelText.label}
+              onClick={() => void toggleHide()}
+            />
+          </UsageTipTarget>
         </div>
 
         <div

@@ -3,6 +3,13 @@ export type UsageTipId =
   | 'tried-button'
   | 'notes-textfield'
   | 'shortlist-button'
+  | 'highest-price-filter'
+  | 'lowest-rating-filter'
+  | 'grapes-filter'
+  | 'countries-filter'
+  | 'my-wines-filters'
+  | 'shops-filter'
+  | 'hide-wine'
   | 'hide-unwanted'
   | 'sort-panel'
   | 'best-under-panel'
@@ -43,6 +50,42 @@ export const USAGE_TIPS: Record<UsageTipId, UsageTipContent> = {
     id: 'shortlist-button',
     heading: 'Shortlist',
     body: 'Track wines which are options for your next purchase.',
+  },
+  'highest-price-filter': {
+    id: 'highest-price-filter',
+    heading: 'Highest price',
+    body: "Set the highest price you're looking at paying.",
+  },
+  'lowest-rating-filter': {
+    id: 'lowest-rating-filter',
+    heading: 'Lowest rating',
+    body: "Set the lowest-rated wines you're considering.",
+  },
+  'grapes-filter': {
+    id: 'grapes-filter',
+    heading: 'Grapes',
+    body: 'Select specific grapes you like.',
+  },
+  'countries-filter': {
+    id: 'countries-filter',
+    heading: 'Countries',
+    body: 'Filter to wines from specific countries.',
+  },
+  'my-wines-filters': {
+    id: 'my-wines-filters',
+    heading: 'My Wines',
+    body: "Show only wines on your wishlist or shortlist, or those you'd buy again—and hide wines you're not interested in.",
+    estimatedHeight: 148,
+  },
+  'shops-filter': {
+    id: 'shops-filter',
+    heading: 'Shops',
+    body: 'Show wines available in specific shops.',
+  },
+  'hide-wine': {
+    id: 'hide-wine',
+    heading: 'Hide wine',
+    body: "Hide this wine if it doesn't interest you.",
   },
   'hide-unwanted': {
     id: 'hide-unwanted',

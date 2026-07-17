@@ -217,61 +217,69 @@ export function PreviewToolbarQuickFilters({
   }
 
   return (
-    <div className="flex flex-col gap-2.5 px-3 pb-3">
+    <div className="flex flex-col gap-2.5 p-3">
       <div className="flex flex-wrap items-center gap-2">
         <div
           className="flex flex-1 flex-wrap items-center gap-1.5"
           style={sliderGroupStyle(colors)}
         >
-          <select
-            aria-label="Highest price"
-            className="flex-none"
-            style={filterSelectStyle(colors, !!filters.priceMax.trim())}
-            value={filters.priceMax.trim() || ''}
-            onChange={(event) => updateFilters({ priceMax: event.target.value })}
-          >
-            <option value="">Highest price: Show all</option>
-            {buildPriceOptions(priceMaxBound).map((price) => (
-              <option key={price} value={String(price)}>
-                Max price: {price.toLocaleString()} KSh
-              </option>
-            ))}
-          </select>
+          <UsageTipTarget tipId="highest-price-filter" className="flex-none">
+            <select
+              aria-label="Highest price"
+              className="flex-none"
+              style={filterSelectStyle(colors, !!filters.priceMax.trim())}
+              value={filters.priceMax.trim() || ''}
+              onChange={(event) => updateFilters({ priceMax: event.target.value })}
+            >
+              <option value="">Highest price: Show all</option>
+              {buildPriceOptions(priceMaxBound).map((price) => (
+                <option key={price} value={String(price)}>
+                  Max price: {price.toLocaleString()} KSh
+                </option>
+              ))}
+            </select>
+          </UsageTipTarget>
 
-          <select
-            aria-label="Lowest rating"
-            className="flex-none"
-            style={filterSelectStyle(colors, !!filters.vivinoMin.trim())}
-            value={filters.vivinoMin.trim() || ''}
-            onChange={(event) => updateFilters({ vivinoMin: event.target.value })}
-          >
-            <option value="">Lowest rating: Show all</option>
-            {buildRatingOptions().map((rating) => (
-              <option key={rating} value={rating}>
-                {rating} and above
-              </option>
-            ))}
-          </select>
+          <UsageTipTarget tipId="lowest-rating-filter" className="flex-none">
+            <select
+              aria-label="Lowest rating"
+              className="flex-none"
+              style={filterSelectStyle(colors, !!filters.vivinoMin.trim())}
+              value={filters.vivinoMin.trim() || ''}
+              onChange={(event) => updateFilters({ vivinoMin: event.target.value })}
+            >
+              <option value="">Lowest rating: Show all</option>
+              {buildRatingOptions().map((rating) => (
+                <option key={rating} value={rating}>
+                  {rating} and above
+                </option>
+              ))}
+            </select>
+          </UsageTipTarget>
 
-          <PreviewFilterMultiSelect
-            colors={colors}
-            label="Grapes"
-            emptyMessage="No grapes in list"
-            options={grapes}
-            selected={filters.grapes}
-            onChange={(next) => updateFilters({ grapes: next })}
-          />
+          <UsageTipTarget tipId="grapes-filter" className="flex-none">
+            <PreviewFilterMultiSelect
+              colors={colors}
+              label="Grapes"
+              emptyMessage="No grapes in list"
+              options={grapes}
+              selected={filters.grapes}
+              onChange={(next) => updateFilters({ grapes: next })}
+            />
+          </UsageTipTarget>
 
-          <PreviewFilterMultiSelect
-            colors={colors}
-            label="Countries"
-            emptyMessage="No countries in list"
-            options={countries}
-            selected={selectedCountries}
-            onChange={(next) => updateFilters({ regions: countryFiltersFromSelection(next) })}
-          />
+          <UsageTipTarget tipId="countries-filter" className="flex-none">
+            <PreviewFilterMultiSelect
+              colors={colors}
+              label="Countries"
+              emptyMessage="No countries in list"
+              options={countries}
+              selected={selectedCountries}
+              onChange={(next) => updateFilters({ regions: countryFiltersFromSelection(next) })}
+            />
+          </UsageTipTarget>
 
-          <div className="ml-auto flex flex-col gap-1.5 pl-2">
+          <UsageTipTarget tipId="my-wines-filters" className="ml-auto flex flex-col gap-1.5 pl-2">
             <span style={sliderLabelStyle(colors)}>My Wines</span>
             <div className="flex items-center gap-1.5">
               <button
@@ -317,12 +325,13 @@ export function PreviewToolbarQuickFilters({
                 </button>
               ) : null}
             </div>
-          </div>
+          </UsageTipTarget>
         </div>
       </div>
 
       {stores.length > 0 ? (
-        <div
+        <UsageTipTarget
+          tipId="shops-filter"
           className="flex flex-wrap items-center gap-1.5"
           style={sliderGroupStyle(colors)}
         >
@@ -346,7 +355,7 @@ export function PreviewToolbarQuickFilters({
               </button>
             )
           })}
-        </div>
+        </UsageTipTarget>
       ) : null}
 
       <div className="flex flex-wrap items-center gap-2">
