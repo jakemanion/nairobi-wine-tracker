@@ -227,45 +227,48 @@ function HideButton({
   panelLabelColor: string
   onClick: () => void
 }) {
+  const borderColor = active ? '#5A3030' : '#3A3848'
+  const bgColor = active ? '#2A1C1C' : '#22222C'
+  const iconColor = active ? '#F08080' : '#9894A4'
+
   return (
-    <button
-      type="button"
-      title={active ? 'Unhide wine' : 'Hide wine'}
-      aria-label={active ? 'Unhide wine' : 'Hide wine'}
-      aria-pressed={active}
-      disabled={saving}
-      className="flex flex-col items-center gap-0.5 flex-shrink-0 transition-all hover:scale-105"
-      style={{
-        background: 'none',
-        border: 'none',
-        padding: 0,
-        cursor: saving ? 'wait' : 'pointer',
-        opacity: saving ? 0.5 : active ? 1 : 0.5,
-      }}
-      onClick={onClick}
-    >
-      <div
-        className="w-6 h-6 rounded flex items-center justify-center"
-        style={{
-          border: `1.5px solid ${active ? '#5A3030' : '#3A3848'}`,
-          background: active ? '#2A1C1C' : '#22222C',
-          color: active ? '#F08080' : '#9894A4',
-          boxShadow: '0 1px 4px rgba(0,0,0,0.25)',
-        }}
+    <div className="flex flex-col items-center gap-0.5 flex-shrink-0">
+      <p
+        className="text-[6px] uppercase tracking-wider leading-tight text-center max-w-[54px]"
+        style={{ color: panelLabelColor, fontFamily: 'var(--font-dm-sans), sans-serif' }}
       >
-        <EyeOff size={13} strokeWidth={2} />
-      </div>
-      <span
-        className="text-[5px] uppercase tracking-wider leading-none"
+        Not interested
+      </p>
+      <button
+        type="button"
+        title={active ? 'Show wine again' : 'Not interested'}
+        aria-label={active ? 'Show wine again' : 'Not interested'}
+        aria-pressed={active}
+        disabled={saving}
+        className="w-10 h-10 rounded-lg flex items-center justify-center transition-all hover:scale-105 flex-shrink-0"
         style={{
-          color: panelLabelColor,
-          fontFamily: 'var(--font-dm-sans), sans-serif',
+          border: `2px solid ${borderColor}`,
+          background: bgColor,
+          color: iconColor,
+          boxShadow: '0 2px 8px rgba(0,0,0,0.4)',
+          opacity: saving ? 0.5 : 1,
+          cursor: saving ? 'wait' : 'pointer',
         }}
+        onClick={onClick}
       >
-        Hide
-      </span>
-    </button>
+        <EyeOff size={24} strokeWidth={2} style={{ color: iconColor }} />
+      </button>
+    </div>
   )
+}
+
+function wineNameHref(wine: PreviewWineCardData): string | null {
+  if (wine.vivinoUrl) return wine.vivinoUrl
+  const min = lowestPrice(wine.prices)
+  if (min == null) return null
+  const cheapestWithUrl = wine.prices.find((listing) => listing.price === min && listing.url)
+  if (cheapestWithUrl?.url) return cheapestWithUrl.url
+  return wine.prices.find((listing) => listing.url)?.url ?? null
 }
 
 export function PreviewWineCard({
@@ -283,6 +286,7 @@ export function PreviewWineCard({
   const isHidden = review?.hide === true
   const isDimmed = triedStatus === 2 || isHidden
   const minPrice = lowestPrice(wine.prices)
+  const nameHref = wineNameHref(wine)
   const ribbon = colourRibbonStyle(wine.colour)
   const panelTint = getReviewPanelTint(shortlisted, triedStatus === 1, wishlist === 1)
   const panelText = getReviewPanelTextColors(mode, panelTint)
@@ -435,7 +439,20 @@ export function PreviewWineCard({
               className="text-sm font-semibold leading-snug"
               style={{ color: infoWineName, fontFamily: 'var(--font-playfair), serif' }}
             >
-              {wine.name}
+              {nameHref ? (
+                <a
+                  href={nameHref}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="no-underline hover:underline underline-offset-2"
+                  style={{ color: 'inherit' }}
+                  title={wine.vivinoUrl ? 'View on Vivino' : 'View cheapest store listing'}
+                >
+                  {wine.name}
+                </a>
+              ) : (
+                wine.name
+              )}
             </h3>
 
             <div className="flex items-center gap-1">
@@ -549,7 +566,7 @@ export function PreviewWineCard({
             opacity: isLoggedIn ? 1 : 0.42,
           }}
         >
-          <div className="flex items-end gap-1.5 min-w-0 pr-8">
+          <div className="flex items-end gap-1.5 min-w-0 pr-14">
             <UsageTipTarget tipId="wishlist-button">
               <PreviewWishlistPicker
                 wineId={wine.id}
@@ -559,7 +576,7 @@ export function PreviewWineCard({
                 onReviewChange={onReviewChange}
               />
             </UsageTipTarget>
-            <UsageTipTarget tipId="shortlist-button">
+            <UsageTipTarget tipId="shortlist-button" className="hidden">
               <PreviewShortlistButton
                 wineId={wine.id}
                 userId={userId}

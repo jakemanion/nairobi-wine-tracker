@@ -84,8 +84,8 @@ export const USAGE_TIPS: Record<UsageTipId, UsageTipContent> = {
   },
   'hide-wine': {
     id: 'hide-wine',
-    heading: 'Hide wine',
-    body: "Hide this wine if it doesn't interest you.",
+    heading: 'Not interested',
+    body: "Mark this wine if it doesn't interest you.",
   },
   'hide-unwanted': {
     id: 'hide-unwanted',

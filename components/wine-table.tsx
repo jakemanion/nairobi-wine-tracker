@@ -656,7 +656,7 @@ export function WineTable({ wines: initialWines, userId }: { wines: WineRow[]; u
     setWines(initialWines.map(withComputedValueScore))
   }, [initialWines])
 
-  const [primarySort, setPrimarySort] = useState<SortCriterion>({ key: 'winery', dir: 'asc' })
+  const [primarySort, setPrimarySort] = useState<SortCriterion>({ key: 'value_score', dir: 'desc' })
   const [secondarySort, setSecondarySort] = useState<SortCriterion>({ key: 'none', dir: 'asc' })
   const [showDetails, setShowDetails] = useState(true)
   const [filters, setFilters] = useState<WineFilters>(EMPTY_WINE_FILTERS)

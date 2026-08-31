@@ -67,7 +67,7 @@ export function PreviewWineList({
   )
   const [filters, setFilters] = useState<WineFilters>(EMPTY_WINE_FILTERS)
   const [searchQuery, setSearchQuery] = useState('')
-  const [primarySort, setPrimarySort] = useState<SortCriterion>({ key: 'winery', dir: 'asc' })
+  const [primarySort, setPrimarySort] = useState<SortCriterion>({ key: 'value_score', dir: 'desc' })
   const [secondarySort, setSecondarySort] = useState<SortCriterion>({ key: 'none', dir: 'asc' })
   const [shareOpen, setShareOpen] = useState(false)
   const filterOptions = useMemo(() => collectFilterOptions(wines), [wines])

@@ -366,7 +366,7 @@ export function PreviewToolbarQuickFilters({
         >
           <select
             aria-label="Sort by"
-            style={filterSelectStyle(colors, primarySort.key !== 'winery')}
+            style={filterSelectStyle(colors, primarySort.key !== 'value_score')}
             value={primarySort.key}
             onChange={(event) => {
               const key = event.target.value as SortFieldKey
