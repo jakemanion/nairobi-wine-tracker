@@ -54,3 +54,8 @@ export function formatStarRating(stars: number): string {
   if (Number.isInteger(stars)) return String(stars)
   return String(stars)
 }
+
+/** Unique star ratings from the lookup table, ascending — for filter dropdowns. */
+export function starRatingFilterOptions(): number[] {
+  return [...new Set(Object.values(VIVINO_TO_STAR_RATING))].sort((a, b) => a - b)
+}

@@ -164,7 +164,7 @@ function HideButton({
   return (
     <div className="flex flex-col items-center gap-0.5 flex-shrink-0">
       <p
-        className="text-[6px] uppercase tracking-wider leading-tight text-center max-w-[54px] min-h-[18px] flex items-end justify-center"
+        className="text-[6px] uppercase tracking-wider leading-tight text-center w-[54px] h-[18px] flex items-end justify-center"
         style={{ color: panelLabelColor, fontFamily: 'var(--font-dm-sans), sans-serif' }}
       >
         Not interested
@@ -482,7 +482,7 @@ export function PreviewWineCard({
         {!isLoggedIn ? <LoggedOutLoginPromptOverlay /> : null}
 
         <div
-          className="absolute top-1.5 right-1.5 z-10 flex items-start gap-1.5"
+          className="absolute top-1.5 right-1.5 z-10 flex items-end gap-1.5"
           style={{ pointerEvents: isLoggedIn ? 'auto' : 'none', opacity: isLoggedIn ? 1 : 0.42 }}
         >
           <UsageTipTarget tipId="shortlist-button" className="hidden">

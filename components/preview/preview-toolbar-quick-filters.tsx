@@ -14,6 +14,7 @@ import { PreviewFilterMultiSelect } from '@/components/preview/preview-filter-mu
 import { UsageTipTarget } from '@/components/preview/usage-tip-target'
 import type { PreviewColors } from '@/lib/preview/preview-colors'
 import type { SortCriterion, SortFieldKey } from '@/components/wine-filter-panel'
+import { formatStarRating, starRatingFilterOptions } from '@/lib/ratings/vivino-star-rating'
 
 type PriceBounds = {
   min: number
@@ -172,11 +173,7 @@ function buildPriceOptions(maxBound: number): number[] {
 }
 
 function buildRatingOptions(): string[] {
-  const options: string[] = []
-  for (let r = 3.0; r <= 5.0; r = Math.round((r + 0.1) * 10) / 10) {
-    options.push(r.toFixed(1))
-  }
-  return options
+  return starRatingFilterOptions().map((rating) => formatStarRating(rating))
 }
 
 export function PreviewToolbarQuickFilters({
@@ -251,7 +248,7 @@ export function PreviewToolbarQuickFilters({
               <option value="">Lowest rating: Show all</option>
               {buildRatingOptions().map((rating) => (
                 <option key={rating} value={rating}>
-                  {rating} and above
+                  {rating}★ and above
                 </option>
               ))}
             </select>

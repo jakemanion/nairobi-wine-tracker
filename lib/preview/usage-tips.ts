@@ -59,7 +59,7 @@ export const USAGE_TIPS: Record<UsageTipId, UsageTipContent> = {
   'lowest-rating-filter': {
     id: 'lowest-rating-filter',
     heading: 'Lowest rating',
-    body: "Set the lowest-rated wines you're considering.",
+    body: 'Set the lowest star rating you want to see.',
   },
   'grapes-filter': {
     id: 'grapes-filter',

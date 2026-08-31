@@ -91,9 +91,9 @@ export function PreviewShortlistButton({
   }
 
   return (
-    <div className="flex flex-col items-center gap-0.5 flex-shrink-0">
+    <div className="relative flex flex-col items-center gap-0.5 flex-shrink-0">
       <p
-        className="text-[6px] uppercase tracking-wider leading-tight text-center max-w-[54px] min-h-[18px] flex items-end justify-center"
+        className="text-[6px] uppercase tracking-wider leading-tight text-center w-[54px] h-[18px] flex items-end justify-center"
         style={{
           color: inactiveColor,
           fontFamily: 'var(--font-dm-sans), sans-serif',
@@ -126,7 +126,10 @@ export function PreviewShortlistButton({
         />
       </button>
       {error ? (
-        <span className="text-[9px] text-center" style={{ color: '#c05050', maxWidth: 72, lineHeight: 1.2 }}>
+        <span
+          className="absolute top-full left-1/2 -translate-x-1/2 mt-0.5 text-[9px] text-center whitespace-nowrap"
+          style={{ color: '#c05050', lineHeight: 1.2 }}
+        >
           {error}
         </span>
       ) : null}

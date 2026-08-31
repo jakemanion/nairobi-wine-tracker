@@ -43,7 +43,7 @@ const SORT_FIELD_OPTIONS: Array<{ value: SortFieldKey; label: string }> = [
   { value: 'region', label: 'Region' },
   { value: 'grapes', label: 'Grapes' },
   { value: 'style', label: 'Style' },
-  { value: 'vivino_rating', label: 'Vivino rating' },
+  { value: 'vivino_rating', label: 'Star rating' },
   { value: 'value_score', label: 'Value score' },
   { value: 'store_prices', label: 'Store price' },
   { value: 'my_rating', label: 'My rating' },
@@ -330,13 +330,13 @@ export function WineFilterPanel({
                 />
               </label>
               <label style={fieldLabelStyle}>
-                <span>Vivino score min</span>
+                <span>Star rating min</span>
                 <input
                   type="number"
                   inputMode="decimal"
                   min={0}
                   max={5}
-                  step={0.1}
+                  step={0.25}
                   placeholder="Any"
                   value={filters.vivinoMin}
                   style={controlStyle}
@@ -344,13 +344,13 @@ export function WineFilterPanel({
                 />
               </label>
               <label style={fieldLabelStyle}>
-                <span>Vivino score max</span>
+                <span>Star rating max</span>
                 <input
                   type="number"
                   inputMode="decimal"
                   min={0}
                   max={5}
-                  step={0.1}
+                  step={0.25}
                   placeholder="Any"
                   value={filters.vivinoMax}
                   style={controlStyle}

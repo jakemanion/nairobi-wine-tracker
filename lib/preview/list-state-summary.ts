@@ -10,7 +10,7 @@ const SORT_LABELS: Record<SortFieldKey, string> = {
   region: 'Region',
   grapes: 'Grapes',
   style: 'Style',
-  vivino_rating: 'Vivino rating',
+  vivino_rating: 'Star rating',
   value_score: 'Value score',
   store_prices: 'Store price',
   my_rating: 'My rating',
@@ -74,8 +74,8 @@ export function buildListStateSummary({
   const filterParts: string[] = []
   if (filters.priceMin.trim()) filterParts.push(`price from ${filters.priceMin}`)
   if (filters.priceMax.trim()) filterParts.push(`price up to ${filters.priceMax}`)
-  if (filters.vivinoMin.trim()) filterParts.push(`Vivino from ${filters.vivinoMin}`)
-  if (filters.vivinoMax.trim()) filterParts.push(`Vivino up to ${filters.vivinoMax}`)
+  if (filters.vivinoMin.trim()) filterParts.push(`Rating from ${filters.vivinoMin}★`)
+  if (filters.vivinoMax.trim()) filterParts.push(`Rating up to ${filters.vivinoMax}★`)
   if (filters.producer.trim()) filterParts.push(`producer: ${filters.producer}`)
   if (filters.country.trim()) filterParts.push(`country: ${filters.country}`)
   if (filters.regions.length > 0) {
