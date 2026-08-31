@@ -162,9 +162,9 @@ function HideButton({
   const iconColor = active ? '#F08080' : '#9894A4'
 
   return (
-    <div className="flex flex-col items-center gap-0.5 flex-shrink-0">
+    <div className="flex flex-col items-center gap-1 flex-shrink-0 m-0 p-0">
       <p
-        className="text-[6px] uppercase tracking-wider leading-tight text-center w-[54px] h-[18px] flex items-end justify-center"
+        className="m-0 p-0 text-[6px] uppercase tracking-wider leading-none text-center whitespace-nowrap"
         style={{ color: panelLabelColor, fontFamily: 'var(--font-dm-sans), sans-serif' }}
       >
         Not interested
@@ -175,7 +175,7 @@ function HideButton({
         aria-label={active ? 'Show wine again' : 'Not interested'}
         aria-pressed={active}
         disabled={saving}
-        className="w-10 h-10 rounded-lg flex items-center justify-center transition-all hover:scale-105 flex-shrink-0"
+        className="w-10 h-10 rounded-lg flex items-center justify-center transition-all hover:scale-105 flex-shrink-0 m-0"
         style={{
           border: `2px solid ${borderColor}`,
           background: bgColor,
@@ -473,7 +473,7 @@ export function PreviewWineCard({
       </div>
 
       <div
-        className="relative flex-shrink-0 px-2.5 py-2.5 flex flex-col gap-1.5 transition-colors duration-300 min-w-0 group/review-panel"
+        className="relative flex-shrink-0 px-2.5 pt-1.5 pb-2.5 flex flex-col gap-1.5 transition-colors duration-300 min-w-0 group/review-panel"
         style={{
           width: '35.2%',
           ...getReviewPanelStyle(panelTint, mode),
@@ -488,8 +488,8 @@ export function PreviewWineCard({
             opacity: isLoggedIn ? 1 : 0.42,
           }}
         >
-          <div className="flex items-end justify-between min-w-0">
-            <div className="flex items-end gap-1.5 min-w-0">
+          <div className="flex items-start justify-between min-w-0 m-0 p-0">
+            <div className="flex items-start gap-1.5 min-w-0 m-0 p-0">
               <UsageTipTarget tipId="wishlist-button">
                 <PreviewWishlistPicker
                   wineId={wine.id}

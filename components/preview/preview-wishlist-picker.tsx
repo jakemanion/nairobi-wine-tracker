@@ -97,9 +97,9 @@ export function PreviewWishlistPicker({
   const iconColor = active ? WISHLISTED_BUTTON_STYLE.color : '#9894A4'
 
   return (
-    <div className="relative flex flex-col items-center gap-0.5 flex-shrink-0">
+    <div className="relative flex flex-col items-center gap-1 flex-shrink-0 m-0 p-0">
       <p
-        className="text-[6px] uppercase tracking-wider leading-tight text-center w-[54px] h-[18px] flex items-end justify-center"
+        className="m-0 p-0 text-[6px] uppercase tracking-wider leading-none text-center whitespace-nowrap"
         style={{ color: labelColor ?? '#9894A4', fontFamily: 'var(--font-dm-sans), sans-serif' }}
       >
         {getWishlistStateLabel(value)}
@@ -110,7 +110,7 @@ export function PreviewWishlistPicker({
         aria-label={active ? 'Remove from wishlist' : 'Add to wishlist'}
         aria-pressed={active}
         disabled={saving}
-        className="w-10 h-10 rounded-lg flex items-center justify-center transition-all hover:scale-105 flex-shrink-0"
+        className="w-10 h-10 rounded-lg flex items-center justify-center transition-all hover:scale-105 flex-shrink-0 m-0"
         style={{
           border: `2px solid ${borderColor}`,
           background: bgColor,
