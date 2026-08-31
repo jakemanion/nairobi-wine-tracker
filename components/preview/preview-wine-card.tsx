@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { ExternalLink, EyeOff, MapPin } from 'lucide-react'
+import { ExternalLink, EyeOff, MapPin, Star } from 'lucide-react'
 import type { WineReview } from '@/components/wine-table'
 import { LoggedOutLoginPromptOverlay } from '@/components/preview/logged-out-login-prompt'
 import { PreviewBottleImage } from '@/components/preview/preview-bottle-image'
@@ -21,6 +21,7 @@ import {
   type PreviewWineCardData,
 } from '@/lib/preview/wine-card-model'
 import { getReviewPanelTextColors } from '@/lib/preview/preview-colors'
+import { formatStarRating, vivinoToStarRating } from '@/lib/ratings/vivino-star-rating'
 import { saveReviewField } from '@/lib/reviews'
 import type { WishlistValue, TriedStatusValue } from '@/lib/reviews'
 
@@ -70,150 +71,79 @@ function formatPrice(value: number): string {
   return value.toLocaleString('en-KE', { maximumFractionDigits: 0 })
 }
 
-type VivinoTier = 'gold' | 'silver' | 'bronze' | 'grey' | 'none'
+function WineStarRating({
+  vivinoRating,
+  vivinoUrl,
+  mutedColor,
+  emphasisColor,
+}: {
+  vivinoRating: number | null
+  vivinoUrl: string | null
+  mutedColor: string
+  emphasisColor: string
+}) {
+  const starRating = vivinoToStarRating(vivinoRating)
+  const hasVivino = vivinoRating != null
+  const vivinoLabel = hasVivino ? `${vivinoRating.toFixed(1)} on Vivino` : 'Vivino'
+  const starColor = '#E8B84A'
 
-function getVivinoTier(rating: number | null): VivinoTier {
-  if (rating == null) return 'none'
-  if (rating >= 4) return 'gold'
-  if (rating >= 3.8) return 'silver'
-  if (rating >= 3.7) return 'bronze'
-  return 'grey'
-}
-
-const VIVINO_TIER_STYLES: Record<
-  VivinoTier,
-  { background: string; border: string; text: string; label: string }
-> = {
-  gold: {
-    background: 'linear-gradient(145deg, #5A3C08 0%, #B88820 52%, #7A580C 100%)',
-    border: '#F0C840',
-    text: '#FFF8E0',
-    label: '#F0D060',
-  },
-  silver: {
-    background: 'linear-gradient(145deg, #383C48 0%, #9098A8 52%, #585E6C 100%)',
-    border: '#D8E0EC',
-    text: '#FFFFFF',
-    label: '#C8D0DC',
-  },
-  bronze: {
-    background: 'linear-gradient(145deg, #4A2C10 0%, #A87038 52%, #704820 100%)',
-    border: '#E0A060',
-    text: '#FFF0E0',
-    label: '#E8B878',
-  },
-  grey: {
-    background: '#2A2A2E',
-    border: '#4A4A50',
-    text: '#D0CED4',
-    label: '#98949E',
-  },
-  none: {
-    background: '#2A2A2E',
-    border: '#4A4A50',
-    text: '#D0CED4',
-    label: '#98949E',
-  },
-}
-
-function getVivinoScoreLabel(rating: number | null): string {
-  if (rating == null) return ''
-  if (rating > 4.2) return 'Very highly rated'
-  if (rating >= 4) return 'Highly rated'
-  if (rating >= 3.8 && rating <= 3.9) return 'Well rated'
-  if (rating >= 3.7 && rating < 3.8) return 'Good rating'
-  return ''
-}
-
-function VivinoCircle({ rating, url }: { rating: number | null; url: string | null }) {
-  const hasRating = rating != null
-  const tier = getVivinoTier(rating)
-  const style = VIVINO_TIER_STYLES[tier]
-  const scoreLabel = getVivinoScoreLabel(rating)
-  const isMatte = tier === 'grey' || tier === 'none'
-  const isLink = Boolean(url)
-
-  const content = (
-    <div
-      className={`group/vivino flex flex-col items-center flex-shrink-0 ${isLink ? 'cursor-pointer' : ''}`}
-      style={{ width: 44 }}
+  const vivinoLine = (
+    <span
+      className="inline-flex items-center gap-0.5 text-[9px] font-medium leading-none underline-offset-2"
+      style={{ color: mutedColor, fontFamily: 'var(--font-dm-sans), sans-serif' }}
     >
-      <div className="relative flex flex-col items-center">
-        <div
-          className={`w-11 h-11 rounded-full flex items-center justify-center transition-all duration-200 ${
-            isLink ? 'group-hover/vivino:brightness-110 group-hover/vivino:shadow-lg' : ''
-          }`}
-          style={{
-            background: style.background,
-            border: `2.5px solid ${style.border}`,
-            boxShadow: isMatte ? 'none' : '0 2px 10px rgba(0,0,0,0.45)',
-            outline: isLink ? '1px solid transparent' : undefined,
-          }}
-        >
+      {vivinoLabel}
+      {vivinoUrl ? <ExternalLink className="w-2.5 h-2.5 flex-shrink-0" aria-hidden /> : null}
+    </span>
+  )
+
+  return (
+    <div className="flex flex-col items-start gap-1 flex-shrink-0 pt-0.5">
+      {starRating != null ? (
+        <div className="flex items-center gap-1" title={`${formatStarRating(starRating)} stars`}>
+          <Star
+            size={18}
+            strokeWidth={0}
+            className="flex-shrink-0"
+            style={{ fill: starColor, color: starColor }}
+            aria-hidden
+          />
           <span
-            className={`font-bold text-center leading-none ${
-              hasRating ? 'tabular-nums text-[15px]' : 'text-[7px] px-1'
-            }`}
+            className="tabular-nums text-[15px] font-bold leading-none"
             style={{
-              color: style.text,
+              color: emphasisColor,
               fontFamily: 'var(--font-dm-sans), sans-serif',
-              letterSpacing: hasRating ? '-0.03em' : '0.02em',
-              lineHeight: hasRating ? 1 : 1.15,
-              textShadow: isMatte ? 'none' : '0 1px 2px rgba(0,0,0,0.55)',
+              letterSpacing: '-0.03em',
             }}
           >
-            {hasRating ? (
-              rating.toFixed(1)
-            ) : (
-              <>
-                No
-                <br />
-                rating
-              </>
-            )}
+            {formatStarRating(starRating)}
           </span>
         </div>
-      </div>
-      {isLink ? (
+      ) : (
         <span
-          className="mt-0.5 flex items-center gap-0.5 text-[8px] font-semibold leading-none underline-offset-2 group-hover/vivino:underline"
-          style={{ color: style.label, fontFamily: 'var(--font-dm-sans), sans-serif' }}
+          className="text-[9px] font-medium leading-snug"
+          style={{ color: mutedColor, fontFamily: 'var(--font-dm-sans), sans-serif' }}
         >
-          Vivino
-          <ExternalLink className="w-2.5 h-2.5 flex-shrink-0" aria-hidden />
+          No rating
         </span>
-      ) : null}
-      {scoreLabel ? (
-        <p
-          className="mt-1 text-[9px] font-medium text-center leading-snug"
-          style={{
-            color: style.text,
-            fontFamily: 'var(--font-dm-sans), sans-serif',
-            maxWidth: 60,
-          }}
+      )}
+
+      {vivinoUrl ? (
+        <a
+          href={vivinoUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="no-underline text-inherit hover:underline"
+          title="View on Vivino"
+          aria-label={hasVivino ? `${vivinoRating!.toFixed(1)} on Vivino` : 'View on Vivino'}
         >
-          {scoreLabel}
-        </p>
+          {vivinoLine}
+        </a>
+      ) : hasVivino ? (
+        vivinoLine
       ) : null}
     </div>
   )
-
-  if (url) {
-    return (
-      <a
-        href={url}
-        target="_blank"
-        rel="noreferrer"
-        className="flex-shrink-0 no-underline text-inherit"
-        title="View on Vivino"
-        aria-label="View on Vivino"
-      >
-        {content}
-      </a>
-    )
-  }
-
-  return content
 }
 
 function HideButton({
@@ -234,7 +164,7 @@ function HideButton({
   return (
     <div className="flex flex-col items-center gap-0.5 flex-shrink-0">
       <p
-        className="text-[6px] uppercase tracking-wider leading-tight text-center max-w-[54px]"
+        className="text-[6px] uppercase tracking-wider leading-tight text-center max-w-[54px] min-h-[18px] flex items-end justify-center"
         style={{ color: panelLabelColor, fontFamily: 'var(--font-dm-sans), sans-serif' }}
       >
         Not interested
@@ -427,7 +357,12 @@ export function PreviewWineCard({
         }}
       >
         <div className="flex items-start gap-2.5 pr-2">
-          <VivinoCircle rating={wine.vivinoRating} url={wine.vivinoUrl} />
+          <WineStarRating
+            vivinoRating={wine.vivinoRating}
+            vivinoUrl={wine.vivinoUrl}
+            mutedColor={infoMuted}
+            emphasisColor={infoWineName}
+          />
           <div className="flex-1 min-w-0 flex flex-col gap-1.5 pt-0.5">
             <p
               className="text-[9px] font-semibold uppercase tracking-[0.14em] leading-none"
@@ -546,9 +481,20 @@ export function PreviewWineCard({
       >
         {!isLoggedIn ? <LoggedOutLoginPromptOverlay /> : null}
 
-        <div className="absolute top-1.5 right-1.5 z-10"
+        <div
+          className="absolute top-1.5 right-1.5 z-10 flex items-start gap-1.5"
           style={{ pointerEvents: isLoggedIn ? 'auto' : 'none', opacity: isLoggedIn ? 1 : 0.42 }}
         >
+          <UsageTipTarget tipId="shortlist-button" className="hidden">
+            <PreviewShortlistButton
+              wineId={wine.id}
+              userId={userId}
+              review={review}
+              disabled={!isLoggedIn}
+              labelColor={panelText.label}
+              onReviewChange={onReviewChange}
+            />
+          </UsageTipTarget>
           <UsageTipTarget tipId="hide-wine">
             <HideButton
               active={isHidden}
@@ -572,16 +518,6 @@ export function PreviewWineCard({
                 wineId={wine.id}
                 userId={userId}
                 review={review}
-                labelColor={panelText.label}
-                onReviewChange={onReviewChange}
-              />
-            </UsageTipTarget>
-            <UsageTipTarget tipId="shortlist-button" className="hidden">
-              <PreviewShortlistButton
-                wineId={wine.id}
-                userId={userId}
-                review={review}
-                disabled={!isLoggedIn}
                 labelColor={panelText.label}
                 onReviewChange={onReviewChange}
               />
