@@ -482,44 +482,41 @@ export function PreviewWineCard({
         {!isLoggedIn ? <LoggedOutLoginPromptOverlay /> : null}
 
         <div
-          className="absolute top-1.5 right-1.5 z-10 flex items-end gap-1.5"
-          style={{ pointerEvents: isLoggedIn ? 'auto' : 'none', opacity: isLoggedIn ? 1 : 0.42 }}
-        >
-          <UsageTipTarget tipId="shortlist-button" className="hidden">
-            <PreviewShortlistButton
-              wineId={wine.id}
-              userId={userId}
-              review={review}
-              disabled={!isLoggedIn}
-              labelColor={panelText.label}
-              onReviewChange={onReviewChange}
-            />
-          </UsageTipTarget>
-          <UsageTipTarget tipId="hide-wine">
-            <HideButton
-              active={isHidden}
-              saving={savingHide}
-              panelLabelColor={panelText.label}
-              onClick={() => void toggleHide()}
-            />
-          </UsageTipTarget>
-        </div>
-
-        <div
           className="flex flex-col gap-1.5 min-h-0"
           style={{
             pointerEvents: isLoggedIn ? 'auto' : 'none',
             opacity: isLoggedIn ? 1 : 0.42,
           }}
         >
-          <div className="flex items-end gap-1.5 min-w-0 pr-14">
-            <UsageTipTarget tipId="wishlist-button">
-              <PreviewWishlistPicker
-                wineId={wine.id}
-                userId={userId}
-                review={review}
-                labelColor={panelText.label}
-                onReviewChange={onReviewChange}
+          <div className="flex items-end justify-between min-w-0">
+            <div className="flex items-end gap-1.5 min-w-0">
+              <UsageTipTarget tipId="wishlist-button">
+                <PreviewWishlistPicker
+                  wineId={wine.id}
+                  userId={userId}
+                  review={review}
+                  labelColor={panelText.label}
+                  onReviewChange={onReviewChange}
+                />
+              </UsageTipTarget>
+              <UsageTipTarget tipId="shortlist-button" className="hidden">
+                <PreviewShortlistButton
+                  wineId={wine.id}
+                  userId={userId}
+                  review={review}
+                  disabled={!isLoggedIn}
+                  labelColor={panelText.label}
+                  onReviewChange={onReviewChange}
+                />
+              </UsageTipTarget>
+            </div>
+
+            <UsageTipTarget tipId="hide-wine">
+              <HideButton
+                active={isHidden}
+                saving={savingHide}
+                panelLabelColor={panelText.label}
+                onClick={() => void toggleHide()}
               />
             </UsageTipTarget>
           </div>

@@ -25,7 +25,6 @@ import {
 } from '@/lib/wine-filters'
 import { createWineSearchIndex, hasActiveWineSearch, searchWinesFromIndex } from '@/lib/wine-search'
 import { ClearShortlistButton } from '@/components/clear-shortlist-button'
-import { vivinoToStarRating } from '@/lib/ratings/vivino-star-rating'
 export type WineReview = {
   id: string
   overall_score: number | null
@@ -217,8 +216,8 @@ function compareWineField(a: DisplayWineRow, b: DisplayWineRow, key: SortFieldKe
       return compareEmptyLast(!as, !bs, () => as.localeCompare(bs, undefined, { sensitivity: 'base' }))
     }
     case 'vivino_rating': {
-      const an = vivinoToStarRating(ratingNum(a.vivino_rating))
-      const bn = vivinoToStarRating(ratingNum(b.vivino_rating))
+      const an = ratingNum(a.vivino_rating)
+      const bn = ratingNum(b.vivino_rating)
       return compareEmptyLast(an == null, bn == null, () => (an as number) - (bn as number))
     }
     case 'value_score': {
