@@ -78,8 +78,8 @@ export function PreviewToolbar({
               style={{
                 color: colors.summaryText,
                 fontFamily: 'var(--font-dm-sans), sans-serif',
-                fontSize: 12,
-                fontWeight: 600,
+                fontSize: 14,
+                fontWeight: 700,
                 lineHeight: 1.2,
               }}
             >

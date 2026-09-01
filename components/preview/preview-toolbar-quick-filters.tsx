@@ -55,15 +55,6 @@ function chipStyle(colors: PreviewColors, active: boolean): CSSProperties {
   }
 }
 
-function sliderLabelStyle(colors: PreviewColors): CSSProperties {
-  return {
-    fontSize: 12,
-    color: colors.muted,
-    fontFamily: 'var(--font-dm-sans), sans-serif',
-    whiteSpace: 'nowrap',
-  }
-}
-
 function sliderGroupStyle(colors: PreviewColors): CSSProperties {
   return {
     display: 'flex',
@@ -86,13 +77,13 @@ function titledSectionStyle(colors: PreviewColors): CSSProperties {
   }
 }
 
-function sectionTitleStyle(colors: PreviewColors, bold = false): CSSProperties {
+function sectionTitleStyle(colors: PreviewColors): CSSProperties {
   return {
     margin: 0,
     width: '100%',
     textAlign: 'center',
     fontSize: 11,
-    fontWeight: bold ? 600 : 500,
+    fontWeight: 600,
     color: colors.muted,
     fontFamily: 'var(--font-dm-sans), sans-serif',
     lineHeight: 1.2,
@@ -310,60 +301,13 @@ export function PreviewToolbarQuickFilters({
             />
           </UsageTipTarget>
 
-          {isLoggedIn ? (
-            <UsageTipTarget tipId="my-wines-filters" className="ml-auto flex flex-col gap-1.5 pl-2">
-              <span style={sliderLabelStyle(colors)}>My Wines</span>
-              <div className="flex items-center gap-1.5">
-                <button
-                  type="button"
-                  title="Show wishlisted only"
-                  aria-label="Show wishlisted only"
-                  aria-pressed={filters.showWishlistOnly}
-                  style={reviewFilterButtonStyle(colors, filters.showWishlistOnly, 'wishlist')}
-                  onClick={() => updateFilters({ showWishlistOnly: !filters.showWishlistOnly })}
-                >
-                  <Heart size={14} strokeWidth={2} className={filters.showWishlistOnly ? 'fill-current' : undefined} />
-                </button>
-                <button
-                  type="button"
-                  title="Show shortlisted only"
-                  aria-label="Show shortlisted only"
-                  aria-pressed={filters.showShortlistOnly}
-                  style={reviewFilterButtonStyle(colors, filters.showShortlistOnly, 'shortlist')}
-                  onClick={() => updateFilters({ showShortlistOnly: !filters.showShortlistOnly })}
-                >
-                  <ListChecks size={14} strokeWidth={2} />
-                </button>
-                <button
-                  type="button"
-                  title="Show buy-again only"
-                  aria-label="Show buy-again only"
-                  aria-pressed={filters.showThumbsUpOnly}
-                  style={reviewFilterButtonStyle(colors, filters.showThumbsUpOnly, 'thumbsUp')}
-                  onClick={() => updateFilters({ showThumbsUpOnly: !filters.showThumbsUpOnly })}
-                >
-                  <ThumbsUp size={14} strokeWidth={2} />
-                </button>
-                <button
-                  type="button"
-                  title={hideUnwantedActive ? 'Show unwanted wines' : 'Hide unwanted wines'}
-                  aria-label={hideUnwantedActive ? 'Show unwanted wines' : 'Hide unwanted wines'}
-                  aria-pressed={hideUnwantedActive}
-                  style={reviewFilterButtonStyle(colors, hideUnwantedActive, 'hide')}
-                  onClick={() => onFiltersChange(applyHideUnwantedToggle(filters, !hideUnwantedActive))}
-                >
-                  <EyeOff size={14} strokeWidth={2} />
-                </button>
-              </div>
-            </UsageTipTarget>
-          ) : null}
           </div>
         </div>
       </div>
 
       {stores.length > 0 ? (
         <UsageTipTarget tipId="shops-filter" style={titledSectionStyle(colors)}>
-          <p style={sectionTitleStyle(colors, true)}>Shops</p>
+          <p style={sectionTitleStyle(colors)}>Shops</p>
           <div className="flex flex-wrap items-center justify-center gap-1.5">
           {stores.map((store) => {
             const enabled = !filters.disabledStores.includes(store)
@@ -388,68 +332,113 @@ export function PreviewToolbarQuickFilters({
         </UsageTipTarget>
       ) : null}
 
-      <div className="flex flex-wrap items-center gap-2">
-        <UsageTipTarget
-          tipId="sort-panel"
-          className="flex items-center gap-1.5"
-          style={sliderGroupStyle(colors)}
-        >
-          <select
-            aria-label="Sort by"
-            style={filterSelectStyle(colors, primarySort.key !== 'value_score')}
-            value={primarySort.key}
-            onChange={(event) => {
-              const key = event.target.value as SortFieldKey
-              const match = QUICK_SORT_OPTIONS.find((o) => o.key === key)
-              onPrimarySortChange({ key, dir: match?.dir ?? 'asc' })
-              onSecondarySortChange({ key: 'none', dir: 'asc' })
-            }}
-          >
-            {QUICK_SORT_OPTIONS.map((option) => (
-              <option key={option.key} value={option.key}>
-                Sort by: {option.label}
-              </option>
-            ))}
-          </select>
-          <button
-            type="button"
-            title="Reverse sort direction"
-            aria-label="Reverse sort direction"
-            style={{
-              ...chipStyle(colors, false),
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: CONTROL_HEIGHT,
-              padding: 0,
-            }}
-            onClick={() => {
-              const reversed = primarySort.dir === 'asc' ? 'desc' : 'asc'
-              onPrimarySortChange({ ...primarySort, dir: reversed })
-            }}
-          >
-            <ArrowUpDown size={13} strokeWidth={2} />
-          </button>
+      <div className="flex flex-wrap items-stretch gap-2">
+        <UsageTipTarget tipId="sort-panel" style={titledSectionStyle(colors)}>
+          <p style={sectionTitleStyle(colors)}>Sort the list</p>
+          <div className="flex items-center justify-center gap-1.5">
+            <select
+              aria-label="Sort by"
+              style={filterSelectStyle(colors, primarySort.key !== 'value_score')}
+              value={primarySort.key}
+              onChange={(event) => {
+                const key = event.target.value as SortFieldKey
+                const match = QUICK_SORT_OPTIONS.find((o) => o.key === key)
+                onPrimarySortChange({ key, dir: match?.dir ?? 'asc' })
+                onSecondarySortChange({ key: 'none', dir: 'asc' })
+              }}
+            >
+              {QUICK_SORT_OPTIONS.map((option) => (
+                <option key={option.key} value={option.key}>
+                  Sort by: {option.label}
+                </option>
+              ))}
+            </select>
+            <button
+              type="button"
+              title="Reverse sort direction"
+              aria-label="Reverse sort direction"
+              style={{
+                ...chipStyle(colors, false),
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: CONTROL_HEIGHT,
+                padding: 0,
+              }}
+              onClick={() => {
+                const reversed = primarySort.dir === 'asc' ? 'desc' : 'asc'
+                onPrimarySortChange({ ...primarySort, dir: reversed })
+              }}
+            >
+              <ArrowUpDown size={13} strokeWidth={2} />
+            </button>
+          </div>
         </UsageTipTarget>
 
-        <UsageTipTarget
-          tipId="best-under-panel"
-          className="flex flex-wrap items-center gap-1.5"
-          style={sliderGroupStyle(colors)}
-        >
-          <span style={sliderLabelStyle(colors)}>Best wines under:</span>
-          {BEST_UNDER_PRICE_PRESETS.map((price) => (
-            <button
-              key={price}
-              type="button"
-              aria-pressed={isBestUnderActive(filters, primarySort, price)}
-              style={chipStyle(colors, isBestUnderActive(filters, primarySort, price))}
-              onClick={() => applyBestUnder(price)}
-            >
-              {price.toLocaleString()}
-            </button>
-          ))}
+        <UsageTipTarget tipId="best-under-panel" style={titledSectionStyle(colors)}>
+          <p style={sectionTitleStyle(colors)}>Best wines under</p>
+          <div className="flex flex-wrap items-center justify-center gap-1.5">
+            {BEST_UNDER_PRICE_PRESETS.map((price) => (
+              <button
+                key={price}
+                type="button"
+                aria-pressed={isBestUnderActive(filters, primarySort, price)}
+                style={chipStyle(colors, isBestUnderActive(filters, primarySort, price))}
+                onClick={() => applyBestUnder(price)}
+              >
+                {price.toLocaleString()}
+              </button>
+            ))}
+          </div>
         </UsageTipTarget>
+
+        {isLoggedIn ? (
+          <UsageTipTarget tipId="my-wines-filters" style={titledSectionStyle(colors)}>
+            <p style={sectionTitleStyle(colors)}>My Wines</p>
+            <div className="flex items-center justify-center gap-1.5">
+              <button
+                type="button"
+                title="Show wishlisted only"
+                aria-label="Show wishlisted only"
+                aria-pressed={filters.showWishlistOnly}
+                style={reviewFilterButtonStyle(colors, filters.showWishlistOnly, 'wishlist')}
+                onClick={() => updateFilters({ showWishlistOnly: !filters.showWishlistOnly })}
+              >
+                <Heart size={14} strokeWidth={2} className={filters.showWishlistOnly ? 'fill-current' : undefined} />
+              </button>
+              <button
+                type="button"
+                title="Show shortlisted only"
+                aria-label="Show shortlisted only"
+                aria-pressed={filters.showShortlistOnly}
+                style={reviewFilterButtonStyle(colors, filters.showShortlistOnly, 'shortlist')}
+                onClick={() => updateFilters({ showShortlistOnly: !filters.showShortlistOnly })}
+              >
+                <ListChecks size={14} strokeWidth={2} />
+              </button>
+              <button
+                type="button"
+                title="Show buy-again only"
+                aria-label="Show buy-again only"
+                aria-pressed={filters.showThumbsUpOnly}
+                style={reviewFilterButtonStyle(colors, filters.showThumbsUpOnly, 'thumbsUp')}
+                onClick={() => updateFilters({ showThumbsUpOnly: !filters.showThumbsUpOnly })}
+              >
+                <ThumbsUp size={14} strokeWidth={2} />
+              </button>
+              <button
+                type="button"
+                title={hideUnwantedActive ? 'Show unwanted wines' : 'Hide unwanted wines'}
+                aria-label={hideUnwantedActive ? 'Show unwanted wines' : 'Hide unwanted wines'}
+                aria-pressed={hideUnwantedActive}
+                style={reviewFilterButtonStyle(colors, hideUnwantedActive, 'hide')}
+                onClick={() => onFiltersChange(applyHideUnwantedToggle(filters, !hideUnwantedActive))}
+              >
+                <EyeOff size={14} strokeWidth={2} />
+              </button>
+            </div>
+          </UsageTipTarget>
+        ) : null}
       </div>
     </div>
   )

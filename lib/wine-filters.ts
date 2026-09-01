@@ -36,7 +36,7 @@ export const EMPTY_WINE_FILTERS: WineFilters = {
   triedStatus: [],
   stores: [],
   disabledStores: [],
-  hideUnwanted: false,
+  hideUnwanted: true,
   grapes: [],
   styles: [],
   producer: '',
