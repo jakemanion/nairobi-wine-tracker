@@ -11,6 +11,7 @@ import {
   getReviewPanelTint,
   PreviewWishlistPicker,
 } from '@/components/preview/preview-wishlist-picker'
+import { InstantTooltip } from '@/components/preview/instant-tooltip'
 import { PreviewShortlistButton } from '@/components/preview/preview-shortlist-button'
 import { PreviewTriedStatusPicker } from '@/components/preview/preview-tried-status-picker'
 import { UsageTipTarget } from '@/components/preview/usage-tip-target'
@@ -169,25 +170,26 @@ function HideButton({
       >
         Not interested
       </p>
-      <button
-        type="button"
-        title={active ? 'Show wine again' : 'Not interested'}
-        aria-label={active ? 'Show wine again' : 'Not interested'}
-        aria-pressed={active}
-        disabled={saving}
-        className="w-10 h-10 rounded-lg flex items-center justify-center transition-all hover:scale-105 flex-shrink-0 m-0"
-        style={{
-          border: `2px solid ${borderColor}`,
-          background: bgColor,
-          color: iconColor,
-          boxShadow: '0 2px 8px rgba(0,0,0,0.4)',
-          opacity: saving ? 0.5 : 1,
-          cursor: saving ? 'wait' : 'pointer',
-        }}
-        onClick={onClick}
-      >
-        <EyeOff size={24} strokeWidth={2} style={{ color: iconColor }} />
-      </button>
+      <InstantTooltip label={active ? 'Show wine again' : 'Not interested'}>
+        <button
+          type="button"
+          aria-label={active ? 'Show wine again' : 'Not interested'}
+          aria-pressed={active}
+          disabled={saving}
+          className="w-10 h-10 rounded-lg flex items-center justify-center transition-all hover:scale-105 flex-shrink-0 m-0"
+          style={{
+            border: `2px solid ${borderColor}`,
+            background: bgColor,
+            color: iconColor,
+            boxShadow: '0 2px 8px rgba(0,0,0,0.4)',
+            opacity: saving ? 0.5 : 1,
+            cursor: saving ? 'wait' : 'pointer',
+          }}
+          onClick={onClick}
+        >
+          <EyeOff size={24} strokeWidth={2} style={{ color: iconColor }} />
+        </button>
+      </InstantTooltip>
     </div>
   )
 }

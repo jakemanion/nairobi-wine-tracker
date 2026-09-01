@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { ListChecks } from 'lucide-react'
 import type { WineReview } from '@/components/wine-table'
+import { InstantTooltip } from '@/components/preview/instant-tooltip'
 import { saveReviewShortlistField, type ShortlistValue } from '@/lib/reviews'
 
 const SHORTLIST_TOOLTIP = 'Shortlist for your next buy'
@@ -101,23 +102,23 @@ export function PreviewShortlistButton({
       >
         {label}
       </p>
-      <button
-        type="button"
-        title={SHORTLIST_TOOLTIP}
-        aria-label={SHORTLIST_TOOLTIP}
-        aria-pressed={shortlisted}
-        disabled={saving || disabled}
-        className="w-10 h-10 rounded-lg flex items-center justify-center transition-all hover:scale-105 flex-shrink-0 m-0"
-        style={{
-          border: `2px solid ${shortlisted ? activeStyle.border : '#3A3848'}`,
-          background: shortlisted ? activeStyle.bg : '#22222C',
-          color: shortlisted ? activeStyle.color : inactiveColor,
-          boxShadow: '0 2px 8px rgba(0,0,0,0.4)',
-          opacity: saving || disabled ? 0.5 : 1,
-          cursor: saving || disabled ? 'not-allowed' : 'pointer',
-        }}
-        onClick={() => void toggle()}
-      >
+      <InstantTooltip label={SHORTLIST_TOOLTIP}>
+        <button
+          type="button"
+          aria-label={SHORTLIST_TOOLTIP}
+          aria-pressed={shortlisted}
+          disabled={saving || disabled}
+          className="w-10 h-10 rounded-lg flex items-center justify-center transition-all hover:scale-105 flex-shrink-0 m-0"
+          style={{
+            border: `2px solid ${shortlisted ? activeStyle.border : '#3A3848'}`,
+            background: shortlisted ? activeStyle.bg : '#22222C',
+            color: shortlisted ? activeStyle.color : inactiveColor,
+            boxShadow: '0 2px 8px rgba(0,0,0,0.4)',
+            opacity: saving || disabled ? 0.5 : 1,
+            cursor: saving || disabled ? 'not-allowed' : 'pointer',
+          }}
+          onClick={() => void toggle()}
+        >
         <ListChecks
           className={shortlisted ? 'fill-current' : undefined}
           size={24}
@@ -125,6 +126,7 @@ export function PreviewShortlistButton({
           style={{ color: shortlisted ? activeStyle.color : inactiveColor }}
         />
       </button>
+      </InstantTooltip>
       {error ? (
         <span
           className="absolute top-full left-1/2 -translate-x-1/2 mt-0.5 text-[9px] text-center whitespace-nowrap"

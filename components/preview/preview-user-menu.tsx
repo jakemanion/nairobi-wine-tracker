@@ -1,6 +1,7 @@
 'use client'
 
 import { LogoutButton } from '@/components/auth/logout-button'
+import { InstantTooltip } from '@/components/preview/instant-tooltip'
 import { UsageTipsToggle } from '@/components/preview/usage-tips-toggle'
 import type { PreviewColors, PreviewThemeMode } from '@/lib/preview/preview-colors'
 
@@ -24,21 +25,22 @@ export function PreviewUserMenu({
 
   return (
     <div className="relative group/user-menu">
-      <button
-        type="button"
-        aria-label={`Open account menu for ${accountLabel}`}
-        title={userName && userEmail ? `${userName} · ${userEmail}` : accountLabel}
-        className="flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold"
-        style={{
-          background: '#C93048',
-          border: `1px solid ${colors.buttonBorder}`,
-          color: '#FFFFFF',
-          cursor: 'pointer',
-          fontFamily: 'var(--font-dm-sans), sans-serif',
-        }}
-      >
-        {initial}
-      </button>
+      <InstantTooltip label={userName && userEmail ? `${userName} · ${userEmail}` : accountLabel}>
+        <button
+          type="button"
+          aria-label={`Open account menu for ${accountLabel}`}
+          className="flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold"
+          style={{
+            background: '#C93048',
+            border: `1px solid ${colors.buttonBorder}`,
+            color: '#FFFFFF',
+            cursor: 'pointer',
+            fontFamily: 'var(--font-dm-sans), sans-serif',
+          }}
+        >
+          {initial}
+        </button>
+      </InstantTooltip>
 
       <div
         className="invisible absolute right-0 top-full z-[60] w-48 pt-2 opacity-0 transition-opacity duration-150 group-hover/user-menu:visible group-hover/user-menu:opacity-100 group-focus-within/user-menu:visible group-focus-within/user-menu:opacity-100"

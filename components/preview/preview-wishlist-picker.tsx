@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Heart } from 'lucide-react'
 import type { CSSProperties } from 'react'
 import type { WineReview } from '@/components/wine-table'
+import { InstantTooltip } from '@/components/preview/instant-tooltip'
 import { saveReviewWishlistField, type WishlistValue } from '@/lib/reviews'
 import type { PreviewThemeMode, PanelTint } from '@/lib/preview/preview-colors'
 
@@ -104,23 +105,23 @@ export function PreviewWishlistPicker({
       >
         {getWishlistStateLabel(value)}
       </p>
-      <button
-        type="button"
-        title={active ? 'Remove from wishlist' : 'Add to wishlist'}
-        aria-label={active ? 'Remove from wishlist' : 'Add to wishlist'}
-        aria-pressed={active}
-        disabled={saving}
-        className="w-10 h-10 rounded-lg flex items-center justify-center transition-all hover:scale-105 flex-shrink-0 m-0"
-        style={{
-          border: `2px solid ${borderColor}`,
-          background: bgColor,
-          color: iconColor,
-          boxShadow: '0 2px 8px rgba(0,0,0,0.4)',
-          opacity: saving ? 0.5 : 1,
-          cursor: saving ? 'wait' : 'pointer',
-        }}
-        onClick={() => void toggle()}
-      >
+      <InstantTooltip label={active ? 'Remove from wishlist' : 'Add to wishlist'}>
+        <button
+          type="button"
+          aria-label={active ? 'Remove from wishlist' : 'Add to wishlist'}
+          aria-pressed={active}
+          disabled={saving}
+          className="w-10 h-10 rounded-lg flex items-center justify-center transition-all hover:scale-105 flex-shrink-0 m-0"
+          style={{
+            border: `2px solid ${borderColor}`,
+            background: bgColor,
+            color: iconColor,
+            boxShadow: '0 2px 8px rgba(0,0,0,0.4)',
+            opacity: saving ? 0.5 : 1,
+            cursor: saving ? 'wait' : 'pointer',
+          }}
+          onClick={() => void toggle()}
+        >
         <Heart
           size={24}
           strokeWidth={2}
@@ -128,6 +129,7 @@ export function PreviewWishlistPicker({
           style={{ color: iconColor }}
         />
       </button>
+      </InstantTooltip>
       {error ? (
         <span
           className="absolute top-full left-1/2 -translate-x-1/2 mt-0.5 text-[9px] text-center whitespace-nowrap"

@@ -10,6 +10,7 @@ import {
   selectedCountriesFromRegionFilters,
   type WineFilters,
 } from '@/lib/wine-filters'
+import { InstantTooltip } from '@/components/preview/instant-tooltip'
 import { PreviewFilterMultiSelect } from '@/components/preview/preview-filter-multi-select'
 import { UsageTipTarget } from '@/components/preview/usage-tip-target'
 import type { PreviewColors } from '@/lib/preview/preview-colors'
@@ -309,31 +310,31 @@ export function PreviewToolbarQuickFilters({
 
       {stores.length > 0 ? (
         <UsageTipTarget tipId="shops-filter" style={{ ...titledSectionStyle(colors), width: '100%' }}>
-          <p style={sectionTitleStyle(colors)}>Shops</p>
+          <p style={sectionTitleStyle(colors)}>Choose which shops to show</p>
           <div className="flex flex-wrap items-center justify-center gap-1.5">
           {stores.map((store) => {
             const enabled = !filters.disabledStores.includes(store)
             return (
-              <button
-                key={store}
-                type="button"
-                aria-pressed={enabled}
-                title={enabled ? `Hide ${store}` : `Show ${store}`}
-                style={{
-                  ...chipStyle(colors, enabled),
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 4,
-                }}
-                onClick={() =>
-                  updateFilters({
-                    disabledStores: toggleStore(filters.disabledStores, store),
-                  })
-                }
-              >
-                {enabled ? <Check size={12} strokeWidth={2.5} aria-hidden /> : null}
-                {store}
-              </button>
+              <InstantTooltip key={store} label={enabled ? `Hide ${store}` : `Show ${store}`}>
+                <button
+                  type="button"
+                  aria-pressed={enabled}
+                  style={{
+                    ...chipStyle(colors, enabled),
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 4,
+                  }}
+                  onClick={() =>
+                    updateFilters({
+                      disabledStores: toggleStore(filters.disabledStores, store),
+                    })
+                  }
+                >
+                  {enabled ? <Check size={12} strokeWidth={2.5} aria-hidden /> : null}
+                  {store}
+                </button>
+              </InstantTooltip>
             )
           })}
           </div>
@@ -361,25 +362,26 @@ export function PreviewToolbarQuickFilters({
                 </option>
               ))}
             </select>
-            <button
-              type="button"
-              title="Reverse sort direction"
-              aria-label="Reverse sort direction"
-              style={{
-                ...chipStyle(colors, false),
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: CONTROL_HEIGHT,
-                padding: 0,
-              }}
-              onClick={() => {
-                const reversed = primarySort.dir === 'asc' ? 'desc' : 'asc'
-                onPrimarySortChange({ ...primarySort, dir: reversed })
-              }}
-            >
-              <ArrowUpDown size={13} strokeWidth={2} />
-            </button>
+            <InstantTooltip label="Reverse sort direction">
+              <button
+                type="button"
+                aria-label="Reverse sort direction"
+                style={{
+                  ...chipStyle(colors, false),
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: CONTROL_HEIGHT,
+                  padding: 0,
+                }}
+                onClick={() => {
+                  const reversed = primarySort.dir === 'asc' ? 'desc' : 'asc'
+                  onPrimarySortChange({ ...primarySort, dir: reversed })
+                }}
+              >
+                <ArrowUpDown size={13} strokeWidth={2} />
+              </button>
+            </InstantTooltip>
           </div>
         </UsageTipTarget>
 
@@ -404,47 +406,51 @@ export function PreviewToolbarQuickFilters({
           <UsageTipTarget tipId="my-wines-filters" style={titledSectionStyle(colors)}>
             <p style={sectionTitleStyle(colors)}>Your wine list</p>
             <div className="flex items-center justify-center gap-1.5">
-              <button
-                type="button"
-                title="Show wishlisted only"
-                aria-label="Show wishlisted only"
-                aria-pressed={filters.showWishlistOnly}
-                style={reviewFilterButtonStyle(colors, filters.showWishlistOnly, 'wishlist')}
-                onClick={() => updateFilters({ showWishlistOnly: !filters.showWishlistOnly })}
-              >
-                <Heart size={14} strokeWidth={2} className={filters.showWishlistOnly ? 'fill-current' : undefined} />
-              </button>
-              <button
-                type="button"
-                className="hidden"
-                title="Only show shortlisted wines"
-                aria-label="Only show shortlisted wines"
-                aria-pressed={filters.showShortlistOnly}
-                style={reviewFilterButtonStyle(colors, filters.showShortlistOnly, 'shortlist')}
-                onClick={() => updateFilters({ showShortlistOnly: !filters.showShortlistOnly })}
-              >
-                <ListChecks size={14} strokeWidth={2} />
-              </button>
-              <button
-                type="button"
-                title="Only show wines you'll buy again"
-                aria-label="Only show wines you'll buy again"
-                aria-pressed={filters.showThumbsUpOnly}
-                style={reviewFilterButtonStyle(colors, filters.showThumbsUpOnly, 'thumbsUp')}
-                onClick={() => updateFilters({ showThumbsUpOnly: !filters.showThumbsUpOnly })}
-              >
-                <ThumbsUp size={14} strokeWidth={2} />
-              </button>
-              <button
-                type="button"
-                title={hideUnwantedActive ? 'Show unwanted wines' : 'Hide unwanted wines'}
-                aria-label={hideUnwantedActive ? 'Show unwanted wines' : 'Hide unwanted wines'}
-                aria-pressed={hideUnwantedActive}
-                style={reviewFilterButtonStyle(colors, hideUnwantedActive, 'hide')}
-                onClick={() => onFiltersChange(applyHideUnwantedToggle(filters, !hideUnwantedActive))}
-              >
-                <EyeOff size={14} strokeWidth={2} />
-              </button>
+              <InstantTooltip label="Show wishlisted only">
+                <button
+                  type="button"
+                  aria-label="Show wishlisted only"
+                  aria-pressed={filters.showWishlistOnly}
+                  style={reviewFilterButtonStyle(colors, filters.showWishlistOnly, 'wishlist')}
+                  onClick={() => updateFilters({ showWishlistOnly: !filters.showWishlistOnly })}
+                >
+                  <Heart size={14} strokeWidth={2} className={filters.showWishlistOnly ? 'fill-current' : undefined} />
+                </button>
+              </InstantTooltip>
+              <InstantTooltip label="Only show shortlisted wines">
+                <button
+                  type="button"
+                  className="hidden"
+                  aria-label="Only show shortlisted wines"
+                  aria-pressed={filters.showShortlistOnly}
+                  style={reviewFilterButtonStyle(colors, filters.showShortlistOnly, 'shortlist')}
+                  onClick={() => updateFilters({ showShortlistOnly: !filters.showShortlistOnly })}
+                >
+                  <ListChecks size={14} strokeWidth={2} />
+                </button>
+              </InstantTooltip>
+              <InstantTooltip label="Only show wines you'll buy again">
+                <button
+                  type="button"
+                  aria-label="Only show wines you'll buy again"
+                  aria-pressed={filters.showThumbsUpOnly}
+                  style={reviewFilterButtonStyle(colors, filters.showThumbsUpOnly, 'thumbsUp')}
+                  onClick={() => updateFilters({ showThumbsUpOnly: !filters.showThumbsUpOnly })}
+                >
+                  <ThumbsUp size={14} strokeWidth={2} />
+                </button>
+              </InstantTooltip>
+              <InstantTooltip label={hideUnwantedActive ? 'Show unwanted wines' : 'Hide unwanted wines'}>
+                <button
+                  type="button"
+                  aria-label={hideUnwantedActive ? 'Show unwanted wines' : 'Hide unwanted wines'}
+                  aria-pressed={hideUnwantedActive}
+                  style={reviewFilterButtonStyle(colors, hideUnwantedActive, 'hide')}
+                  onClick={() => onFiltersChange(applyHideUnwantedToggle(filters, !hideUnwantedActive))}
+                >
+                  <EyeOff size={14} strokeWidth={2} />
+                </button>
+              </InstantTooltip>
             </div>
           </UsageTipTarget>
         ) : null}
