@@ -16,7 +16,7 @@ import { PreviewTriedStatusPicker } from '@/components/preview/preview-tried-sta
 import { UsageTipTarget } from '@/components/preview/usage-tip-target'
 import { usePreviewTheme } from '@/components/preview/preview-theme-context'
 import {
-  colourRibbonStyle,
+  styleRibbonStyle,
   lowestPrice,
   type PreviewWineCardData,
 } from '@/lib/preview/wine-card-model'
@@ -217,7 +217,7 @@ export function PreviewWineCard({
   const isDimmed = triedStatus === 2 || isHidden
   const minPrice = lowestPrice(wine.prices)
   const nameHref = wineNameHref(wine)
-  const ribbon = colourRibbonStyle(wine.colour)
+  const ribbon = styleRibbonStyle(wine.style)
   const panelTint = getReviewPanelTint(shortlisted, triedStatus === 1, wishlist === 1)
   const panelText = getReviewPanelTextColors(mode, panelTint)
   const cardBorderColor = getCardBorderColor(panelTint, mode)
@@ -319,23 +319,25 @@ export function PreviewWineCard({
         opacity: isDimmed ? 0.4 : 1,
       }}
     >
-      <div
-        className="absolute top-0 left-0 z-10 pointer-events-none"
-        style={{
-          background: ribbon.background,
-          color: '#fff',
-          fontSize: 9,
-          fontWeight: 600,
-          lineHeight: 1.2,
-          padding: '3px 7px',
-          borderBottomRightRadius: 8,
-          fontFamily: 'var(--font-dm-sans), sans-serif',
-          letterSpacing: '0.02em',
-          boxShadow: '0 1px 4px rgba(0,0,0,0.35)',
-        }}
-      >
-        {ribbon.label}
-      </div>
+      {ribbon ? (
+        <div
+          className="absolute top-0 left-0 z-10 pointer-events-none"
+          style={{
+            background: ribbon.background,
+            color: ribbon.color,
+            fontSize: 9,
+            fontWeight: 600,
+            lineHeight: 1.2,
+            padding: '3px 7px',
+            borderBottomRightRadius: 8,
+            fontFamily: 'var(--font-dm-sans), sans-serif',
+            letterSpacing: '0.02em',
+            boxShadow: '0 1px 4px rgba(0,0,0,0.35)',
+          }}
+        >
+          {ribbon.label}
+        </div>
+      ) : null}
 
       <div
         className="w-[96px] flex-shrink-0 self-stretch relative min-h-[112px]"

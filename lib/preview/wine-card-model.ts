@@ -3,7 +3,14 @@ import type { WineRow } from '@/components/wine-table'
 import { minWinePriceKES } from '@/lib/calculate-value-score'
 import { formatGrapeVarieties } from '@/lib/grape-varieties'
 
-export type WineColour = 'Red' | 'White' | 'Rosé' | 'Sparkling'
+export type StyleRibbonVariant = 'red' | 'white' | 'rose' | 'sparkling' | 'default'
+
+export type StyleRibbonStyle = {
+  label: string
+  background: string
+  color: string
+  variant: StyleRibbonVariant
+}
 
 export type PreviewWineCardData = {
   id: string
@@ -12,7 +19,7 @@ export type PreviewWineCardData = {
   vintage: string | null
   country: string
   region: string
-  colour: WineColour
+  style: string | null
   grapes: string[]
   vivinoRating: number | null
   vivinoUrl: string | null
@@ -20,32 +27,42 @@ export type PreviewWineCardData = {
   image: string | null
 }
 
-const colourRibbonBg: Record<WineColour, string> = {
-  Red: '#8F1A2B',
-  White: '#7A5A18',
-  Rosé: '#8A3828',
-  Sparkling: '#1E4A6A',
-}
+const RED_RIBBON = {
+  background: '#8F1A2B',
+  color: '#FFFFFF',
+} as const
 
-const colourLabel: Record<WineColour, string> = {
-  Red: 'Red',
-  White: 'White',
-  Rosé: 'Rosé',
-  Sparkling: 'Sparkling',
-}
+const PALE_YELLOW_RIBBON = {
+  background: '#F5E6A8',
+  color: '#000000',
+} as const
 
-export function colourRibbonStyle(colour: WineColour) {
-  return { background: colourRibbonBg[colour], label: colourLabel[colour] }
-}
+const PALE_PINK_RIBBON = {
+  background: '#F5D0D8',
+  color: '#000000',
+} as const
 
-function parseColour(style: string | null | undefined): WineColour {
-  const s = (style ?? '').toLowerCase()
-  if (s.includes('white')) return 'White'
-  if (s.includes('ros')) return 'Rosé'
-  if (s.includes('spark') || s.includes('champagne') || s.includes('prosecco') || s.includes('cava')) {
-    return 'Sparkling'
+/** Case-insensitive style → ribbon colours. Edit here to adjust label styling. */
+export function styleRibbonStyle(style: string | null | undefined): StyleRibbonStyle | null {
+  const label = style?.trim()
+  if (!label) return null
+
+  const normalized = label.toLowerCase()
+
+  if (normalized === 'red' || normalized === 'sweet red') {
+    return { label, variant: 'red', ...RED_RIBBON }
   }
-  return 'Red'
+  if (normalized === 'white') {
+    return { label, variant: 'white', ...PALE_YELLOW_RIBBON }
+  }
+  if (normalized === 'rose' || normalized === 'rosé') {
+    return { label, variant: 'rose', ...PALE_PINK_RIBBON }
+  }
+  if (normalized === 'sparkling') {
+    return { label, variant: 'sparkling', ...PALE_YELLOW_RIBBON }
+  }
+
+  return { label, variant: 'default', ...RED_RIBBON }
 }
 
 function ratingNum(v: unknown): number | null {
@@ -81,6 +98,8 @@ export function toPreviewWineCard(wine: WineRow): PreviewWineCardData {
     })
     .filter((row): row is { shop: string; price: number; url: string | null } => row != null)
 
+  const style = wine.style?.trim() || null
+
   return {
     id: String(wine.id),
     producer: wine.producer?.trim() || 'Unknown producer',
@@ -88,7 +107,7 @@ export function toPreviewWineCard(wine: WineRow): PreviewWineCardData {
     vintage: wine.vintage != null && String(wine.vintage).trim() ? String(wine.vintage).trim() : null,
     country: wine.country?.trim() || '—',
     region: wine.region?.trim() || '—',
-    colour: parseColour(wine.style),
+    style,
     grapes: parseGrapes(wine.grape_varieties),
     vivinoRating: ratingNum(wine.vivino_rating),
     vivinoUrl: wine.vivino_url?.trim() || null,
@@ -97,13 +116,13 @@ export function toPreviewWineCard(wine: WineRow): PreviewWineCardData {
   }
 }
 
-export function countWinesByColour(wines: PreviewWineCardData[]) {
-  return {
-    Red: wines.filter((w) => w.colour === 'Red').length,
-    White: wines.filter((w) => w.colour === 'White').length,
-    Rosé: wines.filter((w) => w.colour === 'Rosé').length,
-    Sparkling: wines.filter((w) => w.colour === 'Sparkling').length,
+export function countWinesByStyleVariant(wines: PreviewWineCardData[]) {
+  const counts = { red: 0, white: 0, rose: 0, sparkling: 0, default: 0 }
+  for (const wine of wines) {
+    const ribbon = styleRibbonStyle(wine.style)
+    if (ribbon) counts[ribbon.variant] += 1
   }
+  return counts
 }
 
 export function lowestPrice(prices: PreviewWineCardData['prices']): number | null {
