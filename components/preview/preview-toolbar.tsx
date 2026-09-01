@@ -83,7 +83,7 @@ export function PreviewToolbar({
                 lineHeight: 1.2,
               }}
             >
-              Filter and sort the list
+              Filter and sort your list
             </p>
             <PreviewToolbarQuickFilters
             colors={colors}

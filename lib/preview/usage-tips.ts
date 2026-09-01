@@ -79,7 +79,7 @@ export const USAGE_TIPS: Record<UsageTipId, UsageTipContent> = {
   },
   'my-wines-filters': {
     id: 'my-wines-filters',
-    heading: 'My Wines',
+    heading: 'Your wine list',
     body: "Show only wines on your wishlist or shortlist, or those you'd buy again—and hide wines you're not interested in.",
     estimatedHeight: 148,
   },

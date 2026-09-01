@@ -1,7 +1,7 @@
 'use client'
 
 import type { CSSProperties } from 'react'
-import { ArrowUpDown, EyeOff, Heart, ListChecks, ThumbsUp } from 'lucide-react'
+import { ArrowUpDown, Check, EyeOff, Heart, ListChecks, ThumbsUp } from 'lucide-react'
 import {
   applyHideUnwantedToggle,
   BEST_UNDER_PRICE_PRESETS,
@@ -72,8 +72,10 @@ function titledSectionStyle(colors: PreviewColors): CSSProperties {
   return {
     ...sliderGroupStyle(colors),
     flexDirection: 'column',
-    alignItems: 'stretch',
+    alignItems: 'center',
     gap: 6,
+    width: 'fit-content',
+    maxWidth: '100%',
   }
 }
 
@@ -229,8 +231,8 @@ export function PreviewToolbarQuickFilters({
   }
 
   return (
-    <div className="flex flex-col gap-2.5 p-3 pt-2">
-      <div className="flex flex-wrap items-center gap-2">
+    <div className="flex flex-col items-center gap-2.5 p-3 pt-2">
+      <div className="flex w-full flex-wrap items-center justify-center gap-2">
         <div style={titledSectionStyle(colors)}>
           <p style={sectionTitleStyle(colors)}>Filters</p>
           <div className="flex flex-1 flex-wrap items-center justify-center gap-1.5">
@@ -306,7 +308,7 @@ export function PreviewToolbarQuickFilters({
       </div>
 
       {stores.length > 0 ? (
-        <UsageTipTarget tipId="shops-filter" style={titledSectionStyle(colors)}>
+        <UsageTipTarget tipId="shops-filter" style={{ ...titledSectionStyle(colors), width: '100%' }}>
           <p style={sectionTitleStyle(colors)}>Shops</p>
           <div className="flex flex-wrap items-center justify-center gap-1.5">
           {stores.map((store) => {
@@ -317,13 +319,19 @@ export function PreviewToolbarQuickFilters({
                 type="button"
                 aria-pressed={enabled}
                 title={enabled ? `Hide ${store}` : `Show ${store}`}
-                style={chipStyle(colors, enabled)}
+                style={{
+                  ...chipStyle(colors, enabled),
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 4,
+                }}
                 onClick={() =>
                   updateFilters({
                     disabledStores: toggleStore(filters.disabledStores, store),
                   })
                 }
               >
+                {enabled ? <Check size={12} strokeWidth={2.5} aria-hidden /> : null}
                 {store}
               </button>
             )
@@ -332,7 +340,7 @@ export function PreviewToolbarQuickFilters({
         </UsageTipTarget>
       ) : null}
 
-      <div className="flex flex-wrap items-stretch gap-2">
+      <div className="flex w-full flex-wrap items-stretch justify-center gap-2">
         <UsageTipTarget tipId="sort-panel" style={titledSectionStyle(colors)}>
           <p style={sectionTitleStyle(colors)}>Sort the list</p>
           <div className="flex items-center justify-center gap-1.5">
@@ -376,7 +384,7 @@ export function PreviewToolbarQuickFilters({
         </UsageTipTarget>
 
         <UsageTipTarget tipId="best-under-panel" style={titledSectionStyle(colors)}>
-          <p style={sectionTitleStyle(colors)}>Best wines under</p>
+          <p style={sectionTitleStyle(colors)}>Best wines under ...</p>
           <div className="flex flex-wrap items-center justify-center gap-1.5">
             {BEST_UNDER_PRICE_PRESETS.map((price) => (
               <button
@@ -394,7 +402,7 @@ export function PreviewToolbarQuickFilters({
 
         {isLoggedIn ? (
           <UsageTipTarget tipId="my-wines-filters" style={titledSectionStyle(colors)}>
-            <p style={sectionTitleStyle(colors)}>My Wines</p>
+            <p style={sectionTitleStyle(colors)}>Your wine list</p>
             <div className="flex items-center justify-center gap-1.5">
               <button
                 type="button"
@@ -408,8 +416,9 @@ export function PreviewToolbarQuickFilters({
               </button>
               <button
                 type="button"
-                title="Show shortlisted only"
-                aria-label="Show shortlisted only"
+                className="hidden"
+                title="Only show shortlisted wines"
+                aria-label="Only show shortlisted wines"
                 aria-pressed={filters.showShortlistOnly}
                 style={reviewFilterButtonStyle(colors, filters.showShortlistOnly, 'shortlist')}
                 onClick={() => updateFilters({ showShortlistOnly: !filters.showShortlistOnly })}
@@ -418,8 +427,8 @@ export function PreviewToolbarQuickFilters({
               </button>
               <button
                 type="button"
-                title="Show buy-again only"
-                aria-label="Show buy-again only"
+                title="Only show wines you'll buy again"
+                aria-label="Only show wines you'll buy again"
                 aria-pressed={filters.showThumbsUpOnly}
                 style={reviewFilterButtonStyle(colors, filters.showThumbsUpOnly, 'thumbsUp')}
                 onClick={() => updateFilters({ showThumbsUpOnly: !filters.showThumbsUpOnly })}
