@@ -534,7 +534,7 @@ export function PreviewWineCard({
           />
 
           <p
-            className="text-[8px] leading-snug text-center px-1"
+            className="text-[8px] font-semibold uppercase tracking-wider leading-none text-center px-1"
             style={{ color: panelText.label, fontFamily: 'var(--font-dm-sans), sans-serif' }}
           >
             Have you tried this wine?
@@ -547,7 +547,7 @@ export function PreviewWineCard({
                   type="text"
                   value={notesDraft}
                   disabled={savingNotes}
-                  placeholder="Notes"
+                  placeholder="Your notes..."
                   className="w-full text-[11px] focus:outline-none transition-colors rounded-lg px-2 disabled:opacity-60"
                   style={{
                     height: 28,
