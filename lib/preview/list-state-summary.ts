@@ -1,18 +1,21 @@
 import type { SortCriterion, SortFieldKey } from '@/components/wine-filter-panel'
 import type { WineFilters } from '@/lib/wine-filters'
-import { formatRegionFilterLabel } from '@/lib/wine-filters'
+import {
+  parseRegionFilterValue,
+  selectedCountriesFromRegionFilters,
+} from '@/lib/wine-filters'
 
 const SORT_LABELS: Record<SortFieldKey, string> = {
   winery: 'Producer',
-  wine_name: 'Wine name',
+  wine_name: 'Name',
   vintage: 'Vintage',
   country: 'Country',
   region: 'Region',
   grapes: 'Grapes',
   style: 'Style',
-  vivino_rating: 'Star rating',
-  value_score: 'Value score',
-  store_prices: 'Store price',
+  vivino_rating: 'Rating',
+  value_score: 'Value',
+  store_prices: 'Price',
   my_rating: 'My rating',
   wishlist: 'Wishlist',
   tried_status: 'Tried',
@@ -20,27 +23,29 @@ const SORT_LABELS: Record<SortFieldKey, string> = {
 }
 
 const WISHLIST_LABELS: Record<string, string> = {
-  unset: 'Not set',
-  '0': "Don't want",
-  '1': 'Want',
-  '2': 'Expensive treat',
-  '3': 'Very expensive treat',
+  unset: 'not set',
+  '0': "don't want",
+  '1': 'wishlisted',
 }
 
 const TRIED_LABELS: Record<string, string> = {
-  unset: 'Not tried',
-  '0': 'Tried',
-  '1': 'Buy again',
-  '2': "Don't buy again",
+  unset: 'not tried',
+  '1': 'buy again',
+  '2': 'not again',
 }
 
-function sortLabel(key: SortCriterion['key']): string {
-  if (key === 'none') return 'None'
-  return SORT_LABELS[key]
+function sortArrow(dir: SortCriterion['dir']): string {
+  return dir === 'asc' ? '↑' : '↓'
 }
 
-function dirLabel(dir: SortCriterion['dir']): string {
-  return dir === 'asc' ? 'ascending' : 'descending'
+function formatKsh(value: string): string {
+  const n = parseFloat(value)
+  if (!Number.isFinite(n)) return value
+  return `${n.toLocaleString('en-KE', { maximumFractionDigits: 0 })} KSh`
+}
+
+function joinList(values: string[]): string {
+  return values.join(', ')
 }
 
 export function buildListStateSummary({
@@ -62,60 +67,100 @@ export function buildListStateSummary({
 
   parts.push(
     resultCount === totalCount
-      ? `Showing all ${resultCount} wines`
-      : `Showing ${resultCount} of ${totalCount} wines`,
+      ? `${resultCount} wines`
+      : `${resultCount} of ${totalCount} wines`,
   )
 
   const trimmedSearch = searchQuery.trim()
   if (trimmedSearch) {
-    parts.push(`Search: “${trimmedSearch}”`)
+    parts.push(`search “${trimmedSearch}”`)
   }
 
-  const filterParts: string[] = []
-  if (filters.priceMin.trim()) filterParts.push(`price from ${filters.priceMin}`)
-  if (filters.priceMax.trim()) filterParts.push(`price up to ${filters.priceMax}`)
-  if (filters.vivinoMin.trim()) filterParts.push(`Rating from ${filters.vivinoMin}★`)
-  if (filters.vivinoMax.trim()) filterParts.push(`Rating up to ${filters.vivinoMax}★`)
-  if (filters.producer.trim()) filterParts.push(`producer: ${filters.producer}`)
-  if (filters.country.trim()) filterParts.push(`country: ${filters.country}`)
-  if (filters.regions.length > 0) {
-    filterParts.push(
-      `regions: ${filters.regions.map((value) => formatRegionFilterLabel(value)).join(', ')}`,
-    )
+  if (filters.styles.length > 0) {
+    parts.push(`type ${joinList(filters.styles)}`)
   }
-  if (filters.grapes.length > 0) filterParts.push(`grapes: ${filters.grapes.join(', ')}`)
-  if (filters.styles.length > 0) filterParts.push(`type: ${filters.styles.join(', ')}`)
-  if (filters.stores.length > 0) filterParts.push(`stores: ${filters.stores.join(', ')}`)
-  if (filters.wishlist.length > 0) {
-    filterParts.push(
-      `wishlist: ${filters.wishlist.map((v) => WISHLIST_LABELS[String(v)]).join(', ')}`,
-    )
+
+  if (filters.grapes.length > 0) {
+    parts.push(`grapes ${joinList(filters.grapes)}`)
   }
-  if (filters.triedStatus.length > 0) {
-    filterParts.push(
-      `tried: ${filters.triedStatus.map((v) => TRIED_LABELS[String(v)]).join(', ')}`,
-    )
+
+  const countries = selectedCountriesFromRegionFilters(filters.regions)
+  if (countries.length > 0) {
+    parts.push(`countries ${joinList(countries)}`)
   }
-  if (filters.hideUnwanted) filterParts.push('hiding unwanted')
+
+  const regions = filters.regions
+    .map((value) => parseRegionFilterValue(value))
+    .filter((parsed): parsed is { kind: 'region'; country: string; region: string } => parsed?.kind === 'region')
+    .map((parsed) => parsed.region)
+  if (regions.length > 0) {
+    parts.push(`regions ${joinList(regions)}`)
+  }
+
+  if (filters.priceMin.trim()) {
+    parts.push(`≥${formatKsh(filters.priceMin)}`)
+  }
+  if (filters.priceMax.trim()) {
+    parts.push(`≤${formatKsh(filters.priceMax)}`)
+  }
+
+  if (filters.vivinoMin.trim()) {
+    parts.push(`≥${filters.vivinoMin}★`)
+  }
+  if (filters.vivinoMax.trim()) {
+    parts.push(`≤${filters.vivinoMax}★`)
+  }
+
+  if (filters.producer.trim()) {
+    parts.push(`producer ${filters.producer}`)
+  }
+  if (filters.country.trim()) {
+    parts.push(`country ${filters.country}`)
+  }
+
+  if (filters.stores.length > 0) {
+    parts.push(`stores ${joinList(filters.stores)}`)
+  }
+
   if (filters.disabledStores.length > 0) {
-    filterParts.push(`shops hidden: ${filters.disabledStores.join(', ')}`)
+    parts.push(`hide shops ${joinList(filters.disabledStores)}`)
   }
 
-  if (filterParts.length > 0) {
-    parts.push(`Filters: ${filterParts.join('; ')}`)
-  } else {
-    parts.push('Filters: none')
+  if (filters.showWishlistOnly) {
+    parts.push('wishlist only')
+  }
+  if (filters.showShortlistOnly) {
+    parts.push('shortlist only')
+  }
+  if (filters.showThumbsUpOnly) {
+    parts.push('buy again only')
   }
 
-  const sortParts = [`${sortLabel(primarySort.key)} (${dirLabel(primarySort.dir)})`]
+  if (filters.wishlist.length > 0) {
+    parts.push(
+      `wishlist ${filters.wishlist.map((v) => WISHLIST_LABELS[String(v)]).join(', ')}`,
+    )
+  }
+
+  if (filters.triedStatus.length > 0) {
+    parts.push(
+      `tried ${filters.triedStatus.map((v) => TRIED_LABELS[String(v)]).join(', ')}`,
+    )
+  }
+
+  if (filters.hideUnwanted) {
+    parts.push('hide unwanted')
+  }
+
+  const primaryLabel = primarySort.key === 'none' ? 'None' : SORT_LABELS[primarySort.key]
   if (secondarySort.key !== 'none') {
-    sortParts.push(`${sortLabel(secondarySort.key)} (${dirLabel(secondarySort.dir)})`)
+    const secondaryLabel = SORT_LABELS[secondarySort.key]
+    parts.push(
+      `sort ${primaryLabel} ${sortArrow(primarySort.dir)}, then ${secondaryLabel} ${sortArrow(secondarySort.dir)}`,
+    )
+  } else {
+    parts.push(`sort ${primaryLabel} ${sortArrow(primarySort.dir)}`)
   }
-  parts.push(
-    secondarySort.key !== 'none'
-      ? `Sort: ${sortParts[0]}, then ${sortParts[1]}`
-      : `Sort: ${sortParts[0]}`,
-  )
 
   return parts.join(' · ')
 }

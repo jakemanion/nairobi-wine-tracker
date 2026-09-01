@@ -9,12 +9,7 @@ import {
   type RegionFilterGroup,
   type WineFilters,
 } from '@/lib/wine-filters'
-
-function buildResultCountText(resultCount: number, totalCount: number): string {
-  return resultCount === totalCount
-    ? `Showing all ${resultCount} wines`
-    : `Showing ${resultCount} of ${totalCount} wines`
-}
+import { buildListStateSummary } from '@/lib/preview/list-state-summary'
 
 type PreviewToolbarProps = {
   activeFilterCount: number
@@ -32,6 +27,8 @@ type PreviewToolbarProps = {
   primarySort: SortCriterion
   onPrimarySortChange: (next: SortCriterion) => void
   onSecondarySortChange: (next: SortCriterion) => void
+  searchQuery: string
+  secondarySort: SortCriterion
   resultCount: number
   totalCount: number
   priceBounds: { min: number; max: number; median: number } | null
@@ -46,6 +43,8 @@ export function PreviewToolbar({
   primarySort,
   onPrimarySortChange,
   onSecondarySortChange,
+  searchQuery,
+  secondarySort,
   resultCount,
   totalCount,
   priceBounds,
@@ -54,7 +53,14 @@ export function PreviewToolbar({
   const { colors } = usePreviewTheme()
   const [filtersVisible, setFiltersVisible] = useState(true)
   const toolsActive = activeFilterCount > 0
-  const resultCountText = buildResultCountText(resultCount, totalCount)
+  const summaryText = buildListStateSummary({
+    filters,
+    searchQuery,
+    primarySort,
+    secondarySort,
+    resultCount,
+    totalCount,
+  })
 
   return (
     <div>
@@ -115,7 +121,7 @@ export function PreviewToolbar({
       </div>
       <p
         className="m-0 px-1 pt-1 truncate"
-        title={resultCountText}
+        title={summaryText}
         style={{
           color: colors.summaryText,
           fontFamily: 'var(--font-dm-sans), sans-serif',
@@ -123,7 +129,7 @@ export function PreviewToolbar({
           lineHeight: 1.2,
         }}
       >
-        {resultCountText}
+        {summaryText}
       </p>
     </div>
   )
