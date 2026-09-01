@@ -23,6 +23,7 @@ type PreviewToolbarProps = {
   filterOptions: {
     stores: string[]
     grapes: string[]
+    styles: string[]
     producers: string[]
     countries: string[]
     regions: string[]
@@ -71,6 +72,7 @@ export function PreviewToolbar({
             onFiltersChange={onFiltersChange}
             stores={filterOptions.stores}
             grapes={filterOptions.grapes}
+            styles={filterOptions.styles}
             countries={filterOptions.countries}
             priceBounds={priceBounds}
             primarySort={primarySort}

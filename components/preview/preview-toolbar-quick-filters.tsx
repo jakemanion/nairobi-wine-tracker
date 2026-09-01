@@ -28,6 +28,7 @@ type PreviewToolbarQuickFiltersProps = {
   onFiltersChange: (filters: WineFilters) => void
   stores: string[]
   grapes: string[]
+  styles: string[]
   countries: string[]
   priceBounds: PriceBounds | null
   primarySort: SortCriterion
@@ -182,6 +183,7 @@ export function PreviewToolbarQuickFilters({
   onFiltersChange,
   stores,
   grapes,
+  styles,
   countries,
   priceBounds,
   primarySort,
@@ -252,6 +254,17 @@ export function PreviewToolbarQuickFilters({
                 </option>
               ))}
             </select>
+          </UsageTipTarget>
+
+          <UsageTipTarget tipId="type-filter" className="flex-none">
+            <PreviewFilterMultiSelect
+              colors={colors}
+              label="Type"
+              emptyMessage="No wine types in list"
+              options={styles}
+              selected={filters.styles}
+              onChange={(next) => updateFilters({ styles: next })}
+            />
           </UsageTipTarget>
 
           <UsageTipTarget tipId="grapes-filter" className="flex-none">

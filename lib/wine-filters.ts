@@ -18,6 +18,7 @@ export type WineFilters = {
   disabledStores: string[]
   hideUnwanted: boolean
   grapes: string[]
+  styles: string[]
   producer: string
   country: string
   regions: string[]
@@ -37,6 +38,7 @@ export const EMPTY_WINE_FILTERS: WineFilters = {
   disabledStores: [],
   hideUnwanted: false,
   grapes: [],
+  styles: [],
   producer: '',
   country: '',
   regions: [],
@@ -325,6 +327,7 @@ export function collectFilterOptions(wines: WineRow[]) {
   const countries = new Set<string>()
   const regions = new Set<string>()
   const grapes = new Set<string>()
+  const styles = new Set<string>()
 
   for (const wine of wines) {
     const producer = wine.producer?.trim()
@@ -335,6 +338,9 @@ export function collectFilterOptions(wines: WineRow[]) {
 
     const region = wine.region?.trim()
     if (region) regions.add(region)
+
+    const style = wine.style?.trim()
+    if (style) styles.add(style)
 
     for (const grape of listGrapeVarieties(wine.grape_varieties)) {
       grapes.add(grape)
@@ -354,6 +360,7 @@ export function collectFilterOptions(wines: WineRow[]) {
     countries: [...countries].sort(sortAlpha),
     regions: [...regions].sort(sortAlpha),
     grapes: [...grapes].sort(sortAlpha),
+    styles: [...styles].sort(sortAlpha),
     regionGroups: collectRegionGroups(wines),
   }
 }
@@ -368,6 +375,7 @@ export function countActiveFilters(filters: WineFilters): number {
   if (filters.triedStatus.length > 0) count += 1
   if (filters.stores.length > 0) count += 1
   if (filters.grapes.length > 0) count += 1
+  if (filters.styles.length > 0) count += 1
   if (filters.producer.trim()) count += 1
   if (filters.country.trim()) count += 1
   if (filters.regions.length > 0) count += 1
@@ -387,6 +395,7 @@ export function filterWines<T extends WineRow>(wines: T[], filters: WineFilters)
   const producerFilter = filters.producer.trim()
   const countryFilter = filters.country.trim()
   const selectedGrapes = filters.grapes.map((grape) => grape.toLowerCase())
+  const selectedStyles = filters.styles.map((style) => style.toLowerCase())
 
   const hasMyWinesFilter = filters.showWishlistOnly || filters.showShortlistOnly || filters.showThumbsUpOnly
 
@@ -445,6 +454,11 @@ export function filterWines<T extends WineRow>(wines: T[], filters: WineFilters)
         listGrapeVarieties(wine.grape_varieties).map((grape) => grape.toLowerCase()),
       )
       if (!selectedGrapes.some((grape) => wineGrapes.has(grape))) return false
+    }
+
+    if (selectedStyles.length > 0) {
+      const wineStyle = wine.style?.trim().toLowerCase() ?? ''
+      if (!wineStyle || !selectedStyles.includes(wineStyle)) return false
     }
 
     if (producerFilter && (wine.producer?.trim() ?? '') !== producerFilter) return false

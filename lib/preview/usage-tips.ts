@@ -5,6 +5,7 @@ export type UsageTipId =
   | 'shortlist-button'
   | 'highest-price-filter'
   | 'lowest-rating-filter'
+  | 'type-filter'
   | 'grapes-filter'
   | 'countries-filter'
   | 'my-wines-filters'
@@ -60,6 +61,11 @@ export const USAGE_TIPS: Record<UsageTipId, UsageTipContent> = {
     id: 'lowest-rating-filter',
     heading: 'Lowest rating',
     body: 'Set the lowest star rating you want to see.',
+  },
+  'type-filter': {
+    id: 'type-filter',
+    heading: 'Type',
+    body: 'Filter by wine style, such as red, white, or sparkling.',
   },
   'grapes-filter': {
     id: 'grapes-filter',

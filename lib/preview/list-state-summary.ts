@@ -84,6 +84,7 @@ export function buildListStateSummary({
     )
   }
   if (filters.grapes.length > 0) filterParts.push(`grapes: ${filters.grapes.join(', ')}`)
+  if (filters.styles.length > 0) filterParts.push(`type: ${filters.styles.join(', ')}`)
   if (filters.stores.length > 0) filterParts.push(`stores: ${filters.stores.join(', ')}`)
   if (filters.wishlist.length > 0) {
     filterParts.push(
