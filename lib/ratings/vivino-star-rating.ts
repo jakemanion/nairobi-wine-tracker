@@ -59,3 +59,11 @@ export function formatStarRating(stars: number): string {
 export function starRatingFilterOptions(): number[] {
   return [...new Set(Object.values(VIVINO_TO_STAR_RATING))].sort((a, b) => a - b)
 }
+
+/** Star icon colour by site star rating (0–5). */
+export function starRatingColor(stars: number): string {
+  if (stars >= 5) return '#E8B84A'
+  if (stars >= 4) return '#C8D0DC'
+  if (stars >= 3) return '#E0A060'
+  return '#7A7A82'
+}

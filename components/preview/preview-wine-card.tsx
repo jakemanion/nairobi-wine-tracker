@@ -21,7 +21,7 @@ import {
   type PreviewWineCardData,
 } from '@/lib/preview/wine-card-model'
 import { getReviewPanelTextColors } from '@/lib/preview/preview-colors'
-import { formatStarRating, vivinoToStarRating } from '@/lib/ratings/vivino-star-rating'
+import { formatStarRating, starRatingColor, vivinoToStarRating } from '@/lib/ratings/vivino-star-rating'
 import { saveReviewField } from '@/lib/reviews'
 import type { WishlistValue, TriedStatusValue } from '@/lib/reviews'
 
@@ -85,7 +85,7 @@ function WineStarRating({
   const starRating = vivinoToStarRating(vivinoRating)
   const hasVivino = vivinoRating != null
   const vivinoLabel = hasVivino ? `${vivinoRating.toFixed(1)} on Vivino` : 'Vivino'
-  const starColor = '#E8B84A'
+  const starColor = starRating != null ? starRatingColor(starRating) : '#7A7A82'
 
   const vivinoLine = (
     <span
