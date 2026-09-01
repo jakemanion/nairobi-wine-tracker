@@ -72,7 +72,20 @@ export function PreviewToolbar({
         }}
       >
         {filtersVisible ? (
-          <PreviewToolbarQuickFilters
+          <>
+            <p
+              className="m-0 px-3 pt-3 text-center"
+              style={{
+                color: colors.summaryText,
+                fontFamily: 'var(--font-dm-sans), sans-serif',
+                fontSize: 12,
+                fontWeight: 600,
+                lineHeight: 1.2,
+              }}
+            >
+              Filter and sort the list
+            </p>
+            <PreviewToolbarQuickFilters
             colors={colors}
             filters={filters}
             onFiltersChange={onFiltersChange}
@@ -86,6 +99,7 @@ export function PreviewToolbar({
             onSecondarySortChange={onSecondarySortChange}
             isLoggedIn={isLoggedIn}
           />
+          </>
         ) : null}
         <div
           className="flex justify-center"

@@ -23,15 +23,15 @@ const SORT_LABELS: Record<SortFieldKey, string> = {
 }
 
 const WISHLIST_LABELS: Record<string, string> = {
-  unset: 'not set',
-  '0': "don't want",
-  '1': 'wishlisted',
+  unset: 'Not set',
+  '0': "Don't want",
+  '1': 'Wishlisted',
 }
 
 const TRIED_LABELS: Record<string, string> = {
-  unset: 'not tried',
-  '1': 'buy again',
-  '2': 'not again',
+  unset: 'Not tried',
+  '1': 'Buy again',
+  '2': 'Not again',
 }
 
 function sortArrow(dir: SortCriterion['dir']): string {
@@ -67,26 +67,26 @@ export function buildListStateSummary({
 
   parts.push(
     resultCount === totalCount
-      ? `${resultCount} wines`
-      : `${resultCount} of ${totalCount} wines`,
+      ? `${resultCount} Wines`
+      : `${resultCount} of ${totalCount} Wines`,
   )
 
   const trimmedSearch = searchQuery.trim()
   if (trimmedSearch) {
-    parts.push(`search “${trimmedSearch}”`)
+    parts.push(`Search “${trimmedSearch}”`)
   }
 
   if (filters.styles.length > 0) {
-    parts.push(`type ${joinList(filters.styles)}`)
+    parts.push(`Type ${joinList(filters.styles)}`)
   }
 
   if (filters.grapes.length > 0) {
-    parts.push(`grapes ${joinList(filters.grapes)}`)
+    parts.push(`Grapes ${joinList(filters.grapes)}`)
   }
 
   const countries = selectedCountriesFromRegionFilters(filters.regions)
   if (countries.length > 0) {
-    parts.push(`countries ${joinList(countries)}`)
+    parts.push(`Countries ${joinList(countries)}`)
   }
 
   const regions = filters.regions
@@ -94,7 +94,7 @@ export function buildListStateSummary({
     .filter((parsed): parsed is { kind: 'region'; country: string; region: string } => parsed?.kind === 'region')
     .map((parsed) => parsed.region)
   if (regions.length > 0) {
-    parts.push(`regions ${joinList(regions)}`)
+    parts.push(`Regions ${joinList(regions)}`)
   }
 
   if (filters.priceMin.trim()) {
@@ -112,54 +112,54 @@ export function buildListStateSummary({
   }
 
   if (filters.producer.trim()) {
-    parts.push(`producer ${filters.producer}`)
+    parts.push(`Producer ${filters.producer}`)
   }
   if (filters.country.trim()) {
-    parts.push(`country ${filters.country}`)
+    parts.push(`Country ${filters.country}`)
   }
 
   if (filters.stores.length > 0) {
-    parts.push(`stores ${joinList(filters.stores)}`)
+    parts.push(`Stores ${joinList(filters.stores)}`)
   }
 
   if (filters.disabledStores.length > 0) {
-    parts.push(`hide shops ${joinList(filters.disabledStores)}`)
+    parts.push(`Hide shops ${joinList(filters.disabledStores)}`)
   }
 
   if (filters.showWishlistOnly) {
-    parts.push('wishlist only')
+    parts.push('Wishlist only')
   }
   if (filters.showShortlistOnly) {
-    parts.push('shortlist only')
+    parts.push('Shortlist only')
   }
   if (filters.showThumbsUpOnly) {
-    parts.push('buy again only')
+    parts.push('Buy again only')
   }
 
   if (filters.wishlist.length > 0) {
     parts.push(
-      `wishlist ${filters.wishlist.map((v) => WISHLIST_LABELS[String(v)]).join(', ')}`,
+      `Wishlist ${filters.wishlist.map((v) => WISHLIST_LABELS[String(v)]).join(', ')}`,
     )
   }
 
   if (filters.triedStatus.length > 0) {
     parts.push(
-      `tried ${filters.triedStatus.map((v) => TRIED_LABELS[String(v)]).join(', ')}`,
+      `Tried ${filters.triedStatus.map((v) => TRIED_LABELS[String(v)]).join(', ')}`,
     )
   }
 
   if (filters.hideUnwanted) {
-    parts.push('hide unwanted')
+    parts.push('Hide unwanted')
   }
 
   const primaryLabel = primarySort.key === 'none' ? 'None' : SORT_LABELS[primarySort.key]
   if (secondarySort.key !== 'none') {
     const secondaryLabel = SORT_LABELS[secondarySort.key]
     parts.push(
-      `sort ${primaryLabel} ${sortArrow(primarySort.dir)}, then ${secondaryLabel} ${sortArrow(secondarySort.dir)}`,
+      `Sort ${primaryLabel} ${sortArrow(primarySort.dir)}, then ${secondaryLabel} ${sortArrow(secondarySort.dir)}`,
     )
   } else {
-    parts.push(`sort ${primaryLabel} ${sortArrow(primarySort.dir)}`)
+    parts.push(`Sort ${primaryLabel} ${sortArrow(primarySort.dir)}`)
   }
 
   return parts.join(' · ')

@@ -77,6 +77,28 @@ function sliderGroupStyle(colors: PreviewColors): CSSProperties {
   }
 }
 
+function titledSectionStyle(colors: PreviewColors): CSSProperties {
+  return {
+    ...sliderGroupStyle(colors),
+    flexDirection: 'column',
+    alignItems: 'stretch',
+    gap: 6,
+  }
+}
+
+function sectionTitleStyle(colors: PreviewColors, bold = false): CSSProperties {
+  return {
+    margin: 0,
+    width: '100%',
+    textAlign: 'center',
+    fontSize: 11,
+    fontWeight: bold ? 600 : 500,
+    color: colors.muted,
+    fontFamily: 'var(--font-dm-sans), sans-serif',
+    lineHeight: 1.2,
+  }
+}
+
 function toggleStore(disabledStores: string[], store: string): string[] {
   return disabledStores.includes(store)
     ? disabledStores.filter((name) => name !== store)
@@ -216,12 +238,11 @@ export function PreviewToolbarQuickFilters({
   }
 
   return (
-    <div className="flex flex-col gap-2.5 p-3">
+    <div className="flex flex-col gap-2.5 p-3 pt-2">
       <div className="flex flex-wrap items-center gap-2">
-        <div
-          className="flex flex-1 flex-wrap items-center gap-1.5"
-          style={sliderGroupStyle(colors)}
-        >
+        <div style={titledSectionStyle(colors)}>
+          <p style={sectionTitleStyle(colors)}>Filters</p>
+          <div className="flex flex-1 flex-wrap items-center justify-center gap-1.5">
           <UsageTipTarget tipId="highest-price-filter" className="flex-none">
             <select
               aria-label="Highest price"
@@ -336,16 +357,14 @@ export function PreviewToolbarQuickFilters({
               </div>
             </UsageTipTarget>
           ) : null}
+          </div>
         </div>
       </div>
 
       {stores.length > 0 ? (
-        <UsageTipTarget
-          tipId="shops-filter"
-          className="flex flex-wrap items-center gap-1.5"
-          style={sliderGroupStyle(colors)}
-        >
-          <span style={sliderLabelStyle(colors)}>Shops:</span>
+        <UsageTipTarget tipId="shops-filter" style={titledSectionStyle(colors)}>
+          <p style={sectionTitleStyle(colors, true)}>Shops</p>
+          <div className="flex flex-wrap items-center justify-center gap-1.5">
           {stores.map((store) => {
             const enabled = !filters.disabledStores.includes(store)
             return (
@@ -365,6 +384,7 @@ export function PreviewToolbarQuickFilters({
               </button>
             )
           })}
+          </div>
         </UsageTipTarget>
       ) : null}
 
