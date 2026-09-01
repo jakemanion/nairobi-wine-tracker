@@ -165,15 +165,15 @@ function HideButton({
   return (
     <div className="flex flex-col items-center gap-1 flex-shrink-0 m-0 p-0">
       <p
-        className="m-0 p-0 text-[6px] uppercase tracking-wider leading-none text-center whitespace-nowrap"
+        className="m-0 p-0 text-[8px] uppercase tracking-wider leading-none text-center whitespace-nowrap"
         style={{ color: panelLabelColor, fontFamily: 'var(--font-dm-sans), sans-serif' }}
       >
         Not interested
       </p>
-      <InstantTooltip label={active ? 'Show wine again' : 'Not interested'}>
+      <InstantTooltip label={active ? 'Show wine again' : 'Hide this wine'}>
         <button
           type="button"
-          aria-label={active ? 'Show wine again' : 'Not interested'}
+          aria-label={active ? 'Show wine again' : 'Hide this wine'}
           aria-pressed={active}
           disabled={saving}
           className="w-10 h-10 rounded-lg flex items-center justify-center transition-all hover:scale-105 flex-shrink-0 m-0"
@@ -533,14 +533,15 @@ export function PreviewWineCard({
             }}
           />
 
+          <p
+            className="text-[8px] leading-snug text-center px-1"
+            style={{ color: panelText.label, fontFamily: 'var(--font-dm-sans), sans-serif' }}
+          >
+            Have you tried this wine?
+          </p>
+
           <div className="flex items-end gap-1.5">
-            <div className="flex-1 min-w-0 flex flex-col gap-0.5">
-              <p
-                className="text-[6px] uppercase tracking-wider leading-none"
-                style={{ color: panelText.label, fontFamily: 'var(--font-dm-sans), sans-serif' }}
-              >
-                Tried it?
-              </p>
+            <div className="flex-1 min-w-0">
               <UsageTipTarget tipId="notes-textfield">
                 <input
                   type="text"
@@ -566,7 +567,7 @@ export function PreviewWineCard({
             </div>
             <div className="flex flex-col gap-0.5 flex-shrink-0">
               <p
-                className="text-[6px] uppercase tracking-wider leading-none text-center"
+                className="text-[8px] uppercase tracking-wider leading-none text-center"
                 style={{ color: panelText.label, fontFamily: 'var(--font-dm-sans), sans-serif' }}
               >
                 Buy again?

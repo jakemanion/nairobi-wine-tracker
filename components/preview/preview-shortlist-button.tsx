@@ -94,7 +94,7 @@ export function PreviewShortlistButton({
   return (
     <div className="relative flex flex-col items-center gap-1 flex-shrink-0 m-0 p-0">
       <p
-        className="m-0 p-0 text-[6px] uppercase tracking-wider leading-none text-center whitespace-nowrap"
+        className="m-0 p-0 text-[8px] uppercase tracking-wider leading-none text-center whitespace-nowrap"
         style={{
           color: inactiveColor,
           fontFamily: 'var(--font-dm-sans), sans-serif',

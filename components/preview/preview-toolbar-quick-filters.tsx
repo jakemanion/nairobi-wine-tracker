@@ -315,7 +315,7 @@ export function PreviewToolbarQuickFilters({
           {stores.map((store) => {
             const enabled = !filters.disabledStores.includes(store)
             return (
-              <InstantTooltip key={store} label={enabled ? `Hide ${store}` : `Show ${store}`}>
+              <InstantTooltip key={store} label={enabled ? `Hide ${store} wines` : `Show ${store} wines`}>
                 <button
                   type="button"
                   aria-pressed={enabled}
