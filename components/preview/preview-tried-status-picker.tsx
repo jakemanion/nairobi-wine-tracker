@@ -87,10 +87,10 @@ export function PreviewTriedStatusPicker({
   return (
     <div className="flex flex-col items-center gap-0.5 flex-shrink-0">
       <div className="flex items-center gap-1">
-        <InstantTooltip label={upActive ? 'Remove thumbs up' : 'Thumbs up'}>
+        <InstantTooltip label="Buy again">
           <button
             type="button"
-            aria-label={upActive ? 'Remove thumbs up' : 'Thumbs up'}
+            aria-label="Buy again"
             aria-pressed={upActive}
             disabled={saving}
             className="rounded-lg flex items-center justify-center transition-all hover:scale-105 flex-shrink-0"
@@ -109,10 +109,10 @@ export function PreviewTriedStatusPicker({
             <ThumbsUp size={15} strokeWidth={2} />
           </button>
         </InstantTooltip>
-        <InstantTooltip label={downActive ? 'Remove thumbs down' : 'Thumbs down'}>
+        <InstantTooltip label="Don't buy again">
           <button
             type="button"
-            aria-label={downActive ? 'Remove thumbs down' : 'Thumbs down'}
+            aria-label="Don't buy again"
             aria-pressed={downActive}
             disabled={saving}
             className="rounded-lg flex items-center justify-center transition-all hover:scale-105 flex-shrink-0"
@@ -121,7 +121,7 @@ export function PreviewTriedStatusPicker({
               height: 28,
               border: `1.5px solid ${downActive ? '#5A3030' : '#3A3848'}`,
               background: downActive ? '#2A1C1C' : '#22222C',
-            color: downActive ? '#F08080' : '#9894A4',
+              color: downActive ? '#F08080' : '#9894A4',
             boxShadow: '0 1px 4px rgba(0,0,0,0.3)',
             opacity: saving ? 0.5 : 1,
             cursor: saving ? 'wait' : 'pointer',

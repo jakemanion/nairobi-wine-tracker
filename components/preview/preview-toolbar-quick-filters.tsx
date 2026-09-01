@@ -1,7 +1,7 @@
 'use client'
 
 import type { CSSProperties } from 'react'
-import { ArrowUpDown, Check, EyeOff, Heart, ListChecks, ThumbsUp } from 'lucide-react'
+import { ArrowUpDown, Check, EyeOff, Heart, ThumbsUp } from 'lucide-react'
 import {
   applyHideUnwantedToggle,
   BEST_UNDER_PRICE_PRESETS,
@@ -415,18 +415,6 @@ export function PreviewToolbarQuickFilters({
                   onClick={() => updateFilters({ showWishlistOnly: !filters.showWishlistOnly })}
                 >
                   <Heart size={14} strokeWidth={2} className={filters.showWishlistOnly ? 'fill-current' : undefined} />
-                </button>
-              </InstantTooltip>
-              <InstantTooltip label="Only show shortlisted wines">
-                <button
-                  type="button"
-                  className="hidden"
-                  aria-label="Only show shortlisted wines"
-                  aria-pressed={filters.showShortlistOnly}
-                  style={reviewFilterButtonStyle(colors, filters.showShortlistOnly, 'shortlist')}
-                  onClick={() => updateFilters({ showShortlistOnly: !filters.showShortlistOnly })}
-                >
-                  <ListChecks size={14} strokeWidth={2} />
                 </button>
               </InstantTooltip>
               <InstantTooltip label="Only show wines you'll buy again">
