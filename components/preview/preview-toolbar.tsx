@@ -50,7 +50,7 @@ export function PreviewToolbar({
   priceBounds,
   isLoggedIn = false,
 }: PreviewToolbarProps) {
-  const { colors } = usePreviewTheme()
+  const { colors, visualStyle } = usePreviewTheme()
   const [filtersVisible, setFiltersVisible] = useState(true)
   const toolsActive = activeFilterCount > 0
   const summaryText = buildListStateSummary({
@@ -70,6 +70,7 @@ export function PreviewToolbar({
           border: `1px solid ${toolsActive ? colors.toolbarBorderActive : colors.toolbarBorder}`,
           background: colors.toolbarBg,
           borderRadius: colors.panelRadius,
+          boxShadow: visualStyle === 'trial' ? colors.cardShadow : undefined,
         }}
       >
         {filtersVisible ? (

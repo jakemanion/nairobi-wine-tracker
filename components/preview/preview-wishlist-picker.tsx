@@ -33,6 +33,12 @@ export const WISHLISTED_BUTTON_STYLE = {
   color: '#50A060',
 } as const
 
+const TRIAL_BOOKMARK_BUTTON_STYLE = {
+  border: '#6a9468',
+  bg: '#7eaa7a',
+  color: '#e8f6e4',
+} as const
+
 function buildOptimisticReview(
   review: WineReview | null | undefined,
   wishlist: WishlistValue,
@@ -60,7 +66,7 @@ export function PreviewWishlistPicker({
   labelColor,
   onReviewChange,
 }: PreviewWishlistPickerProps) {
-  const { colors } = usePreviewTheme()
+  const { colors, visualStyle } = usePreviewTheme()
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const value = normalizeWishlist(review?.wishlist)
@@ -95,9 +101,10 @@ export function PreviewWishlistPicker({
     onReviewChange(result.review)
   }
 
-  const borderColor = active ? WISHLISTED_BUTTON_STYLE.border : colors.controlIdleBorder
-  const bgColor = active ? WISHLISTED_BUTTON_STYLE.bg : colors.controlIdleBg
-  const iconColor = active ? WISHLISTED_BUTTON_STYLE.color : colors.controlIdleIcon
+  const activeStyle = visualStyle === 'trial' ? TRIAL_BOOKMARK_BUTTON_STYLE : WISHLISTED_BUTTON_STYLE
+  const borderColor = active ? activeStyle.border : colors.controlIdleBorder
+  const bgColor = active ? activeStyle.bg : colors.controlIdleBg
+  const iconColor = active ? activeStyle.color : colors.controlIdleIcon
 
   return (
     <div className="relative flex flex-col items-center gap-1 flex-shrink-0 m-0 p-0">
@@ -184,6 +191,7 @@ export function getReviewPanelTint(
 }
 
 export const TRIAL_BOOKMARK_BG = 'linear-gradient(172deg, #b9cbb1 0%, #adc5af 100%)'
+export const TRIAL_THUMBS_UP_BG = 'linear-gradient(172deg, #f0e0ad 0%, #e7ce8b 100%)'
 
 export function getReviewPanelStyle(
   tint: PanelTint,
@@ -191,7 +199,7 @@ export function getReviewPanelStyle(
   visualStyle: PreviewVisualStyle = 'classic',
 ): CSSProperties {
   if (visualStyle === 'trial') {
-    if (tint === 'thumbsUp') return { background: 'linear-gradient(145deg, #FFF4D0 0%, #FFE8A0 52%, #FFF0C0 100%)' }
+    if (tint === 'thumbsUp') return { background: TRIAL_THUMBS_UP_BG }
     if (tint === 'wishlist') return { background: TRIAL_BOOKMARK_BG }
     return { background: '#F5F3EF' }
   }

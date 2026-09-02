@@ -210,7 +210,7 @@ const trial: PreviewColors = {
   summaryStrong: '#3A1218',
   cardBg: '#FFF9F2',
   cardBorder: '#E4D5C6',
-  cardShadow: '0 2px 4px rgba(0, 0, 0, 0.5)',
+  cardShadow: '0 2px 4px rgba(0, 0, 0, 0.25)',
   imageColumnBg: '#F0E4D6',
   infoBorder: '#E8D8C8',
   producer: '#8B1E3F',

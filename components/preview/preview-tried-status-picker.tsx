@@ -50,7 +50,7 @@ export function PreviewTriedStatusPicker({
   review,
   onReviewChange,
 }: PreviewTriedStatusPickerProps) {
-  const { colors } = usePreviewTheme()
+  const { colors, visualStyle } = usePreviewTheme()
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const value = normalizeTriedStatus(review?.tried_status)
@@ -85,6 +85,7 @@ export function PreviewTriedStatusPicker({
 
   const upActive = value === 1
   const downActive = value === 2
+  const trialUp = visualStyle === 'trial' && upActive
 
   return (
     <div className="flex flex-col items-center gap-0.5 flex-shrink-0">
@@ -99,9 +100,9 @@ export function PreviewTriedStatusPicker({
             style={{
               width: 28,
               height: 28,
-              border: `1.5px solid ${upActive ? '#8A7020' : colors.controlIdleBorder}`,
-              background: upActive ? '#3A2E08' : colors.controlIdleBg,
-              color: upActive ? '#E0C040' : colors.controlIdleIcon,
+              border: `1.5px solid ${upActive ? (trialUp ? '#3f3f3d' : '#8A7020') : colors.controlIdleBorder}`,
+              background: upActive ? (trialUp ? '#e7ce8b' : '#3A2E08') : colors.controlIdleBg,
+              color: upActive ? (trialUp ? '#3f3f3d' : '#E0C040') : colors.controlIdleIcon,
               borderRadius: colors.buttonRadius,
               boxShadow: colors.controlShadow,
               opacity: saving ? 0.5 : 1,
@@ -109,7 +110,7 @@ export function PreviewTriedStatusPicker({
             }}
             onClick={() => void setStatus(1)}
           >
-            <ThumbsUp size={15} strokeWidth={2} />
+            <ThumbsUp size={15} strokeWidth={2} fill="none" />
           </button>
         </InstantTooltip>
         <InstantTooltip label="Don't buy again">
