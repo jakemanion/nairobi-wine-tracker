@@ -35,7 +35,7 @@ export function UsageTipsToggle({
         checked={enabled}
         onChange={(event) => setEnabled(event.target.checked)}
         className="accent-current"
-        style={{ accentColor: colors.accent }}
+        style={{ accentColor: colors.headerAccent }}
         aria-label="Toggle show tips"
       />
       Show tips

@@ -64,6 +64,7 @@ export type PreviewColors = {
   infoOnDark: boolean
   headerNavTheme: PreviewThemeMode
   headingFont: string
+  headerAccent: string
 }
 
 const classicChrome = {
@@ -79,6 +80,7 @@ const classicChrome = {
   priceAmount: '#FFFFFF',
   infoOnDark: true,
   headingFont: 'var(--font-playfair), serif',
+  headerAccent: '#C93048',
 } as const
 
 const dark: PreviewColors = {
@@ -193,7 +195,7 @@ const trial: PreviewColors = {
   pageBg: '#d8d6ca',
   headerBg: '#d8d6ca',
   headerBorder: 'transparent',
-  headerShadow: 'none',
+  headerShadow: '0 4px 12px rgba(42, 20, 16, 0.14)',
   headerTitle: '#2A1410',
   headerSub: '#6A564C',
   surfaceTitle: '#3A1218',
@@ -250,6 +252,7 @@ const trial: PreviewColors = {
   infoOnDark: false,
   headerNavTheme: 'light',
   headingFont: 'var(--font-dm-sans), sans-serif',
+  headerAccent: '#2A1410',
 }
 
 export function getPreviewColors(

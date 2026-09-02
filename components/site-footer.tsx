@@ -46,7 +46,7 @@ export function SiteFooter({ className = '', colors = fallbackColors }: SiteFoot
                   <Link
                     href={link.href}
                     className="text-[11px] no-underline hover:underline underline-offset-2"
-                    style={{ color: colors.accent, fontFamily: 'var(--font-dm-sans), sans-serif' }}
+                    style={{ color: colors.headerAccent, fontFamily: 'var(--font-dm-sans), sans-serif' }}
                   >
                     {link.label}
                   </Link>

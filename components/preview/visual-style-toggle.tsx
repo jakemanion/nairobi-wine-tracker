@@ -37,7 +37,7 @@ export function VisualStyleToggle({
         checked={trialOn}
         onChange={(event) => setVisualStyle(event.target.checked ? 'trial' : 'classic')}
         className="accent-current"
-        style={{ accentColor: colors.accent }}
+        style={{ accentColor: colors.headerAccent }}
         aria-label="Toggle trial visual style"
       />
       Trial style
