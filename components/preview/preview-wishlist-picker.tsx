@@ -172,8 +172,8 @@ export function getReviewPanelTint(
   visualStyle: PreviewVisualStyle = 'classic',
 ): PanelTint {
   if (visualStyle === 'trial') {
-    if (wishlisted) return 'wishlist'
     if (thumbsUp) return 'thumbsUp'
+    if (wishlisted) return 'wishlist'
     return 'none'
   }
 

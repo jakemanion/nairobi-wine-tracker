@@ -189,11 +189,11 @@ const light: PreviewColors = {
 
 const trial: PreviewColors = {
   pageBg: '#d8d6ca',
-  headerBg: '#3A1218',
-  headerBorder: '#2A0C12',
-  headerShadow: '0 2px 18px rgba(58, 18, 24, 0.22)',
-  headerTitle: '#F8F0E6',
-  headerSub: '#E0C8B0',
+  headerBg: '#d8d6ca',
+  headerBorder: 'transparent',
+  headerShadow: 'none',
+  headerTitle: '#2A1410',
+  headerSub: '#6A564C',
   surfaceTitle: '#3A1218',
   surfaceSub: '#6A5044',
   buttonBg: '#FBF6EE',
@@ -246,7 +246,7 @@ const trial: PreviewColors = {
   panelRadius: '12px',
   priceAmount: '#2A1410',
   infoOnDark: false,
-  headerNavTheme: 'dark',
+  headerNavTheme: 'light',
 }
 
 export function getPreviewColors(

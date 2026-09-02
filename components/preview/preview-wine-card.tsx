@@ -10,7 +10,6 @@ import {
   getReviewPanelStyle,
   getReviewPanelTint,
   PreviewWishlistPicker,
-  TRIAL_BOOKMARK_BG,
 } from '@/components/preview/preview-wishlist-picker'
 import { InstantTooltip } from '@/components/preview/instant-tooltip'
 import { PreviewShortlistButton } from '@/components/preview/preview-shortlist-button'
@@ -233,7 +232,6 @@ export function PreviewWineCard({
       : cardBorderColor
         ? `3px solid ${cardBorderColor}`
         : `1px solid ${colors.cardBorder}`
-  const isTrialBookmarked = visualStyle === 'trial' && wishlist === 1
   const infoOnDark = colors.infoOnDark
   const infoProducer = colors.producer
   const infoWineName = infoOnDark ? '#F5F2EC' : colors.wineName
@@ -322,7 +320,7 @@ export function PreviewWineCard({
     <div
       className="relative flex items-stretch overflow-hidden transition-opacity duration-300"
       style={{
-        background: isTrialBookmarked ? TRIAL_BOOKMARK_BG : colors.cardBg,
+        background: colors.cardBg,
         border: cardBorder,
         borderRadius: colors.cardRadius,
         boxShadow: isDimmed ? 'none' : colors.cardShadow,
@@ -351,7 +349,7 @@ export function PreviewWineCard({
 
       <div
         className="w-[96px] flex-shrink-0 self-stretch relative min-h-[112px]"
-        style={{ background: isTrialBookmarked ? 'transparent' : colors.imageColumnBg }}
+        style={{ background: colors.imageColumnBg }}
       >
         <PreviewBottleImage
           src={wine.image}
@@ -363,9 +361,9 @@ export function PreviewWineCard({
       <div
         className="flex-1 min-w-0 px-3.5 py-2.5 flex flex-col justify-between gap-1.5 relative"
         style={{
-          background: isTrialBookmarked ? 'transparent' : colors.wineInfoBg,
-          boxShadow: isTrialBookmarked ? 'none' : colors.wineInfoSheen,
-          borderRight: isTrialBookmarked ? 'none' : `1px solid ${colors.infoBorder}`,
+          background: colors.wineInfoBg,
+          boxShadow: colors.wineInfoSheen,
+          borderRight: `1px solid ${colors.infoBorder}`,
         }}
       >
         <div className="flex items-start gap-2.5 pr-2">
@@ -489,7 +487,6 @@ export function PreviewWineCard({
         style={{
           width: '35.2%',
           ...getReviewPanelStyle(panelTint, mode, visualStyle),
-          ...(isTrialBookmarked ? { background: 'transparent' } : null),
         }}
       >
         {!isLoggedIn ? <LoggedOutLoginPromptOverlay /> : null}
