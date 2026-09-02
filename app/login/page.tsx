@@ -23,7 +23,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
       title="WineDiviner: Nairobi"
       subtitle="Sign in to your account"
       heading="Log in"
-      description="Access your wishlists, ratings, and shortlist."
+      description="Access your bookmarks, ratings, and shortlist."
     >
       <LoginForm nextPath={nextPath} initialError={initialError} />
     </AuthScreen>

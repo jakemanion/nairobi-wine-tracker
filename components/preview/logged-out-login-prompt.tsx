@@ -3,7 +3,7 @@
 import Link from 'next/link'
 
 export const LOGIN_PROMPT_MESSAGE =
-  'Login or register for free to save and share your wishlists'
+  'Login or register for free to save and share your bookmarks'
 
 export function LoggedOutLoginPromptOverlay() {
   return (

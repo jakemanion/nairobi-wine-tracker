@@ -228,7 +228,7 @@ const WISHLIST_OPTIONS: Array<{
 }> = [
   { value: null, ariaLabel: 'not set', tooltip: 'Not set' },
   { value: 0, ariaLabel: "don't want", tooltip: "Don't want" },
-  { value: 1, ariaLabel: 'wishlisted', tooltip: 'Wishlisted' },
+  { value: 1, ariaLabel: 'bookmarked', tooltip: 'Bookmarked' },
 ]
 
 function normalizeWishlistValue(value: number | null | undefined): WishlistValue {
@@ -324,7 +324,7 @@ export function EditableReviewWishlistCell({
 
     if (result.error || !result.review) {
       onReviewChange(previousReview)
-      setError(result.error ?? 'Failed to save wishlist.')
+      setError(result.error ?? 'Failed to save bookmark.')
       return
     }
 

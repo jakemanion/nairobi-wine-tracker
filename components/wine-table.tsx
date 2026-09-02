@@ -590,7 +590,7 @@ function WineDataRow({ wine, showDetails, userId, onReviewChange }: WineDataRowP
 
       <UserTd>
         <EditableReviewWishlistCell
-          label="Wishlist"
+          label="Bookmark"
           wineId={String(wine.id)}
           userId={userId}
           review={wine.review}
@@ -900,7 +900,7 @@ export function WineTable({ wines: initialWines, userId }: { wines: WineRow[]; u
             onSort={onColumnSort}
           />
           <SortableTh
-            label="Wishlist"
+            label="Bookmark"
             sortKey="wishlist"
             primarySort={primarySort}
             secondarySort={secondarySort}

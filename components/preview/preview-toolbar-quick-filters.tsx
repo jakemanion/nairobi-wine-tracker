@@ -1,7 +1,7 @@
 'use client'
 
 import type { CSSProperties } from 'react'
-import { ArrowUpDown, Check, EyeOff, Heart, ThumbsUp } from 'lucide-react'
+import { ArrowUpDown, Bookmark, Check, EyeOff, ThumbsUp } from 'lucide-react'
 import {
   applyHideUnwantedToggle,
   BEST_UNDER_PRICE_PRESETS,
@@ -406,15 +406,15 @@ export function PreviewToolbarQuickFilters({
           <UsageTipTarget tipId="my-wines-filters" style={titledSectionStyle(colors)}>
             <p style={sectionTitleStyle(colors)}>Your wine list</p>
             <div className="flex items-center justify-center gap-1.5">
-              <InstantTooltip label="Show wishlisted only">
+              <InstantTooltip label="Show bookmarked only">
                 <button
                   type="button"
-                  aria-label="Show wishlisted only"
+                  aria-label="Show bookmarked only"
                   aria-pressed={filters.showWishlistOnly}
                   style={reviewFilterButtonStyle(colors, filters.showWishlistOnly, 'wishlist')}
                   onClick={() => updateFilters({ showWishlistOnly: !filters.showWishlistOnly })}
                 >
-                  <Heart size={14} strokeWidth={2} className={filters.showWishlistOnly ? 'fill-current' : undefined} />
+                  <Bookmark size={14} strokeWidth={2} className={filters.showWishlistOnly ? 'fill-current' : undefined} />
                 </button>
               </InstantTooltip>
               <InstantTooltip label="Only show wines you'll buy again">

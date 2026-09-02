@@ -22,7 +22,7 @@ When you create an account, we collect:
 ### 2.2 Personal wine preferences
 If you use personal features, we may store:
 
-- Wishlist / want-to-try selections
+- Bookmark / want-to-try selections
 - Shortlist selections
 - Tried / buy-again preferences
 - Personal notes

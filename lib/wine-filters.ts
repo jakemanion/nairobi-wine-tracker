@@ -55,7 +55,7 @@ export const HIDE_UNWANTED_TRIED_FILTERS: TriedStatusFilterValue[] = ['unset', 1
 export const WISHLIST_FILTER_LABELS: Record<WishlistFilterValue, string> = {
   unset: 'Not set',
   0: "Don't want",
-  1: 'Wishlisted',
+  1: 'Bookmarked',
 }
 
 export const TRIED_STATUS_FILTER_LABELS: Record<TriedStatusFilterValue, string> = {
@@ -81,7 +81,7 @@ export function buildReviewFilterGroups(): Array<{
   }))
 
   return [
-    { label: 'Wishlist', options: wishlistOptions },
+    { label: 'Bookmark', options: wishlistOptions },
     { label: 'Tried', options: triedOptions },
   ]
 }

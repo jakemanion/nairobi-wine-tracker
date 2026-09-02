@@ -17,7 +17,7 @@ const SORT_LABELS: Record<SortFieldKey, string> = {
   value_score: 'Value',
   store_prices: 'Price',
   my_rating: 'My rating',
-  wishlist: 'Wishlist',
+  wishlist: 'Bookmark',
   tried_status: 'Tried',
   notes: 'Notes',
 }
@@ -25,7 +25,7 @@ const SORT_LABELS: Record<SortFieldKey, string> = {
 const WISHLIST_LABELS: Record<string, string> = {
   unset: 'Not set',
   '0': "Don't want",
-  '1': 'Wishlisted',
+  '1': 'Bookmarked',
 }
 
 const TRIED_LABELS: Record<string, string> = {
@@ -127,7 +127,7 @@ export function buildListStateSummary({
   }
 
   if (filters.showWishlistOnly) {
-    parts.push('Wishlist only')
+    parts.push('Bookmark only')
   }
   if (filters.showShortlistOnly) {
     parts.push('Shortlist only')
@@ -138,7 +138,7 @@ export function buildListStateSummary({
 
   if (filters.wishlist.length > 0) {
     parts.push(
-      `Wishlist ${filters.wishlist.map((v) => WISHLIST_LABELS[String(v)]).join(', ')}`,
+      `Bookmark ${filters.wishlist.map((v) => WISHLIST_LABELS[String(v)]).join(', ')}`,
     )
   }
 

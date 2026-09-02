@@ -14,7 +14,7 @@ export type ShareableCollectionOption = {
 }
 
 export const BUILTIN_SHARE_COLLECTIONS: ShareableCollectionOption[] = [
-  { key: 'wishlist', label: 'Wishlist / Want to Try', kind: 'builtin' },
+  { key: 'wishlist', label: 'Bookmark / Want to Try', kind: 'builtin' },
   { key: 'buy_again', label: 'Buy Again', kind: 'builtin' },
   { key: 'shortlist', label: 'Shortlist', kind: 'builtin' },
 ]

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Heart } from 'lucide-react'
+import { Bookmark } from 'lucide-react'
 import type { CSSProperties } from 'react'
 import type { WineReview } from '@/components/wine-table'
 import { InstantTooltip } from '@/components/preview/instant-tooltip'
@@ -23,7 +23,7 @@ function normalizeWishlist(value: number | null | undefined): WishlistValue {
 }
 
 export function getWishlistStateLabel(_value: WishlistValue): string {
-  return 'WISHLIST'
+  return 'BOOKMARK'
 }
 
 export const WISHLISTED_BUTTON_STYLE = {
@@ -86,7 +86,7 @@ export function PreviewWishlistPicker({
 
     if (result.error || !result.review) {
       onReviewChange(previousReview)
-      setError(result.error ?? 'Failed to save wishlist.')
+      setError(result.error ?? 'Failed to save bookmark.')
       return
     }
 
@@ -105,10 +105,10 @@ export function PreviewWishlistPicker({
       >
         {getWishlistStateLabel(value)}
       </p>
-      <InstantTooltip label={active ? 'Remove from wishlist' : 'Add to wishlist'}>
+      <InstantTooltip label={active ? 'Remove from bookmark' : 'Add to bookmark'}>
         <button
           type="button"
-          aria-label={active ? 'Remove from wishlist' : 'Add to wishlist'}
+          aria-label={active ? 'Remove from bookmark' : 'Add to bookmark'}
           aria-pressed={active}
           disabled={saving}
           className="w-10 h-10 rounded-lg flex items-center justify-center transition-all hover:scale-105 flex-shrink-0 m-0"
@@ -122,7 +122,7 @@ export function PreviewWishlistPicker({
           }}
           onClick={() => void toggle()}
         >
-        <Heart
+        <Bookmark
           size={24}
           strokeWidth={2}
           className={active ? 'fill-current' : undefined}

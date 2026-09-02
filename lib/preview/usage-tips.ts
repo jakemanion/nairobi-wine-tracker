@@ -34,8 +34,8 @@ export const WELCOME_PANEL = {
 export const USAGE_TIPS: Record<UsageTipId, UsageTipContent> = {
   'wishlist-button': {
     id: 'wishlist-button',
-    heading: 'Wishlist',
-    body: 'Heart a wine to add it to your wishlist.',
+    heading: 'Bookmark',
+    body: 'Bookmark a wine to add it to your bookmark.',
   },
   'tried-button': {
     id: 'tried-button',
@@ -80,7 +80,7 @@ export const USAGE_TIPS: Record<UsageTipId, UsageTipContent> = {
   'my-wines-filters': {
     id: 'my-wines-filters',
     heading: 'Your wine list',
-    body: "Show only wines on your wishlist or shortlist, or those you'd buy again—and hide wines you're not interested in.",
+    body: "Show only wines on your bookmark or shortlist, or those you'd buy again—and hide wines you're not interested in.",
     estimatedHeight: 148,
   },
   'shops-filter': {

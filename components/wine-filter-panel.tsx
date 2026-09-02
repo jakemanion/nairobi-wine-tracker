@@ -47,7 +47,7 @@ const SORT_FIELD_OPTIONS: Array<{ value: SortFieldKey; label: string }> = [
   { value: 'value_score', label: 'Value score' },
   { value: 'store_prices', label: 'Store price' },
   { value: 'my_rating', label: 'My rating' },
-  { value: 'wishlist', label: 'Wishlist' },
+  { value: 'wishlist', label: 'Bookmark' },
   { value: 'tried_status', label: 'Tried' },
   { value: 'notes', label: 'Notes' },
 ]
@@ -60,7 +60,7 @@ const SORT_DIR_OPTIONS: Array<{ value: SortDir; label: string }> = [
 const WISHLIST_FILTER_OPTIONS: Array<{ value: WishlistFilterValue; label: string }> = [
   { value: 'unset', label: 'Not set' },
   { value: 0, label: "Don't want" },
-  { value: 1, label: 'Wishlisted' },
+  { value: 1, label: 'Bookmarked' },
 ]
 
 const TRIED_STATUS_FILTER_OPTIONS: Array<{ value: TriedStatusFilterValue; label: string }> = [
@@ -484,7 +484,7 @@ export function WineFilterPanel({
                 </div>
               </div>
               <div style={fieldLabelStyle}>
-                <span>Wishlist status</span>
+                <span>Bookmark status</span>
                 <div style={checkboxGroupStyle}>
                   {WISHLIST_FILTER_OPTIONS.map((option) => (
                     <label key={String(option.value)} style={checkboxRowStyle}>

@@ -8,7 +8,7 @@ If you do not agree, do not use the Service.
 
 ## 1. About the Service
 
-WineDiviner helps users discover wines available in Nairobi, compare prices and ratings, and keep personal lists such as wishlists, shortlists, and buy-again preferences. The Service may also let you create read-only shared list links.
+WineDiviner helps users discover wines available in Nairobi, compare prices and ratings, and keep personal lists such as bookmarks, shortlists, and buy-again preferences. The Service may also let you create read-only shared list links.
 
 WineDiviner is an information and personal organisation tool. It is **not** a licensed alcohol retailer and does not sell alcohol through the Service.
 
