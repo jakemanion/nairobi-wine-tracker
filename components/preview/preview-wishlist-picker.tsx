@@ -150,7 +150,9 @@ export function getCardBorderColor(
   mode: PreviewThemeMode = 'dark',
   visualStyle: PreviewVisualStyle = 'classic',
 ): string | null {
-  if (visualStyle === 'trial' || mode === 'light') {
+  if (visualStyle === 'trial') return null
+
+  if (mode === 'light') {
     if (tint === 'shortlist') return '#4080D0'
     if (tint === 'thumbsUp') return '#D0A828'
     if (tint === 'wishlist') return '#38A050'
@@ -167,19 +169,34 @@ export function getReviewPanelTint(
   shortlisted: boolean,
   thumbsUp: boolean,
   wishlisted: boolean,
+  visualStyle: PreviewVisualStyle = 'classic',
 ): PanelTint {
+  if (visualStyle === 'trial') {
+    if (wishlisted) return 'wishlist'
+    if (thumbsUp) return 'thumbsUp'
+    return 'none'
+  }
+
   if (shortlisted) return 'shortlist'
   if (thumbsUp) return 'thumbsUp'
   if (wishlisted) return 'wishlist'
   return 'none'
 }
 
+export const TRIAL_BOOKMARK_BG = 'linear-gradient(172deg, #b9cbb1 0%, #adc5af 100%)'
+
 export function getReviewPanelStyle(
   tint: PanelTint,
   mode: PreviewThemeMode = 'dark',
   visualStyle: PreviewVisualStyle = 'classic',
 ): CSSProperties {
-  if (visualStyle === 'trial' || mode === 'light') {
+  if (visualStyle === 'trial') {
+    if (tint === 'thumbsUp') return { background: 'linear-gradient(145deg, #FFF4D0 0%, #FFE8A0 52%, #FFF0C0 100%)' }
+    if (tint === 'wishlist') return { background: TRIAL_BOOKMARK_BG }
+    return { background: '#F5F3EF' }
+  }
+
+  if (mode === 'light') {
     if (tint === 'shortlist') return { background: '#C4D8F0' }
     if (tint === 'thumbsUp') return { background: 'linear-gradient(145deg, #FFF4D0 0%, #FFE8A0 52%, #FFF0C0 100%)' }
     if (tint === 'wishlist') return { background: '#C4F0CC' }
