@@ -85,7 +85,9 @@ export function PreviewTriedStatusPicker({
 
   const upActive = value === 1
   const downActive = value === 2
-  const trialUp = visualStyle === 'trial' && upActive
+  const trialSelected = visualStyle === 'trial'
+  const trialSelectedYellow = '#d4b56a'
+  const trialSelectedInk = '#3f3f3d'
 
   return (
     <div className="flex flex-col items-center gap-0.5 flex-shrink-0">
@@ -100,9 +102,9 @@ export function PreviewTriedStatusPicker({
             style={{
               width: 28,
               height: 28,
-              border: `1.5px solid ${upActive ? (trialUp ? '#3f3f3d' : '#8A7020') : colors.controlIdleBorder}`,
-              background: upActive ? (trialUp ? '#e7ce8b' : '#3A2E08') : colors.controlIdleBg,
-              color: upActive ? (trialUp ? '#3f3f3d' : '#E0C040') : colors.controlIdleIcon,
+              border: `1.5px solid ${upActive ? (trialSelected ? trialSelectedInk : '#8A7020') : colors.controlIdleBorder}`,
+              background: upActive ? (trialSelected ? trialSelectedYellow : '#3A2E08') : colors.controlIdleBg,
+              color: upActive ? (trialSelected ? trialSelectedInk : '#E0C040') : colors.controlIdleIcon,
               borderRadius: colors.buttonRadius,
               boxShadow: colors.controlShadow,
               opacity: saving ? 0.5 : 1,
@@ -123,9 +125,9 @@ export function PreviewTriedStatusPicker({
             style={{
               width: 28,
               height: 28,
-              border: `1.5px solid ${downActive ? '#5A3030' : colors.controlIdleBorder}`,
-              background: downActive ? '#2A1C1C' : colors.controlIdleBg,
-              color: downActive ? '#F08080' : colors.controlIdleIcon,
+              border: `1.5px solid ${downActive ? (trialSelected ? trialSelectedInk : '#5A3030') : colors.controlIdleBorder}`,
+              background: downActive ? (trialSelected ? trialSelectedYellow : '#2A1C1C') : colors.controlIdleBg,
+              color: downActive ? (trialSelected ? trialSelectedInk : '#F08080') : colors.controlIdleIcon,
             borderRadius: colors.buttonRadius,
             boxShadow: colors.controlShadow,
             opacity: saving ? 0.5 : 1,
@@ -133,7 +135,7 @@ export function PreviewTriedStatusPicker({
           }}
           onClick={() => void setStatus(2)}
         >
-          <ThumbsDown size={15} strokeWidth={2} />
+            <ThumbsDown size={15} strokeWidth={2} fill="none" />
         </button>
         </InstantTooltip>
       </div>

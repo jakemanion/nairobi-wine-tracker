@@ -67,7 +67,7 @@ export function PreviewToolbar({
       <div
         className="overflow-hidden"
         style={{
-          border: `1px solid ${toolsActive ? colors.toolbarBorderActive : colors.toolbarBorder}`,
+          border: visualStyle === 'trial' ? 'none' : `1px solid ${toolsActive ? colors.toolbarBorderActive : colors.toolbarBorder}`,
           background: colors.toolbarBg,
           borderRadius: colors.panelRadius,
           boxShadow: visualStyle === 'trial' ? colors.cardShadow : undefined,

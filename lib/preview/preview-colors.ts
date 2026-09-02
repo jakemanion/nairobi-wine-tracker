@@ -63,6 +63,7 @@ export type PreviewColors = {
   panelRadius: string
   infoOnDark: boolean
   headerNavTheme: PreviewThemeMode
+  headingFont: string
 }
 
 const classicChrome = {
@@ -77,6 +78,7 @@ const classicChrome = {
   panelRadius: '8px',
   priceAmount: '#FFFFFF',
   infoOnDark: true,
+  headingFont: 'var(--font-playfair), serif',
 } as const
 
 const dark: PreviewColors = {
@@ -213,7 +215,7 @@ const trial: PreviewColors = {
   cardShadow: '0 2px 4px rgba(0, 0, 0, 0.25)',
   imageColumnBg: '#F0E4D6',
   infoBorder: '#E8D8C8',
-  producer: '#8B1E3F',
+  producer: '#4A2C22',
   wineName: '#2A1410',
   muted: '#6A564C',
   grapeBg: '#F3E8DC',
@@ -247,6 +249,7 @@ const trial: PreviewColors = {
   priceAmount: '#2A1410',
   infoOnDark: false,
   headerNavTheme: 'light',
+  headingFont: 'var(--font-dm-sans), sans-serif',
 }
 
 export function getPreviewColors(

@@ -34,7 +34,7 @@ export function SiteFooter({ className = '', colors = fallbackColors }: SiteFoot
         >
           <p
             className="m-0 text-xs font-semibold truncate shrink-0"
-            style={{ color: colors.headerTitle, fontFamily: 'var(--font-playfair), serif' }}
+            style={{ color: colors.headerTitle, fontFamily: colors.headingFont }}
           >
             WineDiviner: Nairobi
           </p>

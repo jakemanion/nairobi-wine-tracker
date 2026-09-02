@@ -48,7 +48,7 @@ export function WelcomePanel() {
       </button>
       <p
         className="m-0 text-sm font-semibold"
-        style={{ color: colors.surfaceTitle, fontFamily: 'var(--font-playfair), serif' }}
+        style={{ color: colors.surfaceTitle, fontFamily: colors.headingFont }}
       >
         {WELCOME_PANEL.heading}
       </p>

@@ -115,7 +115,7 @@ export function PreviewWineList({
             <div className="min-w-0 flex-shrink-0">
               <h1
                 className="text-base font-semibold leading-none truncate"
-                style={{ color: colors.headerTitle, fontFamily: 'var(--font-playfair), serif' }}
+                style={{ color: colors.headerTitle, fontFamily: colors.headingFont }}
               >
                 WineDiviner: Nairobi
               </h1>

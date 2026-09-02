@@ -382,7 +382,7 @@ export function PreviewWineCard({
             </p>
             <h3
               className="text-sm font-semibold leading-snug"
-              style={{ color: infoWineName, fontFamily: 'var(--font-playfair), serif' }}
+              style={{ color: infoWineName, fontFamily: colors.headingFont }}
             >
               {nameHref ? (
                 <a

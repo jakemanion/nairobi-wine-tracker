@@ -89,7 +89,7 @@ export function SharedWineList({
                 <Link href="/" className="no-underline">
                   <h1
                     className="text-base font-semibold leading-none truncate"
-                    style={{ color: colors.headerTitle, fontFamily: 'var(--font-playfair), serif' }}
+                    style={{ color: colors.headerTitle, fontFamily: colors.headingFont }}
                   >
                     WineDiviner: Nairobi
                   </h1>
@@ -154,7 +154,7 @@ export function SharedWineList({
           >
             <h2
               className="m-0 text-sm font-semibold"
-              style={{ color: colors.surfaceTitle, fontFamily: 'var(--font-playfair), serif' }}
+              style={{ color: colors.surfaceTitle, fontFamily: colors.headingFont }}
             >
               Shared list
             </h2>

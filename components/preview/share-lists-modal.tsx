@@ -164,7 +164,7 @@ export function ShareListsModal({ open, onClose }: ShareListsModalProps) {
         <h2
           id="share-lists-title"
           className="m-0 text-lg font-semibold pr-8"
-          style={{ color: colors.headerTitle, fontFamily: 'var(--font-playfair), serif' }}
+          style={{ color: colors.headerTitle, fontFamily: colors.headingFont }}
         >
           Share my wines
         </h2>
