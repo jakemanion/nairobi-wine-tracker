@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { ThumbsUp, ThumbsDown } from 'lucide-react'
 import type { WineReview } from '@/components/wine-table'
 import { InstantTooltip } from '@/components/preview/instant-tooltip'
+import { usePreviewTheme } from '@/components/preview/preview-theme-context'
 import { saveReviewTriedStatusField, type TriedStatusValue } from '@/lib/reviews'
 
 type PreviewTriedStatusPickerProps = {
@@ -49,6 +50,7 @@ export function PreviewTriedStatusPicker({
   review,
   onReviewChange,
 }: PreviewTriedStatusPickerProps) {
+  const { colors } = usePreviewTheme()
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const value = normalizeTriedStatus(review?.tried_status)
@@ -93,14 +95,15 @@ export function PreviewTriedStatusPicker({
             aria-label="Buy again"
             aria-pressed={upActive}
             disabled={saving}
-            className="rounded-lg flex items-center justify-center transition-all hover:scale-105 flex-shrink-0"
+            className="flex items-center justify-center transition-all hover:scale-105 flex-shrink-0"
             style={{
               width: 28,
               height: 28,
-              border: `1.5px solid ${upActive ? '#8A7020' : '#3A3848'}`,
-              background: upActive ? '#3A2E08' : '#22222C',
-              color: upActive ? '#E0C040' : '#9894A4',
-              boxShadow: '0 1px 4px rgba(0,0,0,0.3)',
+              border: `1.5px solid ${upActive ? '#8A7020' : colors.controlIdleBorder}`,
+              background: upActive ? '#3A2E08' : colors.controlIdleBg,
+              color: upActive ? '#E0C040' : colors.controlIdleIcon,
+              borderRadius: colors.buttonRadius,
+              boxShadow: colors.controlShadow,
               opacity: saving ? 0.5 : 1,
               cursor: saving ? 'wait' : 'pointer',
             }}
@@ -115,14 +118,15 @@ export function PreviewTriedStatusPicker({
             aria-label="Don't buy again"
             aria-pressed={downActive}
             disabled={saving}
-            className="rounded-lg flex items-center justify-center transition-all hover:scale-105 flex-shrink-0"
+            className="flex items-center justify-center transition-all hover:scale-105 flex-shrink-0"
             style={{
               width: 28,
               height: 28,
-              border: `1.5px solid ${downActive ? '#5A3030' : '#3A3848'}`,
-              background: downActive ? '#2A1C1C' : '#22222C',
-              color: downActive ? '#F08080' : '#9894A4',
-            boxShadow: '0 1px 4px rgba(0,0,0,0.3)',
+              border: `1.5px solid ${downActive ? '#5A3030' : colors.controlIdleBorder}`,
+              background: downActive ? '#2A1C1C' : colors.controlIdleBg,
+              color: downActive ? '#F08080' : colors.controlIdleIcon,
+            borderRadius: colors.buttonRadius,
+            boxShadow: colors.controlShadow,
             opacity: saving ? 0.5 : 1,
             cursor: saving ? 'wait' : 'pointer',
           }}
@@ -133,7 +137,7 @@ export function PreviewTriedStatusPicker({
         </InstantTooltip>
       </div>
       {error ? (
-        <span className="text-[9px] text-center" style={{ color: '#c05050', maxWidth: 72, lineHeight: 1.2 }}>
+        <span className="text-[9px] text-center" style={{ color: colors.errorText, maxWidth: 72, lineHeight: 1.2 }}>
           {error}
         </span>
       ) : null}

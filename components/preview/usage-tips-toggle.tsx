@@ -21,9 +21,10 @@ export function UsageTipsToggle({
     <label
       className={`inline-flex items-center gap-1.5 text-[10px] px-2 py-1 rounded-md ${className}`}
       style={{
-        color: colors.headerSub,
-        border: `1px solid ${colors.headerBorder}`,
+        color: colors.buttonText,
+        border: `1px solid ${colors.buttonBorder}`,
         background: colors.toolbarBg,
+        borderRadius: colors.panelRadius,
         fontFamily: 'var(--font-dm-sans), sans-serif',
         whiteSpace: 'nowrap',
         ...style,
@@ -33,7 +34,8 @@ export function UsageTipsToggle({
         type="checkbox"
         checked={enabled}
         onChange={(event) => setEnabled(event.target.checked)}
-        className="accent-[#C93048]"
+        className="accent-current"
+        style={{ accentColor: colors.accent }}
         aria-label="Toggle show tips"
       />
       Show tips

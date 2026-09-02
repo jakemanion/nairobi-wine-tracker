@@ -30,10 +30,11 @@ export function WelcomePanel() {
 
   return (
     <div
-      className="rounded-lg px-4 py-3 text-center relative"
+      className="px-4 py-3 text-center relative"
       style={{
         background: colors.toolbarBg,
         border: `1px solid ${colors.toolbarBorder}`,
+        borderRadius: colors.panelRadius,
       }}
     >
       <button
@@ -47,13 +48,13 @@ export function WelcomePanel() {
       </button>
       <p
         className="m-0 text-sm font-semibold"
-        style={{ color: colors.headerTitle, fontFamily: 'var(--font-playfair), serif' }}
+        style={{ color: colors.surfaceTitle, fontFamily: 'var(--font-playfair), serif' }}
       >
         {WELCOME_PANEL.heading}
       </p>
       <p
         className="m-0 mt-2 text-[11px] leading-relaxed max-w-[42rem] mx-auto"
-        style={{ color: colors.headerSub, fontFamily: 'var(--font-dm-sans), sans-serif' }}
+        style={{ color: colors.surfaceSub, fontFamily: 'var(--font-dm-sans), sans-serif' }}
       >
         {WELCOME_PANEL.body}
       </p>

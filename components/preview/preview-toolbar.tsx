@@ -65,10 +65,11 @@ export function PreviewToolbar({
   return (
     <div>
       <div
-        className="rounded-lg overflow-hidden"
+        className="overflow-hidden"
         style={{
           border: `1px solid ${toolsActive ? colors.toolbarBorderActive : colors.toolbarBorder}`,
           background: colors.toolbarBg,
+          borderRadius: colors.panelRadius,
         }}
       >
         {filtersVisible ? (

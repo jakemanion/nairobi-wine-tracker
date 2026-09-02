@@ -31,7 +31,7 @@ export function PreviewUserMenu({
           aria-label={`Open account menu for ${accountLabel}`}
           className="flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold"
           style={{
-            background: '#C93048',
+            background: colors.accent,
             border: `1px solid ${colors.buttonBorder}`,
             color: '#FFFFFF',
             cursor: 'pointer',
@@ -51,6 +51,7 @@ export function PreviewUserMenu({
           style={{
             background: colors.toolbarBg,
             border: `1px solid ${colors.toolbarBorder}`,
+            borderRadius: colors.panelRadius,
             boxShadow: '0 8px 24px rgba(0,0,0,0.35)',
           }}
         >

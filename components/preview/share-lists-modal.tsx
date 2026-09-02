@@ -188,7 +188,8 @@ export function ShareListsModal({ open, onClose }: ShareListsModalProps) {
                   type="checkbox"
                   checked={checked}
                   onChange={() => toggleKey(option.key)}
-                  className="accent-[#C93048]"
+                  className="accent-current"
+                  style={{ accentColor: colors.accent }}
                 />
                 <span className="text-[13px]" style={{ color: colors.searchText }}>
                   {option.label}
@@ -203,9 +204,10 @@ export function ShareListsModal({ open, onClose }: ShareListsModalProps) {
           disabled={pending || selected.length === 0}
           className="mt-5 w-full inline-flex items-center justify-center gap-2 rounded-lg text-[13px] font-medium"
           style={{
-            background: selected.length === 0 ? colors.buttonBg : '#C93048',
-            border: `1px solid ${selected.length === 0 ? colors.buttonBorder : '#C93048'}`,
+            background: selected.length === 0 ? colors.buttonBg : colors.accent,
+            border: `1px solid ${selected.length === 0 ? colors.buttonBorder : colors.accent}`,
             color: selected.length === 0 ? colors.buttonText : '#FFFFFF',
+            borderRadius: colors.panelRadius,
             fontFamily: 'var(--font-dm-sans), sans-serif',
             padding: '10px 14px',
             cursor: pending || selected.length === 0 ? 'default' : 'pointer',

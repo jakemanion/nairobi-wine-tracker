@@ -21,7 +21,7 @@ import {
   lowestPrice,
   type PreviewWineCardData,
 } from '@/lib/preview/wine-card-model'
-import { getReviewPanelTextColors } from '@/lib/preview/preview-colors'
+import { getReviewPanelTextColors, type PreviewColors } from '@/lib/preview/preview-colors'
 import { formatStarRating, starRatingColor, vivinoToStarRating } from '@/lib/ratings/vivino-star-rating'
 import { saveReviewField } from '@/lib/reviews'
 import type { WishlistValue, TriedStatusValue } from '@/lib/reviews'
@@ -151,16 +151,18 @@ function HideButton({
   active,
   saving,
   panelLabelColor,
+  colors,
   onClick,
 }: {
   active: boolean
   saving: boolean
   panelLabelColor: string
+  colors: PreviewColors
   onClick: () => void
 }) {
-  const borderColor = active ? '#5A3030' : '#3A3848'
-  const bgColor = active ? '#2A1C1C' : '#22222C'
-  const iconColor = active ? '#F08080' : '#9894A4'
+  const borderColor = active ? '#5A3030' : colors.controlIdleBorder
+  const bgColor = active ? '#2A1C1C' : colors.controlIdleBg
+  const iconColor = active ? '#F08080' : colors.controlIdleIcon
 
   return (
     <div className="flex flex-col items-center gap-1 flex-shrink-0 m-0 p-0">
@@ -176,12 +178,13 @@ function HideButton({
           aria-label={active ? 'Show wine again' : 'Hide this wine'}
           aria-pressed={active}
           disabled={saving}
-          className="w-10 h-10 rounded-lg flex items-center justify-center transition-all hover:scale-105 flex-shrink-0 m-0"
+          className="w-10 h-10 flex items-center justify-center transition-all hover:scale-105 flex-shrink-0 m-0"
           style={{
             border: `2px solid ${borderColor}`,
             background: bgColor,
             color: iconColor,
-            boxShadow: '0 2px 8px rgba(0,0,0,0.4)',
+            borderRadius: colors.buttonRadius,
+            boxShadow: colors.controlShadow,
             opacity: saving ? 0.5 : 1,
             cursor: saving ? 'wait' : 'pointer',
           }}
@@ -211,7 +214,7 @@ export function PreviewWineCard({
   onReviewChange,
   imagePriority = false,
 }: PreviewWineCardProps) {
-  const { colors, mode } = usePreviewTheme()
+  const { colors, mode, visualStyle } = usePreviewTheme()
   const wishlist = normalizeWishlist(review?.wishlist)
   const triedStatus = normalizeTriedStatus(review?.tried_status)
   const shortlisted = review?.shortlist === 1
@@ -221,19 +224,19 @@ export function PreviewWineCard({
   const nameHref = wineNameHref(wine)
   const ribbon = styleRibbonStyle(wine.style)
   const panelTint = getReviewPanelTint(shortlisted, triedStatus === 1, wishlist === 1)
-  const panelText = getReviewPanelTextColors(mode, panelTint)
-  const cardBorderColor = getCardBorderColor(panelTint, mode)
+  const panelText = getReviewPanelTextColors(mode, panelTint, visualStyle)
+  const cardBorderColor = getCardBorderColor(panelTint, mode, visualStyle)
   const cardBorder = cardBorderColor
     ? `3px solid ${cardBorderColor}`
     : `1px solid ${colors.cardBorder}`
-  const infoOnDark = mode === 'light'
+  const infoOnDark = colors.infoOnDark
   const infoProducer = colors.producer
   const infoWineName = infoOnDark ? '#F5F2EC' : colors.wineName
   const infoMuted = infoOnDark ? '#C8C4D0' : colors.muted
   const infoGrapeBg = infoOnDark ? 'rgba(255,255,255,0.08)' : colors.grapeBg
   const infoGrapeBorder = infoOnDark ? 'rgba(255,255,255,0.12)' : colors.grapeBorder
   const infoGrapeText = infoOnDark ? '#E8E4DC' : colors.grapeText
-  const priceAmountColor = '#FFFFFF'
+  const priceAmountColor = colors.priceAmount
 
   const [notesDraft, setNotesDraft] = useState(review?.tasting_notes ?? '')
   const [savingNotes, setSavingNotes] = useState(false)
@@ -316,7 +319,7 @@ export function PreviewWineCard({
       style={{
         background: colors.cardBg,
         border: cardBorder,
-        borderRadius: '0 12px 12px 12px',
+        borderRadius: colors.cardRadius,
         boxShadow: isDimmed ? 'none' : colors.cardShadow,
         opacity: isDimmed ? 0.4 : 1,
       }}
@@ -448,7 +451,7 @@ export function PreviewWineCard({
                         href={listing.url}
                         target="_blank"
                         rel="noreferrer"
-                        className="text-[11px] no-underline hover:underline decoration-white/70 underline-offset-2"
+                        className="text-[11px] no-underline hover:underline underline-offset-2"
                         style={{ fontFamily: 'var(--font-dm-sans), sans-serif' }}
                       >
                         {content}
@@ -480,7 +483,7 @@ export function PreviewWineCard({
         className="relative flex-shrink-0 px-2.5 pt-1.5 pb-2.5 flex flex-col gap-1.5 transition-colors duration-300 min-w-0 group/review-panel"
         style={{
           width: '35.2%',
-          ...getReviewPanelStyle(panelTint, mode),
+          ...getReviewPanelStyle(panelTint, mode, visualStyle),
         }}
       >
         {!isLoggedIn ? <LoggedOutLoginPromptOverlay /> : null}
@@ -520,6 +523,7 @@ export function PreviewWineCard({
                 active={isHidden}
                 saving={savingHide}
                 panelLabelColor={panelText.label}
+                colors={colors}
                 onClick={() => void toggleHide()}
               />
             </UsageTipTarget>
@@ -548,14 +552,15 @@ export function PreviewWineCard({
                   value={notesDraft}
                   disabled={savingNotes}
                   placeholder="Your notes..."
-                  className="w-full text-[11px] focus:outline-none transition-colors rounded-lg px-2 disabled:opacity-60"
+                  className="w-full text-[11px] focus:outline-none transition-colors px-2 disabled:opacity-60"
                   style={{
                     height: 28,
                     background: panelText.notesBg,
                     border: `1px solid ${panelText.notesBorder}`,
                     color: panelText.notesText,
+                    borderRadius: colors.panelRadius,
                     fontFamily: 'var(--font-dm-sans), sans-serif',
-                    caretColor: colors.producer,
+                    caretColor: colors.accent,
                   }}
                   onChange={(e) => {
                     notesDirtyRef.current = true
@@ -584,7 +589,7 @@ export function PreviewWineCard({
           </div>
 
           {error ? (
-            <p className="text-[10px]" style={{ color: '#c05050' }}>
+            <p className="text-[10px]" style={{ color: colors.errorText }}>
               {error}
             </p>
           ) : null}

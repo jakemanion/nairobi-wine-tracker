@@ -172,13 +172,14 @@ export function PreviewFilterMultiSelect({
         aria-selected={checked}
         style={{
           ...optionStyle,
-          background: checked ? 'rgba(201, 48, 72, 0.08)' : 'transparent',
+          background: checked ? `${colors.accent}14` : 'transparent',
         }}
       >
         <input
           type="checkbox"
           checked={checked}
-          className="accent-[#C93048]"
+          className="accent-current"
+          style={{ accentColor: colors.accent }}
           onChange={() => onChange(toggleOption(selected, option.value))}
         />
         <span className="truncate">{option.label}</span>
@@ -200,9 +201,9 @@ export function PreviewFilterMultiSelect({
           fontSize: 12,
           lineHeight: 1.2,
           padding: '0 12px',
-          borderRadius: 8,
+          borderRadius: colors.panelRadius,
           background: selected.length > 0 ? colors.searchBg : colors.buttonBg,
-          border: `1px solid ${selected.length > 0 ? '#C93048' : colors.buttonBorder}`,
+          border: `1px solid ${selected.length > 0 ? colors.accent : colors.buttonBorder}`,
           color: selected.length > 0 ? colors.searchText : colors.buttonText,
           fontFamily: 'var(--font-dm-sans), sans-serif',
           cursor: 'pointer',

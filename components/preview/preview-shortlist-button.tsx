@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { ListChecks } from 'lucide-react'
 import type { WineReview } from '@/components/wine-table'
 import { InstantTooltip } from '@/components/preview/instant-tooltip'
+import { usePreviewTheme } from '@/components/preview/preview-theme-context'
 import { saveReviewShortlistField, type ShortlistValue } from '@/lib/reviews'
 
 const SHORTLIST_TOOLTIP = 'Shortlist for your next buy'
@@ -55,11 +56,12 @@ export function PreviewShortlistButton({
   labelColor,
   onReviewChange,
 }: PreviewShortlistButtonProps) {
+  const { colors } = usePreviewTheme()
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const shortlisted = normalizeShortlist(review?.shortlist) === 1
   const label = 'SHORTLIST'
-  const inactiveColor = labelColor ?? '#9894A4'
+  const inactiveColor = labelColor ?? colors.controlIdleIcon
   const activeStyle = SHORTLISTED_BUTTON_STYLE
 
   async function toggle() {
@@ -108,12 +110,13 @@ export function PreviewShortlistButton({
           aria-label={SHORTLIST_TOOLTIP}
           aria-pressed={shortlisted}
           disabled={saving || disabled}
-          className="w-10 h-10 rounded-lg flex items-center justify-center transition-all hover:scale-105 flex-shrink-0 m-0"
+          className="w-10 h-10 flex items-center justify-center transition-all hover:scale-105 flex-shrink-0 m-0"
           style={{
-            border: `2px solid ${shortlisted ? activeStyle.border : '#3A3848'}`,
-            background: shortlisted ? activeStyle.bg : '#22222C',
+            border: `2px solid ${shortlisted ? activeStyle.border : colors.controlIdleBorder}`,
+            background: shortlisted ? activeStyle.bg : colors.controlIdleBg,
             color: shortlisted ? activeStyle.color : inactiveColor,
-            boxShadow: '0 2px 8px rgba(0,0,0,0.4)',
+            borderRadius: colors.buttonRadius,
+            boxShadow: colors.controlShadow,
             opacity: saving || disabled ? 0.5 : 1,
             cursor: saving || disabled ? 'not-allowed' : 'pointer',
           }}
@@ -130,7 +133,7 @@ export function PreviewShortlistButton({
       {error ? (
         <span
           className="absolute top-full left-1/2 -translate-x-1/2 mt-0.5 text-[9px] text-center whitespace-nowrap"
-          style={{ color: '#c05050', lineHeight: 1.2 }}
+          style={{ color: colors.errorText, lineHeight: 1.2 }}
         >
           {error}
         </span>

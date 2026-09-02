@@ -10,6 +10,7 @@ import { PreviewWineCard } from '@/components/preview/preview-wine-card'
 import { ShareListsModal } from '@/components/preview/share-lists-modal'
 import { UsageTipsProvider } from '@/components/preview/usage-tips-context'
 import { UsageTipsToggle } from '@/components/preview/usage-tips-toggle'
+import { VisualStyleToggle } from '@/components/preview/visual-style-toggle'
 import { WelcomePanel } from '@/components/preview/welcome-panel'
 import { usePreviewTheme } from '@/components/preview/preview-theme-context'
 import { SiteFooter } from '@/components/site-footer'
@@ -61,7 +62,7 @@ export function PreviewWineList({
   userName,
   userEmail,
 }: PreviewWineListProps) {
-  const { colors, mode } = usePreviewTheme()
+  const { colors, visualStyle } = usePreviewTheme()
   const [wines, setWines] = useState<DisplayWineRow[]>(() =>
     initialWines.map(withComputedValueScore),
   )
@@ -91,7 +92,11 @@ export function PreviewWineList({
 
   return (
     <UsageTipsProvider>
-      <div className="min-h-screen flex flex-col" style={{ background: colors.pageBg }}>
+      <div
+      className="min-h-screen flex flex-col"
+      data-visual-style={visualStyle}
+      style={{ background: colors.pageBg }}
+    >
       <div
         className="sticky top-0 z-50"
         style={{
@@ -128,11 +133,12 @@ export function PreviewWineList({
                 value={searchQuery}
                 placeholder="Search wines…"
                 aria-label="Search producer or wine name"
-                className="w-full text-sm rounded-lg pl-8 pr-3 py-1.5 focus:outline-none"
+                className="w-full text-sm pl-8 pr-3 py-1.5 focus:outline-none"
                 style={{
                   background: colors.searchBg,
                   border: `1px solid ${colors.searchBorder}`,
                   color: colors.searchText,
+                  borderRadius: colors.panelRadius,
                   fontFamily: 'var(--font-dm-sans), sans-serif',
                 }}
                 onChange={(event) => setSearchQuery(event.target.value)}
@@ -141,13 +147,15 @@ export function PreviewWineList({
             <div className="flex items-center gap-2 flex-shrink-0">
               {isLoggedIn ? (
                 <>
+                  <VisualStyleToggle colors={colors} />
                   <button
                     type="button"
-                    className="inline-flex items-center gap-1.5 text-[11px] px-2.5 py-1.5 rounded-lg"
+                    className="inline-flex items-center gap-1.5 text-[11px] px-2.5 py-1.5"
                     style={{
                       background: colors.buttonBg,
                       border: `1px solid ${colors.buttonBorder}`,
                       color: colors.buttonText,
+                      borderRadius: colors.panelRadius,
                       fontFamily: 'var(--font-dm-sans), sans-serif',
                       cursor: 'pointer',
                     }}
@@ -158,7 +166,7 @@ export function PreviewWineList({
                   </button>
                   <PreviewUserMenu
                     colors={colors}
-                    theme={mode}
+                    theme={colors.headerNavTheme}
                     userName={userName}
                     userEmail={userEmail}
                     onShareClick={() => setShareOpen(true)}
@@ -166,9 +174,10 @@ export function PreviewWineList({
                 </>
               ) : (
                 <>
+                    <VisualStyleToggle colors={colors} />
                   <UsageTipsToggle colors={colors} />
-                  <LoginNavLink theme={mode} nextPath="/" />
-                  <RegisterNavLink theme={mode} />
+                  <LoginNavLink theme={colors.headerNavTheme} nextPath="/" />
+                  <RegisterNavLink theme={colors.headerNavTheme} />
                 </>
               )}
             </div>
@@ -219,7 +228,7 @@ export function PreviewWineList({
           })
         )}
       </main>
-      <SiteFooter />
+      <SiteFooter colors={colors} />
       </div>
       {isLoggedIn ? (
         <ShareListsModal open={shareOpen} onClose={() => setShareOpen(false)} />

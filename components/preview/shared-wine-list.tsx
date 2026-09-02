@@ -9,6 +9,7 @@ import { PreviewUserMenu } from '@/components/preview/preview-user-menu'
 import { PreviewWineCard } from '@/components/preview/preview-wine-card'
 import { UsageTipsProvider } from '@/components/preview/usage-tips-context'
 import { UsageTipsToggle } from '@/components/preview/usage-tips-toggle'
+import { VisualStyleToggle } from '@/components/preview/visual-style-toggle'
 import { usePreviewTheme } from '@/components/preview/preview-theme-context'
 import { SiteFooter } from '@/components/site-footer'
 import type { WineReview, WineRow } from '@/components/wine-table'
@@ -51,7 +52,7 @@ export function SharedWineList({
   userName,
   userEmail,
 }: SharedWineListProps) {
-  const { colors, mode } = usePreviewTheme()
+  const { colors, visualStyle } = usePreviewTheme()
   const [wines, setWines] = useState<DisplayWineRow[]>(initialWines)
   const [searchQuery, setSearchQuery] = useState('')
 
@@ -65,7 +66,7 @@ export function SharedWineList({
 
   return (
     <UsageTipsProvider>
-      <div className="min-h-screen flex flex-col" style={{ background: colors.pageBg }}>
+      <div className="min-h-screen flex flex-col" data-visual-style={visualStyle} style={{ background: colors.pageBg }}>
         <div
           className="sticky top-0 z-50"
           style={{
@@ -107,11 +108,12 @@ export function SharedWineList({
                   value={searchQuery}
                   placeholder="Search wines…"
                   aria-label="Search producer or wine name"
-                  className="w-full text-sm rounded-lg pl-8 pr-3 py-1.5 focus:outline-none"
+                  className="w-full text-sm pl-8 pr-3 py-1.5 focus:outline-none"
                   style={{
                     background: colors.searchBg,
                     border: `1px solid ${colors.searchBorder}`,
                     color: colors.searchText,
+                    borderRadius: colors.panelRadius,
                     fontFamily: 'var(--font-dm-sans), sans-serif',
                   }}
                   onChange={(event) => setSearchQuery(event.target.value)}
@@ -119,17 +121,21 @@ export function SharedWineList({
               </div>
               <div className="flex items-center gap-2 flex-shrink-0">
                 {isLoggedIn ? (
-                  <PreviewUserMenu
-                    colors={colors}
-                    theme={mode}
-                    userName={userName}
-                    userEmail={userEmail}
-                  />
+                  <>
+                    <VisualStyleToggle colors={colors} />
+                    <PreviewUserMenu
+                      colors={colors}
+                      theme={colors.headerNavTheme}
+                      userName={userName}
+                      userEmail={userEmail}
+                    />
+                  </>
                 ) : (
                   <>
+                    <VisualStyleToggle colors={colors} />
                     <UsageTipsToggle colors={colors} />
-                    <LoginNavLink theme={mode} nextPath={sharePath} />
-                    <RegisterNavLink theme={mode} />
+                    <LoginNavLink theme={colors.headerNavTheme} nextPath={sharePath} />
+                    <RegisterNavLink theme={colors.headerNavTheme} />
                   </>
                 )}
               </div>
@@ -139,21 +145,22 @@ export function SharedWineList({
 
         <main className="mx-auto px-6 py-5 space-y-2.5 flex-1 w-full" style={{ maxWidth: PREVIEW_CONTENT_MAX_WIDTH }}>
           <div
-            className="rounded-lg px-4 py-3"
+            className="px-4 py-3"
             style={{
               background: colors.toolbarBg,
               border: `1px solid ${colors.toolbarBorder}`,
+              borderRadius: colors.panelRadius,
             }}
           >
             <h2
               className="m-0 text-sm font-semibold"
-              style={{ color: colors.headerTitle, fontFamily: 'var(--font-playfair), serif' }}
+              style={{ color: colors.surfaceTitle, fontFamily: 'var(--font-playfair), serif' }}
             >
               Shared list
             </h2>
             <p
               className="m-0 mt-1.5 text-[11px] leading-relaxed"
-              style={{ color: colors.headerSub, fontFamily: 'var(--font-dm-sans), sans-serif' }}
+              style={{ color: colors.surfaceSub, fontFamily: 'var(--font-dm-sans), sans-serif' }}
             >
               {isLoggedIn
                 ? 'You are viewing a list from another WineDiviner user. You can still add wines to your own lists.'
@@ -203,7 +210,7 @@ export function SharedWineList({
             })
           )}
         </main>
-        <SiteFooter />
+        <SiteFooter colors={colors} />
       </div>
     </UsageTipsProvider>
   )

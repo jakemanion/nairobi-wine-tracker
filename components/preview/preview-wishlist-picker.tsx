@@ -6,7 +6,8 @@ import type { CSSProperties } from 'react'
 import type { WineReview } from '@/components/wine-table'
 import { InstantTooltip } from '@/components/preview/instant-tooltip'
 import { saveReviewWishlistField, type WishlistValue } from '@/lib/reviews'
-import type { PreviewThemeMode, PanelTint } from '@/lib/preview/preview-colors'
+import type { PreviewThemeMode, PanelTint, PreviewVisualStyle } from '@/lib/preview/preview-colors'
+import { usePreviewTheme } from '@/components/preview/preview-theme-context'
 
 type PreviewWishlistPickerProps = {
   wineId: string
@@ -59,6 +60,7 @@ export function PreviewWishlistPicker({
   labelColor,
   onReviewChange,
 }: PreviewWishlistPickerProps) {
+  const { colors } = usePreviewTheme()
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const value = normalizeWishlist(review?.wishlist)
@@ -93,15 +95,15 @@ export function PreviewWishlistPicker({
     onReviewChange(result.review)
   }
 
-  const borderColor = active ? WISHLISTED_BUTTON_STYLE.border : '#3A3848'
-  const bgColor = active ? WISHLISTED_BUTTON_STYLE.bg : '#22222C'
-  const iconColor = active ? WISHLISTED_BUTTON_STYLE.color : '#9894A4'
+  const borderColor = active ? WISHLISTED_BUTTON_STYLE.border : colors.controlIdleBorder
+  const bgColor = active ? WISHLISTED_BUTTON_STYLE.bg : colors.controlIdleBg
+  const iconColor = active ? WISHLISTED_BUTTON_STYLE.color : colors.controlIdleIcon
 
   return (
     <div className="relative flex flex-col items-center gap-1 flex-shrink-0 m-0 p-0">
       <p
         className="m-0 p-0 text-[8px] uppercase tracking-wider leading-none text-center whitespace-nowrap"
-        style={{ color: labelColor ?? '#9894A4', fontFamily: 'var(--font-dm-sans), sans-serif' }}
+        style={{ color: labelColor ?? colors.controlIdleIcon, fontFamily: 'var(--font-dm-sans), sans-serif' }}
       >
         {getWishlistStateLabel(value)}
       </p>
@@ -111,12 +113,13 @@ export function PreviewWishlistPicker({
           aria-label={active ? 'Remove from bookmark' : 'Add to bookmark'}
           aria-pressed={active}
           disabled={saving}
-          className="w-10 h-10 rounded-lg flex items-center justify-center transition-all hover:scale-105 flex-shrink-0 m-0"
+          className="w-10 h-10 flex items-center justify-center transition-all hover:scale-105 flex-shrink-0 m-0"
           style={{
             border: `2px solid ${borderColor}`,
             background: bgColor,
             color: iconColor,
-            boxShadow: '0 2px 8px rgba(0,0,0,0.4)',
+            borderRadius: colors.buttonRadius,
+            boxShadow: colors.controlShadow,
             opacity: saving ? 0.5 : 1,
             cursor: saving ? 'wait' : 'pointer',
           }}
@@ -133,7 +136,7 @@ export function PreviewWishlistPicker({
       {error ? (
         <span
           className="absolute top-full left-1/2 -translate-x-1/2 mt-0.5 text-[9px] text-center whitespace-nowrap"
-          style={{ color: '#c05050', lineHeight: 1.2 }}
+          style={{ color: colors.errorText, lineHeight: 1.2 }}
         >
           {error}
         </span>
@@ -145,8 +148,9 @@ export function PreviewWishlistPicker({
 export function getCardBorderColor(
   tint: PanelTint,
   mode: PreviewThemeMode = 'dark',
+  visualStyle: PreviewVisualStyle = 'classic',
 ): string | null {
-  if (mode === 'light') {
+  if (visualStyle === 'trial' || mode === 'light') {
     if (tint === 'shortlist') return '#4080D0'
     if (tint === 'thumbsUp') return '#D0A828'
     if (tint === 'wishlist') return '#38A050'
@@ -173,8 +177,9 @@ export function getReviewPanelTint(
 export function getReviewPanelStyle(
   tint: PanelTint,
   mode: PreviewThemeMode = 'dark',
+  visualStyle: PreviewVisualStyle = 'classic',
 ): CSSProperties {
-  if (mode === 'light') {
+  if (visualStyle === 'trial' || mode === 'light') {
     if (tint === 'shortlist') return { background: '#C4D8F0' }
     if (tint === 'thumbsUp') return { background: 'linear-gradient(145deg, #FFF4D0 0%, #FFE8A0 52%, #FFF0C0 100%)' }
     if (tint === 'wishlist') return { background: '#C4F0CC' }

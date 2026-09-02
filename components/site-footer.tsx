@@ -1,8 +1,7 @@
 import Link from 'next/link'
-import { getPreviewColors } from '@/lib/preview/preview-colors'
+import { getPreviewColors, type PreviewColors } from '@/lib/preview/preview-colors'
 
-const colors = getPreviewColors('dark')
-const accent = '#C93048'
+const fallbackColors = getPreviewColors('dark')
 const CONTENT_MAX_WIDTH = '54.625rem'
 
 const LEGAL_LINKS = [
@@ -14,9 +13,10 @@ const LEGAL_LINKS = [
 
 type SiteFooterProps = {
   className?: string
+  colors?: PreviewColors
 }
 
-export function SiteFooter({ className = '' }: SiteFooterProps) {
+export function SiteFooter({ className = '', colors = fallbackColors }: SiteFooterProps) {
   return (
     <>
       {/* Reserves space so fixed footer does not cover page content */}
@@ -46,7 +46,7 @@ export function SiteFooter({ className = '' }: SiteFooterProps) {
                   <Link
                     href={link.href}
                     className="text-[11px] no-underline hover:underline underline-offset-2"
-                    style={{ color: accent, fontFamily: 'var(--font-dm-sans), sans-serif' }}
+                    style={{ color: colors.accent, fontFamily: 'var(--font-dm-sans), sans-serif' }}
                   >
                     {link.label}
                   </Link>

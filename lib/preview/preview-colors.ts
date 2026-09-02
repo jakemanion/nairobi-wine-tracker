@@ -1,4 +1,7 @@
 export type PreviewThemeMode = 'dark' | 'light'
+export type PreviewVisualStyle = 'classic' | 'trial'
+
+export const VISUAL_STYLE_STORAGE_KEY = 'wine-diviner-visual-style'
 
 export type PreviewColors = {
   pageBg: string
@@ -7,6 +10,8 @@ export type PreviewColors = {
   headerShadow: string
   headerTitle: string
   headerSub: string
+  surfaceTitle: string
+  surfaceSub: string
   buttonBg: string
   buttonBorder: string
   buttonText: string
@@ -33,6 +38,7 @@ export type PreviewColors = {
   priceMuted: string
   priceLow: string
   priceShop: string
+  priceAmount: string
   notesBg: string
   notesBorder: string
   notesText: string
@@ -46,7 +52,32 @@ export type PreviewColors = {
   previewShellBorder: string
   wineInfoBg: string
   wineInfoSheen: string
+  accent: string
+  errorText: string
+  controlIdleBg: string
+  controlIdleBorder: string
+  controlIdleIcon: string
+  controlShadow: string
+  cardRadius: string
+  buttonRadius: string
+  panelRadius: string
+  infoOnDark: boolean
+  headerNavTheme: PreviewThemeMode
 }
+
+const classicChrome = {
+  accent: '#C93048',
+  errorText: '#c05050',
+  controlIdleBg: '#22222C',
+  controlIdleBorder: '#3A3848',
+  controlIdleIcon: '#9894A4',
+  controlShadow: '0 2px 8px rgba(0,0,0,0.4)',
+  cardRadius: '0 12px 12px 12px',
+  buttonRadius: '8px',
+  panelRadius: '8px',
+  priceAmount: '#FFFFFF',
+  infoOnDark: true,
+} as const
 
 const dark: PreviewColors = {
   pageBg: '#14141A',
@@ -55,6 +86,8 @@ const dark: PreviewColors = {
   headerShadow: '0 2px 16px rgba(0,0,0,0.6)',
   headerTitle: '#F5F2EC',
   headerSub: '#A8A4B8',
+  surfaceTitle: '#F5F2EC',
+  surfaceSub: '#A8A4B8',
   buttonBg: '#1E1E26',
   buttonBorder: '#3A3848',
   buttonText: '#C8C4D0',
@@ -96,6 +129,8 @@ const dark: PreviewColors = {
     'linear-gradient(168deg, #060608 0%, #121214 24%, #2a2a30 48%, #1c1c20 72%, #08080a 100%)',
   wineInfoSheen:
     'inset 0 1px 0 rgba(255,255,255,0.14), inset 0 -1px 0 rgba(255,255,255,0.05), inset 12px 0 32px rgba(255,255,255,0.04), inset -4px 0 16px rgba(0,0,0,0.25)',
+  headerNavTheme: 'dark',
+  ...classicChrome,
 }
 
 const light: PreviewColors = {
@@ -105,6 +140,8 @@ const light: PreviewColors = {
   headerShadow: '0 2px 12px rgba(0,0,0,0.08)',
   headerTitle: '#1A1814',
   headerSub: '#6A6560',
+  surfaceTitle: '#1A1814',
+  surfaceSub: '#6A6560',
   buttonBg: '#FAF9F7',
   buttonBorder: '#D8D4CC',
   buttonText: '#4A4540',
@@ -146,9 +183,77 @@ const light: PreviewColors = {
     'linear-gradient(168deg, #0a0a0c 0%, #161618 24%, #2c2c32 48%, #1a1a1e 72%, #08080a 100%)',
   wineInfoSheen:
     'inset 0 1px 0 rgba(255,255,255,0.14), inset 0 -1px 0 rgba(255,255,255,0.05), inset 12px 0 32px rgba(255,255,255,0.04), inset -4px 0 16px rgba(0,0,0,0.2)',
+  headerNavTheme: 'light',
+  ...classicChrome,
 }
 
-export function getPreviewColors(mode: PreviewThemeMode): PreviewColors {
+const trial: PreviewColors = {
+  pageBg: '#F3EBE0',
+  headerBg: '#3A1218',
+  headerBorder: '#2A0C12',
+  headerShadow: '0 2px 18px rgba(58, 18, 24, 0.22)',
+  headerTitle: '#F8F0E6',
+  headerSub: '#E0C8B0',
+  surfaceTitle: '#3A1218',
+  surfaceSub: '#6A5044',
+  buttonBg: '#FBF6EE',
+  buttonBorder: '#D4C4B0',
+  buttonText: '#4A2C22',
+  toolbarBg: '#FBF6EE',
+  toolbarBorder: '#E2D4C4',
+  toolbarBorderActive: '#8B1E3F',
+  searchBg: '#FFFDF8',
+  searchBorder: '#D9C8B8',
+  searchText: '#2A1814',
+  searchPlaceholder: '#9A8070',
+  summaryText: '#6A5044',
+  summaryStrong: '#3A1218',
+  cardBg: '#FFF9F2',
+  cardBorder: '#E4D5C6',
+  cardShadow: '0 10px 28px rgba(58, 18, 24, 0.1)',
+  imageColumnBg: '#F0E4D6',
+  infoBorder: '#E8D8C8',
+  producer: '#8B1E3F',
+  wineName: '#2A1410',
+  muted: '#6A564C',
+  grapeBg: '#F3E8DC',
+  grapeBorder: '#E0D0C0',
+  grapeText: '#4A3A34',
+  priceMuted: '#8A7064',
+  priceLow: '#8B1E3F',
+  priceShop: '#8A7468',
+  notesBg: '#FFFDF8',
+  notesBorder: '#E0D0C0',
+  notesText: '#2A1410',
+  labelMuted: '#7A6054',
+  ratingValue: '#2A1410',
+  emptyText: '#8A7468',
+  pickerPanelBg: '#FFF9F2',
+  pickerPanelBorder: '#E0D0C0',
+  pickerLabel: '#3A1218',
+  previewShellBg: '#FFF9F2',
+  previewShellBorder: '#E0D0C0',
+  wineInfoBg: 'linear-gradient(180deg, #FFFDF8 0%, #F7EDE2 100%)',
+  wineInfoSheen: 'inset 0 1px 0 rgba(255,255,255,0.85)',
+  accent: '#8B1E3F',
+  errorText: '#A03038',
+  controlIdleBg: '#FBF6EE',
+  controlIdleBorder: '#D4C4B0',
+  controlIdleIcon: '#8A7468',
+  controlShadow: '0 1px 4px rgba(58, 18, 24, 0.12)',
+  cardRadius: '16px',
+  buttonRadius: '999px',
+  panelRadius: '12px',
+  priceAmount: '#2A1410',
+  infoOnDark: false,
+  headerNavTheme: 'dark',
+}
+
+export function getPreviewColors(
+  mode: PreviewThemeMode,
+  visualStyle: PreviewVisualStyle = 'classic',
+): PreviewColors {
+  if (visualStyle === 'trial') return trial
   return mode === 'light' ? light : dark
 }
 
@@ -163,18 +268,23 @@ export type ReviewPanelTextColors = {
 
 export type PanelTint = 'shortlist' | 'thumbsUp' | 'wishlist' | 'none'
 
+function usesLightSurfaces(mode: PreviewThemeMode, visualStyle: PreviewVisualStyle): boolean {
+  return visualStyle === 'trial' || mode === 'light'
+}
+
 export function getReviewPanelTextColors(
   mode: PreviewThemeMode,
   tint: PanelTint,
+  visualStyle: PreviewVisualStyle = 'classic',
 ): ReviewPanelTextColors {
-  if (mode === 'light') {
+  if (usesLightSurfaces(mode, visualStyle)) {
     return {
-      label: '#4A4540',
-      body: '#1A1814',
-      muted: '#5A5550',
-      notesBg: '#FAF9F7',
-      notesBorder: '#D8D4CC',
-      notesText: '#1A1814',
+      label: visualStyle === 'trial' ? '#6A5044' : '#4A4540',
+      body: visualStyle === 'trial' ? '#2A1410' : '#1A1814',
+      muted: visualStyle === 'trial' ? '#6A564C' : '#5A5550',
+      notesBg: visualStyle === 'trial' ? '#FFFDF8' : '#FAF9F7',
+      notesBorder: visualStyle === 'trial' ? '#E0D0C0' : '#D8D4CC',
+      notesText: visualStyle === 'trial' ? '#2A1410' : '#1A1814',
     }
   }
 
