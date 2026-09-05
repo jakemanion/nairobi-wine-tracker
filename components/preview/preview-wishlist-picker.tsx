@@ -190,8 +190,9 @@ export function getReviewPanelTint(
   return 'none'
 }
 
-export const TRIAL_BOOKMARK_BG = 'linear-gradient(172deg, #b9cbb1 0%, #adc5af 100%)'
-export const TRIAL_THUMBS_UP_BG = 'linear-gradient(172deg, #f0e0ad 0%, #e7ce8b 100%)'
+export const TRIAL_BOOKMARK_BG = 'linear-gradient(172deg, #27C6B5 0%, #29B5A6 100%)'
+export const TRIAL_THUMBS_UP_BG =
+  'linear-gradient(145deg, #D4AF37 0%, #FFD722 38%, #F0C410 62%, #C9A227 100%)'
 
 export function getReviewPanelStyle(
   tint: PanelTint,
@@ -201,7 +202,7 @@ export function getReviewPanelStyle(
   if (visualStyle === 'trial') {
     if (tint === 'thumbsUp') return { background: TRIAL_THUMBS_UP_BG }
     if (tint === 'wishlist') return { background: TRIAL_BOOKMARK_BG }
-    return { background: '#F5F3EF' }
+    return { background: '#F0F0F8' }
   }
 
   if (mode === 'light') {

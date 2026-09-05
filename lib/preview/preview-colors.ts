@@ -192,8 +192,8 @@ const light: PreviewColors = {
 }
 
 const trial: PreviewColors = {
-  pageBg: '#d8d6ca',
-  headerBg: '#d8d6ca',
+  pageBg: '#ffffff',
+  headerBg: '#ffffff',
   headerBorder: 'transparent',
   headerShadow: '0 4px 12px rgba(42, 20, 16, 0.14)',
   headerTitle: '#2A1410',
@@ -237,7 +237,7 @@ const trial: PreviewColors = {
   pickerLabel: '#3A1218',
   previewShellBg: '#FFF9F2',
   previewShellBorder: '#E0D0C0',
-  wineInfoBg: '#e9e6e1',
+  wineInfoBg: '#ffffff',
   wineInfoSheen: 'inset 0 1px 0 rgba(255,255,255,0.85)',
   accent: '#8B1E3F',
   errorText: '#A03038',
