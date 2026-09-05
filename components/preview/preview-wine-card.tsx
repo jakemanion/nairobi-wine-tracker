@@ -226,15 +226,21 @@ export function PreviewWineCard({
   const panelTint = getReviewPanelTint(shortlisted, triedStatus === 1, wishlist === 1, visualStyle)
   const panelText = getReviewPanelTextColors(mode, panelTint, visualStyle)
   const cardBorderColor = getCardBorderColor(panelTint, mode, visualStyle)
-  const cardBorder =
+  const cardBorderStyle =
     visualStyle === 'trial'
-      ? 'none'
-      : cardBorderColor
-        ? `3px solid ${cardBorderColor}`
-        : `1px solid ${colors.cardBorder}`
+      ? {
+          border: `1px solid ${colors.cardBorder}`,
+          ...(cardBorderColor ? { borderLeft: `3px solid ${cardBorderColor}` } : {}),
+        }
+      : {
+          border: cardBorderColor
+            ? `3px solid ${cardBorderColor}`
+            : `1px solid ${colors.cardBorder}`,
+        }
   const infoOnDark = colors.infoOnDark
   const infoProducer = colors.producer
   const infoWineName = infoOnDark ? '#F5F2EC' : colors.wineName
+  const ratingEmphasis = visualStyle === 'trial' ? colors.ratingValue : infoWineName
   const infoMuted = infoOnDark ? '#C8C4D0' : colors.muted
   const infoGrapeBg = infoOnDark ? 'rgba(255,255,255,0.08)' : colors.grapeBg
   const infoGrapeBorder = infoOnDark ? 'rgba(255,255,255,0.12)' : colors.grapeBorder
@@ -321,7 +327,7 @@ export function PreviewWineCard({
       className="relative flex items-stretch overflow-hidden transition-opacity duration-300"
       style={{
         background: colors.cardBg,
-        border: cardBorder,
+        ...cardBorderStyle,
         borderRadius: colors.cardRadius,
         boxShadow: isDimmed ? 'none' : colors.cardShadow,
         opacity: isDimmed ? 0.4 : 1,
@@ -363,7 +369,7 @@ export function PreviewWineCard({
         style={{
           background: colors.wineInfoBg,
           boxShadow: colors.wineInfoSheen,
-          borderRight: `1px solid ${colors.infoBorder}`,
+          borderRight: visualStyle === 'trial' ? undefined : `1px solid ${colors.infoBorder}`,
         }}
       >
         <div className="flex items-start gap-2.5 pr-2">
@@ -371,7 +377,7 @@ export function PreviewWineCard({
             vivinoRating={wine.vivinoRating}
             vivinoUrl={wine.vivinoUrl}
             mutedColor={infoMuted}
-            emphasisColor={infoWineName}
+            emphasisColor={ratingEmphasis}
           />
           <div className="flex-1 min-w-0 flex flex-col gap-1.5 pt-0.5">
             <p
@@ -438,7 +444,10 @@ export function PreviewWineCard({
                       <span style={{ color: colors.priceShop }}>{listing.shop}: </span>
                       <span
                         style={{
-                          color: priceAmountColor,
+                          color:
+                            isLowest && visualStyle === 'trial'
+                              ? colors.priceLow
+                              : priceAmountColor,
                           fontWeight: isLowest ? 700 : 500,
                         }}
                       >

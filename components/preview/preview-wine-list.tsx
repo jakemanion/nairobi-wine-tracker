@@ -203,7 +203,10 @@ export function PreviewWineList({
         </div>
       </div>
 
-      <main className="mx-auto px-6 py-5 space-y-2.5 flex-1 w-full" style={{ maxWidth: PREVIEW_CONTENT_MAX_WIDTH }}>
+      <main
+        className={`mx-auto px-6 py-5 flex-1 w-full ${visualStyle === 'trial' ? 'space-y-5' : 'space-y-2.5'}`}
+        style={{ maxWidth: PREVIEW_CONTENT_MAX_WIDTH }}
+      >
         <WelcomePanel />
         {previewWines.length === 0 ? (
           <p className="text-center text-sm py-12" style={{ color: colors.emptyText }}>

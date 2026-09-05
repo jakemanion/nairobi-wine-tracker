@@ -157,7 +157,11 @@ export function getCardBorderColor(
   mode: PreviewThemeMode = 'dark',
   visualStyle: PreviewVisualStyle = 'classic',
 ): string | null {
-  if (visualStyle === 'trial') return null
+  if (visualStyle === 'trial') {
+    if (tint === 'thumbsUp') return '#D4A820'
+    if (tint === 'wishlist') return '#00A896'
+    return null
+  }
 
   if (mode === 'light') {
     if (tint === 'shortlist') return '#4080D0'
@@ -200,9 +204,10 @@ export function getReviewPanelStyle(
   visualStyle: PreviewVisualStyle = 'classic',
 ): CSSProperties {
   if (visualStyle === 'trial') {
-    if (tint === 'thumbsUp') return { background: TRIAL_THUMBS_UP_BG }
-    if (tint === 'wishlist') return { background: TRIAL_BOOKMARK_BG }
-    return { background: '#F0F0F8' }
+    const stroke = { borderLeft: '1px solid #E4E4EE' }
+    if (tint === 'thumbsUp') return { background: TRIAL_THUMBS_UP_BG, ...stroke }
+    if (tint === 'wishlist') return { background: TRIAL_BOOKMARK_BG, ...stroke }
+    return { background: '#F0F0F8', ...stroke }
   }
 
   if (mode === 'light') {
