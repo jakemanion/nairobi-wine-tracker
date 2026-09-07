@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useTransition } from 'react'
 import { createPortal } from 'react-dom'
-import { Check, Copy, Link2, RefreshCw, X } from 'lucide-react'
+import { Check, Copy, Link2, Loader2, RefreshCw, X } from 'lucide-react'
 import { usePreviewTheme } from '@/components/preview/preview-theme-context'
 import {
   getMySharedList,
@@ -46,8 +46,10 @@ export function ShareListsModal({ open, onClose }: ShareListsModalProps) {
     setSelected(DEFAULT_SHARE_COLLECTION_KEYS)
     setConfig(null)
 
-    startTransition(async () => {
+    let cancelled = false
+    void (async () => {
       const sharedResult = await getMySharedList()
+      if (cancelled) return
       if (sharedResult.error) setError(sharedResult.error)
       if (sharedResult.config) {
         setConfig(sharedResult.config)
@@ -55,7 +57,11 @@ export function ShareListsModal({ open, onClose }: ShareListsModalProps) {
         const fromConfig = sharedResult.config.collectionKeys.filter((key) => known.has(key))
         setSelected(fromConfig.length > 0 ? fromConfig : DEFAULT_SHARE_COLLECTION_KEYS)
       }
-    })
+    })()
+
+    return () => {
+      cancelled = true
+    }
   }, [open])
 
   useEffect(() => {
@@ -123,6 +129,7 @@ export function ShareListsModal({ open, onClose }: ShareListsModalProps) {
   if (!mounted || !open) return null
 
   const shareUrl = config ? buildShareUrl(config.slug) : null
+  const awaitingLink = Boolean(pending && !shareUrl)
 
   return createPortal(
     <div
@@ -213,6 +220,32 @@ export function ShareListsModal({ open, onClose }: ShareListsModalProps) {
           <Link2 size={15} strokeWidth={2} />
           {config ? 'Update Share Link' : 'Generate Share Link'}
         </button>
+
+        {awaitingLink ? (
+          <div
+            className="mt-4 rounded-lg p-3 flex items-center gap-2.5"
+            style={{
+              background: colors.searchBg,
+              border: `1px solid ${colors.searchBorder}`,
+            }}
+            role="status"
+            aria-live="polite"
+          >
+            <Loader2
+              size={16}
+              strokeWidth={2}
+              className="animate-spin flex-shrink-0"
+              style={{ color: colors.accent }}
+              aria-hidden
+            />
+            <span
+              className="text-[13px]"
+              style={{ color: colors.searchText, fontFamily: 'var(--font-dm-sans), sans-serif' }}
+            >
+              Generating unique link
+            </span>
+          </div>
+        ) : null}
 
         {shareUrl ? (
           <div
