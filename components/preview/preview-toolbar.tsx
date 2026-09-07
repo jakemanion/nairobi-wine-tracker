@@ -67,7 +67,13 @@ export function PreviewToolbar({
       <div
         className="overflow-hidden"
         style={{
-          border: `1px solid ${toolsActive ? colors.toolbarBorderActive : colors.toolbarBorder}`,
+          border: `1px solid ${
+            visualStyle === 'trial'
+              ? colors.cardBorder
+              : toolsActive
+                ? colors.toolbarBorderActive
+                : colors.toolbarBorder
+          }`,
           background: colors.toolbarBg,
           borderRadius: colors.panelRadius,
           boxShadow: visualStyle === 'trial' ? colors.cardShadow : undefined,
@@ -78,7 +84,7 @@ export function PreviewToolbar({
             <p
               className="m-0 px-3 pt-3 text-center"
               style={{
-                color: colors.summaryText,
+                color: colors.accent,
                 fontFamily: 'var(--font-dm-sans), sans-serif',
                 fontSize: 14,
                 fontWeight: 700,
@@ -104,7 +110,7 @@ export function PreviewToolbar({
           </>
         ) : null}
         <div
-          className="flex justify-center"
+          className="flex"
           style={{
             borderTop: filtersVisible ? `1px solid ${colors.toolbarBorder}` : undefined,
           }}
@@ -112,10 +118,10 @@ export function PreviewToolbar({
           <button
             type="button"
             aria-expanded={filtersVisible}
-            className="inline-flex items-center justify-center gap-1.5"
+            className="inline-flex w-full items-center justify-center gap-1.5"
             style={{
-              minHeight: 24,
-              padding: '3px 12px',
+              minHeight: 28,
+              padding: '6px 12px',
               border: 0,
               background: 'transparent',
               color: colors.summaryText,

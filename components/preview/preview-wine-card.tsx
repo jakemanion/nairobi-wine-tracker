@@ -106,18 +106,18 @@ function WineStarRating({
   )
 
   return (
-    <div className="flex flex-col items-start gap-1 flex-shrink-0 pt-0.5">
+    <div className="flex flex-col items-center justify-center gap-1.5 flex-shrink-0 self-stretch min-w-[3.25rem]">
       {starRating != null ? (
-        <div className="flex items-center gap-1" title={`${formatStarRating(starRating)} stars`}>
+        <div className="flex items-center gap-1.5" title={`${formatStarRating(starRating)} stars`}>
           <Star
-            size={18}
+            size={26}
             strokeWidth={0}
             className="flex-shrink-0"
             style={{ fill: starColor, color: starColor }}
             aria-hidden
           />
           <span
-            className="tabular-nums text-[15px] font-bold leading-none"
+            className="tabular-nums text-[22px] font-bold leading-none"
             style={{
               color: emphasisColor,
               fontFamily: 'var(--font-dm-sans), sans-serif',
@@ -129,7 +129,7 @@ function WineStarRating({
         </div>
       ) : (
         <span
-          className="text-[9px] font-medium leading-snug"
+          className="text-[11px] font-medium leading-snug text-center"
           style={{ color: mutedColor, fontFamily: 'var(--font-dm-sans), sans-serif' }}
         >
           No rating
@@ -392,7 +392,7 @@ export function PreviewWineCard({
           borderRight: visualStyle === 'trial' ? undefined : `1px solid ${colors.infoBorder}`,
         }}
       >
-        <div className="flex items-start gap-2.5 pr-2">
+        <div className="flex items-stretch gap-2.5 pr-2">
           <WineStarRating
             vivinoRating={wine.vivinoRating}
             vivinoUrl={wine.vivinoUrl}

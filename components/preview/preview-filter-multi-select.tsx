@@ -7,7 +7,7 @@ import {
   type CSSProperties,
 } from 'react'
 import { createPortal } from 'react-dom'
-import { ChevronDown, X } from 'lucide-react'
+import { ChevronDown, Check, X } from 'lucide-react'
 import type { PreviewColors } from '@/lib/preview/preview-colors'
 
 const PANEL_MAX_HEIGHT = 260
@@ -117,8 +117,8 @@ export function PreviewFilterMultiSelect({
     }
   }, [open])
 
-  const triggerLabel =
-    selected.length === 0 ? label : `${label} (${selected.length})`
+  const hasSelection = selected.length > 0
+  const triggerLabel = hasSelection ? `${label} (${selected.length})` : label
 
   const panelStyle: CSSProperties = {
     position: 'fixed',
@@ -141,7 +141,7 @@ export function PreviewFilterMultiSelect({
     gap: 8,
     padding: '6px 10px',
     fontSize: 11,
-    color: colors.searchText,
+    color: colors.summaryStrong,
     fontFamily: 'var(--font-dm-sans), sans-serif',
     cursor: 'pointer',
   }
@@ -202,9 +202,9 @@ export function PreviewFilterMultiSelect({
           lineHeight: 1.2,
           padding: '0 12px',
           borderRadius: colors.panelRadius,
-          background: selected.length > 0 ? colors.searchBg : colors.buttonBg,
-          border: `1px solid ${selected.length > 0 ? colors.accent : colors.buttonBorder}`,
-          color: selected.length > 0 ? colors.searchText : colors.buttonText,
+          background: hasSelection ? colors.searchBg : colors.buttonBg,
+          border: `1px solid ${hasSelection ? colors.accent : colors.buttonBorder}`,
+          color: hasSelection ? colors.summaryStrong : colors.buttonText,
           fontFamily: 'var(--font-dm-sans), sans-serif',
           cursor: 'pointer',
           whiteSpace: 'nowrap',
@@ -212,8 +212,11 @@ export function PreviewFilterMultiSelect({
         }}
         onClick={toggleOpen}
       >
+        {hasSelection ? (
+          <Check size={12} strokeWidth={2.5} style={{ color: colors.accent }} aria-hidden className="flex-shrink-0" />
+        ) : null}
         <span className="truncate">{triggerLabel}</span>
-        {selected.length > 0 ? (
+        {hasSelection ? (
           <span
             role="button"
             tabIndex={0}

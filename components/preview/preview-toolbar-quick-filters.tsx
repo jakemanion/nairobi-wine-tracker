@@ -52,7 +52,7 @@ function chipStyle(colors: PreviewColors, active: boolean): CSSProperties {
     fontFamily: 'var(--font-dm-sans), sans-serif',
     background: active ? colors.searchBg : colors.buttonBg,
     border: `1px solid ${active ? colors.accent : colors.buttonBorder}`,
-    color: active ? colors.searchText : colors.buttonText,
+    color: active ? colors.summaryStrong : colors.buttonText,
     whiteSpace: 'nowrap',
   }
 }
@@ -64,8 +64,8 @@ function sliderGroupStyle(colors: PreviewColors): CSSProperties {
     gap: 8,
     padding: 8,
     borderRadius: colors.panelRadius,
-    background: colors.searchBg,
-    border: `1px solid ${colors.searchBorder}`,
+    background: colors.previewShellBg,
+    border: `1px solid ${colors.toolbarBorder}`,
     fontFamily: 'var(--font-dm-sans), sans-serif',
   }
 }
@@ -88,7 +88,7 @@ function sectionTitleStyle(colors: PreviewColors): CSSProperties {
     textAlign: 'center',
     fontSize: 11,
     fontWeight: 600,
-    color: colors.muted,
+    color: colors.accent,
     fontFamily: 'var(--font-dm-sans), sans-serif',
     lineHeight: 1.2,
   }
@@ -168,7 +168,7 @@ function filterSelectStyle(colors: PreviewColors, active: boolean): CSSPropertie
     fontFamily: 'var(--font-dm-sans), sans-serif',
     background: active ? colors.searchBg : colors.buttonBg,
     border: `1px solid ${active ? colors.accent : colors.buttonBorder}`,
-    color: active ? colors.searchText : colors.buttonText,
+    color: active ? colors.summaryStrong : colors.buttonText,
     whiteSpace: 'nowrap' as const,
   }
 }
@@ -256,7 +256,7 @@ export function PreviewToolbarQuickFilters({
               value={filters.priceMax.trim() || ''}
               onChange={(event) => updateFilters({ priceMax: event.target.value })}
             >
-              <option value="">Highest price: Show all</option>
+              <option value="">Highest price: All</option>
               {buildPriceOptions(priceMaxBound).map((price) => (
                 <option key={price} value={String(price)}>
                   Max price: {price.toLocaleString()} KSh
@@ -273,7 +273,7 @@ export function PreviewToolbarQuickFilters({
               value={filters.vivinoMin.trim() || ''}
               onChange={(event) => updateFilters({ vivinoMin: event.target.value })}
             >
-              <option value="">Lowest rating: Show all</option>
+              <option value="">Lowest rating: All</option>
               {buildRatingOptions().map((rating) => (
                 <option key={rating} value={rating}>
                   {rating}★ and above
@@ -342,7 +342,9 @@ export function PreviewToolbarQuickFilters({
                     })
                   }
                 >
-                  {enabled ? <Check size={12} strokeWidth={2.5} aria-hidden /> : null}
+                  {enabled ? (
+                    <Check size={12} strokeWidth={2.5} style={{ color: colors.accent }} aria-hidden />
+                  ) : null}
                   {store}
                 </button>
               </InstantTooltip>
@@ -399,17 +401,28 @@ export function PreviewToolbarQuickFilters({
         <UsageTipTarget tipId="best-under-panel" style={titledSectionStyle(colors)}>
           <p style={sectionTitleStyle(colors)}>Best wines under ...</p>
           <div className="flex flex-wrap items-center justify-center gap-1.5">
-            {BEST_UNDER_PRICE_PRESETS.map((price) => (
+            {BEST_UNDER_PRICE_PRESETS.map((price) => {
+              const active = isBestUnderActive(filters, primarySort, price)
+              return (
               <button
                 key={price}
                 type="button"
-                aria-pressed={isBestUnderActive(filters, primarySort, price)}
-                style={chipStyle(colors, isBestUnderActive(filters, primarySort, price))}
+                aria-pressed={active}
+                style={{
+                  ...chipStyle(colors, active),
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 4,
+                }}
                 onClick={() => applyBestUnder(price)}
               >
+                {active ? (
+                  <Check size={12} strokeWidth={2.5} style={{ color: colors.accent }} aria-hidden />
+                ) : null}
                 {price.toLocaleString()}
               </button>
-            ))}
+              )
+            })}
           </div>
         </UsageTipTarget>
 
