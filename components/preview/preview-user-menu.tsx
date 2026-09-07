@@ -3,6 +3,7 @@
 import { LogoutButton } from '@/components/auth/logout-button'
 import { InstantTooltip } from '@/components/preview/instant-tooltip'
 import { UsageTipsToggle } from '@/components/preview/usage-tips-toggle'
+import { usePreviewTheme } from '@/components/preview/preview-theme-context'
 import type { PreviewColors, PreviewThemeMode } from '@/lib/preview/preview-colors'
 
 type PreviewUserMenuProps = {
@@ -20,6 +21,8 @@ export function PreviewUserMenu({
   userEmail,
   onShareClick,
 }: PreviewUserMenuProps) {
+  const { visualStyle } = usePreviewTheme()
+  const trial = visualStyle === 'trial'
   const accountLabel = userName.trim() || userEmail.trim() || 'Account'
   const initial = accountLabel.charAt(0).toUpperCase()
 
@@ -31,9 +34,9 @@ export function PreviewUserMenu({
           aria-label={`Open account menu for ${accountLabel}`}
           className="flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold"
           style={{
-            background: colors.headerAccent,
+            background: trial ? '#FFFFFF' : colors.headerAccent,
             border: `1px solid ${colors.buttonBorder}`,
-            color: '#FFFFFF',
+            color: trial ? colors.headerTitle : '#FFFFFF',
             cursor: 'pointer',
             fontFamily: 'var(--font-dm-sans), sans-serif',
           }}
@@ -47,38 +50,58 @@ export function PreviewUserMenu({
         aria-label="Account menu"
       >
         <div
-          className="flex flex-col gap-2 rounded-lg p-2.5"
+          className="flex flex-col gap-2 p-2.5"
           style={{
             background: colors.toolbarBg,
             border: `1px solid ${colors.toolbarBorder}`,
             borderRadius: colors.panelRadius,
-            boxShadow: '0 8px 24px rgba(0,0,0,0.35)',
+            boxShadow: trial ? colors.cardShadow : '0 8px 24px rgba(0,0,0,0.35)',
           }}
         >
           <UsageTipsToggle
             colors={colors}
             className="w-full justify-between"
+            style={
+              trial
+                ? {
+                    background: colors.buttonBg,
+                    border: `1px solid ${colors.buttonBorder}`,
+                    color: colors.buttonText,
+                  }
+                : undefined
+            }
           />
           {onShareClick ? (
             <button
               type="button"
-              className="w-full inline-flex items-center justify-center gap-1.5 text-[11px] px-2 py-1.5 rounded-lg"
+              className="w-full inline-flex items-center justify-center gap-1.5 text-[11px] px-2 py-1.5"
               style={{
                 background: colors.buttonBg,
                 border: `1px solid ${colors.buttonBorder}`,
                 color: colors.buttonText,
+                borderRadius: colors.buttonRadius,
                 fontFamily: 'var(--font-dm-sans), sans-serif',
                 cursor: 'pointer',
               }}
               onClick={onShareClick}
             >
-              Share lists
+              Share your list
             </button>
           ) : null}
           <LogoutButton
             theme={theme}
             className="w-full justify-center"
-            style={{ padding: '6px 10px' }}
+            style={{
+              padding: '6px 10px',
+              ...(trial
+                ? {
+                    background: colors.buttonBg,
+                    border: `1px solid ${colors.buttonBorder}`,
+                    color: colors.buttonText,
+                    borderRadius: colors.buttonRadius,
+                  }
+                : null),
+            }}
           />
         </div>
       </div>

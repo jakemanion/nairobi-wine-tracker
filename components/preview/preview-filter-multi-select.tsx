@@ -129,10 +129,10 @@ export function PreviewFilterMultiSelect({
     maxHeight: PANEL_MAX_HEIGHT,
     overflowY: 'auto',
     padding: '6px 0',
-    borderRadius: 8,
+    borderRadius: colors.panelRadius,
     background: colors.searchBg,
     border: `1px solid ${colors.searchBorder}`,
-    boxShadow: '0 8px 24px rgba(0,0,0,0.45)',
+    boxShadow: colors.cardShadow,
   }
 
   const optionStyle: CSSProperties = {

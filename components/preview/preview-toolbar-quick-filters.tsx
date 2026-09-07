@@ -13,6 +13,7 @@ import {
 import { InstantTooltip } from '@/components/preview/instant-tooltip'
 import { PreviewFilterMultiSelect } from '@/components/preview/preview-filter-multi-select'
 import { UsageTipTarget } from '@/components/preview/usage-tip-target'
+import { usePreviewTheme } from '@/components/preview/preview-theme-context'
 import type { PreviewColors } from '@/lib/preview/preview-colors'
 import type { SortCriterion, SortFieldKey } from '@/components/wine-filter-panel'
 import { formatStarRating, starRatingFilterOptions } from '@/lib/ratings/vivino-star-rating'
@@ -123,12 +124,20 @@ const REVIEW_FILTER_COLORS = {
   hide: { bg: '#2A1C1C', border: '#5A3030', color: '#F08080' },
 } as const
 
+const TRIAL_REVIEW_FILTER_COLORS = {
+  wishlist: { bg: '#99E2DA', border: '#029485', color: '#029485' },
+  shortlist: { bg: '#F0F0F8', border: '#E4E4EE', color: '#7878A0' },
+  thumbsUp: { bg: '#FFDD42', border: '#C89010', color: '#C89010' },
+  hide: { bg: '#ffffff', border: '#E4E4EE', color: '#BCBCCE' },
+} as const
+
 function reviewFilterButtonStyle(
   colors: PreviewColors,
   active: boolean,
   kind: 'wishlist' | 'shortlist' | 'thumbsUp' | 'hide',
+  trial = false,
 ): CSSProperties {
-  const accent = REVIEW_FILTER_COLORS[kind]
+  const accent = (trial ? TRIAL_REVIEW_FILTER_COLORS : REVIEW_FILTER_COLORS)[kind]
   return {
     display: 'inline-flex',
     alignItems: 'center',
@@ -207,6 +216,8 @@ export function PreviewToolbarQuickFilters({
   onSecondarySortChange,
   isLoggedIn = false,
 }: PreviewToolbarQuickFiltersProps) {
+  const { visualStyle } = usePreviewTheme()
+  const trial = visualStyle === 'trial'
   const priceMaxBound = priceBounds?.max ?? 10000
   const hideUnwantedActive =
     isHideUnwantedPreset(filters) ||
@@ -411,10 +422,15 @@ export function PreviewToolbarQuickFilters({
                   type="button"
                   aria-label="Show bookmarked only"
                   aria-pressed={filters.showWishlistOnly}
-                  style={reviewFilterButtonStyle(colors, filters.showWishlistOnly, 'wishlist')}
+                  style={reviewFilterButtonStyle(colors, filters.showWishlistOnly, 'wishlist', trial)}
                   onClick={() => updateFilters({ showWishlistOnly: !filters.showWishlistOnly })}
                 >
-                  <Bookmark size={14} strokeWidth={2} className={filters.showWishlistOnly ? 'fill-current' : undefined} />
+                  <Bookmark
+                    size={14}
+                    strokeWidth={2}
+                    fill={filters.showWishlistOnly ? 'currentColor' : 'none'}
+                    className={filters.showWishlistOnly ? 'fill-current' : undefined}
+                  />
                 </button>
               </InstantTooltip>
               <InstantTooltip label="Only show wines you'll buy again">
@@ -422,10 +438,15 @@ export function PreviewToolbarQuickFilters({
                   type="button"
                   aria-label="Only show wines you'll buy again"
                   aria-pressed={filters.showThumbsUpOnly}
-                  style={reviewFilterButtonStyle(colors, filters.showThumbsUpOnly, 'thumbsUp')}
+                  style={reviewFilterButtonStyle(colors, filters.showThumbsUpOnly, 'thumbsUp', trial)}
                   onClick={() => updateFilters({ showThumbsUpOnly: !filters.showThumbsUpOnly })}
                 >
-                  <ThumbsUp size={14} strokeWidth={2} />
+                  <ThumbsUp
+                    size={14}
+                    strokeWidth={2}
+                    fill={trial && filters.showThumbsUpOnly ? 'currentColor' : 'none'}
+                    className={trial && filters.showThumbsUpOnly ? 'fill-current' : undefined}
+                  />
                 </button>
               </InstantTooltip>
               <InstantTooltip label={hideUnwantedActive ? 'Show unwanted wines' : 'Hide unwanted wines'}>
@@ -433,10 +454,15 @@ export function PreviewToolbarQuickFilters({
                   type="button"
                   aria-label={hideUnwantedActive ? 'Show unwanted wines' : 'Hide unwanted wines'}
                   aria-pressed={hideUnwantedActive}
-                  style={reviewFilterButtonStyle(colors, hideUnwantedActive, 'hide')}
+                  style={reviewFilterButtonStyle(colors, hideUnwantedActive, 'hide', trial)}
                   onClick={() => onFiltersChange(applyHideUnwantedToggle(filters, !hideUnwantedActive))}
                 >
-                  <EyeOff size={14} strokeWidth={2} />
+                  <EyeOff
+                    size={14}
+                    strokeWidth={2}
+                    fill={trial && hideUnwantedActive ? 'currentColor' : 'none'}
+                    className={trial && hideUnwantedActive ? 'fill-current' : undefined}
+                  />
                 </button>
               </InstantTooltip>
             </div>

@@ -126,7 +126,7 @@ export function PreviewWineList({
             <div className="relative flex-1 max-w-xs">
               <Search
                 className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 pointer-events-none"
-                style={{ color: colors.muted }}
+                style={{ color: colors.searchPlaceholder }}
               />
               <input
                 type="search"
@@ -155,14 +155,14 @@ export function PreviewWineList({
                       background: colors.buttonBg,
                       border: `1px solid ${colors.buttonBorder}`,
                       color: colors.buttonText,
-                      borderRadius: colors.panelRadius,
+                      borderRadius: colors.buttonRadius,
                       fontFamily: 'var(--font-dm-sans), sans-serif',
                       cursor: 'pointer',
                     }}
                     onClick={() => setShareOpen(true)}
                   >
-                    <Share2 size={13} strokeWidth={2} />
-                    Share
+                    <Share2 size={13} strokeWidth={2} fill="none" />
+                    Share your list
                   </button>
                   <PreviewUserMenu
                     colors={colors}
