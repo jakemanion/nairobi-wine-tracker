@@ -175,7 +175,12 @@ export function PreviewTriedStatusPicker({
             }}
             onClick={() => void setStatus(2)}
           >
-            <ThumbsDown size={15} strokeWidth={2} fill="none" />
+            <ThumbsDown
+              size={15}
+              strokeWidth={2}
+              fill={trialDown?.filled ? 'currentColor' : 'none'}
+              className={trialDown?.filled ? 'fill-current' : undefined}
+            />
           </button>
         </InstantTooltip>
       </div>

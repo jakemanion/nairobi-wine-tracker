@@ -52,18 +52,21 @@ export function getTrialReviewControlStyle(
   active: boolean,
 ): TrialReviewControlStyle {
   if (tint === 'wishlist') {
-    if (role === 'bookmark') {
-      return { bg: '#99E2DA', border: '#029485', icon: '#029485', filled: true }
-    }
+    const bookmark = { bg: '#99E2DA', border: '#029485', icon: '#029485', filled: true }
+    if (role === 'bookmark') return bookmark
+    if ((role === 'thumbDown' || role === 'hide') && active) return bookmark
     return { bg: '#28C6B5', border: '#029485', icon: '#029485', filled: false }
   }
 
   if (tint === 'thumbsUp') {
-    const emphasized = (role === 'bookmark' && active) || role === 'thumbUp'
-    if (emphasized) {
-      return { bg: '#FFDD42', border: '#C89010', icon: '#C89010', filled: true }
-    }
+    const thumbsUp = { bg: '#FFDD42', border: '#C89010', icon: '#C89010', filled: true }
+    if ((role === 'bookmark' && active) || role === 'thumbUp') return thumbsUp
+    if ((role === 'thumbDown' || role === 'hide') && active) return thumbsUp
     return { bg: '#ECBF1F', border: '#C89010', icon: '#C89010', filled: false }
+  }
+
+  if ((role === 'thumbDown' || role === 'hide') && active) {
+    return { bg: '#ffffff', border: '#E4E4EE', icon: '#BCBCCE', filled: true }
   }
 
   return { bg: '#F0F0F8', border: '#E4E4EE', icon: '#BCBCCE', filled: false }

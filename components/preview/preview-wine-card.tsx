@@ -176,6 +176,7 @@ function HideButton({
   const borderColor = trialStyle ? trialStyle.border : active ? '#5A3030' : colors.controlIdleBorder
   const bgColor = trialStyle ? trialStyle.bg : active ? '#2A1C1C' : colors.controlIdleBg
   const iconColor = trialStyle ? trialStyle.icon : active ? '#F08080' : colors.controlIdleIcon
+  const iconFilled = trialStyle ? trialStyle.filled : false
 
   return (
     <div className="flex flex-col items-center gap-1 flex-shrink-0 m-0 p-0">
@@ -183,7 +184,7 @@ function HideButton({
         className="m-0 p-0 text-[8px] uppercase tracking-wider leading-none text-center whitespace-nowrap"
         style={{ color: panelLabelColor, fontFamily: 'var(--font-dm-sans), sans-serif' }}
       >
-        Not interested
+        IGNORE
       </p>
       <InstantTooltip label={active ? 'Show wine again' : 'Hide this wine'}>
         <button
@@ -203,7 +204,13 @@ function HideButton({
           }}
           onClick={onClick}
         >
-          <EyeOff size={24} strokeWidth={2} fill="none" style={{ color: iconColor }} />
+          <EyeOff
+            size={24}
+            strokeWidth={2}
+            fill={iconFilled ? 'currentColor' : 'none'}
+            className={iconFilled ? 'fill-current' : undefined}
+            style={{ color: iconColor }}
+          />
         </button>
       </InstantTooltip>
     </div>
