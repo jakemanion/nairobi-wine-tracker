@@ -6,12 +6,14 @@ import { Check, Copy, Link2, RefreshCw, X } from 'lucide-react'
 import { usePreviewTheme } from '@/components/preview/preview-theme-context'
 import {
   getMySharedList,
-  listShareableCollections,
   regenerateSharedListSlug,
   upsertSharedList,
   type SharedListConfig,
 } from '@/lib/share/shared-list-actions'
-import type { ShareableCollectionOption } from '@/lib/share/collection-keys'
+import {
+  BUILTIN_SHARE_COLLECTIONS,
+  DEFAULT_SHARE_COLLECTION_KEYS,
+} from '@/lib/share/collection-keys'
 
 type ShareListsModalProps = {
   open: boolean
@@ -26,8 +28,7 @@ function buildShareUrl(slug: string): string {
 export function ShareListsModal({ open, onClose }: ShareListsModalProps) {
   const { colors } = usePreviewTheme()
   const [mounted, setMounted] = useState(false)
-  const [options, setOptions] = useState<ShareableCollectionOption[]>([])
-  const [selected, setSelected] = useState<string[]>([])
+  const [selected, setSelected] = useState<string[]>(DEFAULT_SHARE_COLLECTION_KEYS)
   const [config, setConfig] = useState<SharedListConfig | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
@@ -42,22 +43,17 @@ export function ShareListsModal({ open, onClose }: ShareListsModalProps) {
 
     setError(null)
     setCopied(false)
+    setSelected(DEFAULT_SHARE_COLLECTION_KEYS)
+    setConfig(null)
+
     startTransition(async () => {
-      const [collectionsResult, sharedResult] = await Promise.all([
-        listShareableCollections(),
-        getMySharedList(),
-      ])
-
-      if (collectionsResult.error) setError(collectionsResult.error)
-      setOptions(collectionsResult.options)
-
+      const sharedResult = await getMySharedList()
       if (sharedResult.error) setError(sharedResult.error)
       if (sharedResult.config) {
         setConfig(sharedResult.config)
-        setSelected(sharedResult.config.collectionKeys)
-      } else {
-        setConfig(null)
-        setSelected([])
+        const known = new Set(DEFAULT_SHARE_COLLECTION_KEYS)
+        const fromConfig = sharedResult.config.collectionKeys.filter((key) => known.has(key))
+        setSelected(fromConfig.length > 0 ? fromConfig : DEFAULT_SHARE_COLLECTION_KEYS)
       }
     })
   }, [open])
@@ -97,7 +93,6 @@ export function ShareListsModal({ open, onClose }: ShareListsModalProps) {
     setError(null)
     setCopied(false)
     startTransition(async () => {
-      // Persist current checkbox selection, then rotate the slug.
       const saved = await upsertSharedList(selected)
       if (saved.error || !saved.config) {
         setError(saved.error ?? 'Failed to update collections.')
@@ -176,7 +171,7 @@ export function ShareListsModal({ open, onClose }: ShareListsModalProps) {
         </p>
 
         <div className="mt-4 flex flex-col gap-2.5">
-          {options.map((option) => {
+          {BUILTIN_SHARE_COLLECTIONS.map((option) => {
             const checked = selected.includes(option.key)
             return (
               <label
