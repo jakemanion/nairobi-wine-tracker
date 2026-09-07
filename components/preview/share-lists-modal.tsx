@@ -1,8 +1,8 @@
 'use client'
 
-import { useEffect, useState, useTransition } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Check, Copy, Link2, Loader2, RefreshCw, X } from 'lucide-react'
+import { Check, Copy, Loader2, RefreshCw, X } from 'lucide-react'
 import { usePreviewTheme } from '@/components/preview/preview-theme-context'
 import {
   getMySharedList,
@@ -25,6 +25,12 @@ function buildShareUrl(slug: string): string {
   return `${window.location.origin}/share/${slug}`
 }
 
+function selectionChanged(selected: string[], configKeys: string[]): boolean {
+  if (selected.length !== configKeys.length) return true
+  const known = new Set(configKeys)
+  return selected.some((key) => !known.has(key))
+}
+
 export function ShareListsModal({ open, onClose }: ShareListsModalProps) {
   const { colors } = usePreviewTheme()
   const [mounted, setMounted] = useState(false)
@@ -32,7 +38,10 @@ export function ShareListsModal({ open, onClose }: ShareListsModalProps) {
   const [config, setConfig] = useState<SharedListConfig | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
-  const [pending, startTransition] = useTransition()
+  const [awaitingLink, setAwaitingLink] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const selectedRef = useRef(selected)
+  selectedRef.current = selected
 
   useEffect(() => {
     setMounted(true)
@@ -45,18 +54,41 @@ export function ShareListsModal({ open, onClose }: ShareListsModalProps) {
     setCopied(false)
     setSelected(DEFAULT_SHARE_COLLECTION_KEYS)
     setConfig(null)
+    setAwaitingLink(true)
 
     let cancelled = false
+
     void (async () => {
       const sharedResult = await getMySharedList()
       if (cancelled) return
-      if (sharedResult.error) setError(sharedResult.error)
+
+      if (sharedResult.error) {
+        setError(sharedResult.error)
+        setAwaitingLink(false)
+        return
+      }
+
       if (sharedResult.config) {
         setConfig(sharedResult.config)
         const known = new Set(DEFAULT_SHARE_COLLECTION_KEYS)
         const fromConfig = sharedResult.config.collectionKeys.filter((key) => known.has(key))
         setSelected(fromConfig.length > 0 ? fromConfig : DEFAULT_SHARE_COLLECTION_KEYS)
+        setAwaitingLink(false)
+        return
       }
+
+      const created = await upsertSharedList(selectedRef.current)
+      if (cancelled) return
+
+      if (created.error || !created.config) {
+        setError(created.error ?? 'Failed to generate share link.')
+        setAwaitingLink(false)
+        return
+      }
+
+      setConfig(created.config)
+      setSelected(created.config.collectionKeys)
+      setAwaitingLink(false)
     })()
 
     return () => {
@@ -75,43 +107,59 @@ export function ShareListsModal({ open, onClose }: ShareListsModalProps) {
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [open, onClose])
 
+  async function persistSelection(nextSelected: string[]) {
+    if (!config || nextSelected.length === 0) return
+    if (!selectionChanged(nextSelected, config.collectionKeys)) return
+
+    setSaving(true)
+    setError(null)
+    const result = await upsertSharedList(nextSelected)
+    setSaving(false)
+
+    if (result.error || !result.config) {
+      setError(result.error ?? 'Failed to save selection.')
+      return
+    }
+
+    setConfig(result.config)
+    setSelected(result.config.collectionKeys)
+  }
+
   function toggleKey(key: string) {
-    setSelected((current) =>
-      current.includes(key) ? current.filter((item) => item !== key) : [...current, key],
-    )
-  }
-
-  function generate() {
-    setError(null)
-    setCopied(false)
-    startTransition(async () => {
-      const result = await upsertSharedList(selected)
-      if (result.error || !result.config) {
-        setError(result.error ?? 'Failed to generate share link.')
-        return
-      }
-      setConfig(result.config)
-      setSelected(result.config.collectionKeys)
+    setSelected((current) => {
+      const next = current.includes(key)
+        ? current.filter((item) => item !== key)
+        : [...current, key]
+      void persistSelection(next)
+      return next
     })
   }
 
-  function regenerate() {
+  async function regenerate() {
     setError(null)
     setCopied(false)
-    startTransition(async () => {
-      const saved = await upsertSharedList(selected)
-      if (saved.error || !saved.config) {
-        setError(saved.error ?? 'Failed to update collections.')
-        return
-      }
-      const result = await regenerateSharedListSlug()
-      if (result.error || !result.config) {
-        setError(result.error ?? 'Failed to regenerate share link.')
-        return
-      }
-      setConfig(result.config)
-      setSelected(result.config.collectionKeys)
-    })
+    setAwaitingLink(true)
+    setConfig(null)
+
+    const saved = await upsertSharedList(selectedRef.current)
+    if (saved.error || !saved.config) {
+      setError(saved.error ?? 'Failed to update collections.')
+      setAwaitingLink(false)
+      return
+    }
+
+    const result = await regenerateSharedListSlug()
+    if (result.error || !result.config) {
+      setError(result.error ?? 'Failed to regenerate share link.')
+      // Restore previous config from save so the user is not left blank.
+      setConfig(saved.config)
+      setAwaitingLink(false)
+      return
+    }
+
+    setConfig(result.config)
+    setSelected(result.config.collectionKeys)
+    setAwaitingLink(false)
   }
 
   async function copyLink() {
@@ -129,7 +177,7 @@ export function ShareListsModal({ open, onClose }: ShareListsModalProps) {
   if (!mounted || !open) return null
 
   const shareUrl = config ? buildShareUrl(config.slug) : null
-  const awaitingLink = Boolean(pending && !shareUrl)
+  const busy = awaitingLink || saving
 
   return createPortal(
     <div
@@ -168,13 +216,13 @@ export function ShareListsModal({ open, onClose }: ShareListsModalProps) {
           className="m-0 text-lg font-semibold pr-8"
           style={{ color: colors.headerTitle, fontFamily: colors.headingFont }}
         >
-          Share my wines
+          Share your wine list
         </h2>
         <p
           className="m-0 mt-2 text-[12px] leading-relaxed"
           style={{ color: colors.headerSub, fontFamily: 'var(--font-dm-sans), sans-serif' }}
         >
-          Choose which collections you would like to include in a read-only shared link.
+          Choose which collections to include in a read-only shared link.
         </p>
 
         <div className="mt-4 flex flex-col gap-2.5">
@@ -184,11 +232,15 @@ export function ShareListsModal({ open, onClose }: ShareListsModalProps) {
               <label
                 key={option.key}
                 className="flex items-center gap-2.5 cursor-pointer"
-                style={{ fontFamily: 'var(--font-dm-sans), sans-serif' }}
+                style={{
+                  fontFamily: 'var(--font-dm-sans), sans-serif',
+                  opacity: awaitingLink ? 0.7 : 1,
+                }}
               >
                 <input
                   type="checkbox"
                   checked={checked}
+                  disabled={awaitingLink || (selected.length === 1 && checked)}
                   onChange={() => toggleKey(option.key)}
                   className="accent-current"
                   style={{ accentColor: colors.accent }}
@@ -200,26 +252,6 @@ export function ShareListsModal({ open, onClose }: ShareListsModalProps) {
             )
           })}
         </div>
-
-        <button
-          type="button"
-          disabled={pending || selected.length === 0}
-          className="mt-5 w-full inline-flex items-center justify-center gap-2 rounded-lg text-[13px] font-medium"
-          style={{
-            background: selected.length === 0 ? colors.buttonBg : colors.accent,
-            border: `1px solid ${selected.length === 0 ? colors.buttonBorder : colors.accent}`,
-            color: selected.length === 0 ? colors.buttonText : '#FFFFFF',
-            borderRadius: colors.panelRadius,
-            fontFamily: 'var(--font-dm-sans), sans-serif',
-            padding: '10px 14px',
-            cursor: pending || selected.length === 0 ? 'default' : 'pointer',
-            opacity: pending ? 0.7 : 1,
-          }}
-          onClick={generate}
-        >
-          <Link2 size={15} strokeWidth={2} />
-          {config ? 'Update Share Link' : 'Generate Share Link'}
-        </button>
 
         {awaitingLink ? (
           <div
@@ -286,7 +318,7 @@ export function ShareListsModal({ open, onClose }: ShareListsModalProps) {
               </button>
               <button
                 type="button"
-                disabled={pending}
+                disabled={busy}
                 className="inline-flex items-center gap-1.5 rounded-lg text-[12px]"
                 style={{
                   background: colors.buttonBg,
@@ -294,10 +326,10 @@ export function ShareListsModal({ open, onClose }: ShareListsModalProps) {
                   color: colors.buttonText,
                   fontFamily: 'var(--font-dm-sans), sans-serif',
                   padding: '7px 10px',
-                  cursor: pending ? 'default' : 'pointer',
-                  opacity: pending ? 0.7 : 1,
+                  cursor: busy ? 'default' : 'pointer',
+                  opacity: busy ? 0.7 : 1,
                 }}
-                onClick={regenerate}
+                onClick={() => void regenerate()}
               >
                 <RefreshCw size={13} strokeWidth={2} />
                 Regenerate Link
