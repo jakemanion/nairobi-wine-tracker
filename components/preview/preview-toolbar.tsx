@@ -51,7 +51,7 @@ export function PreviewToolbar({
   isLoggedIn = false,
 }: PreviewToolbarProps) {
   const { colors, visualStyle } = usePreviewTheme()
-  const [filtersVisible, setFiltersVisible] = useState(true)
+  const [filtersVisible, setFiltersVisible] = useState(false)
   const toolsActive = activeFilterCount > 0
   const summaryText = buildListStateSummary({
     filters,
