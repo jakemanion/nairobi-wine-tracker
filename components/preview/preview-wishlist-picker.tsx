@@ -14,6 +14,7 @@ type PreviewWishlistPickerProps = {
   userId: string
   review?: WineReview | null
   labelColor?: string
+  panelTint?: PanelTint
   onReviewChange: (review: WineReview | null) => void
 }
 
@@ -33,11 +34,40 @@ export const WISHLISTED_BUTTON_STYLE = {
   color: '#50A060',
 } as const
 
-const TRIAL_BOOKMARK_BUTTON_STYLE = {
-  border: '#6a9468',
-  bg: '#7eaa7a',
-  color: '#e8f6e4',
-} as const
+export const TRIAL_REVIEW_BUTTON_RADIUS = '9px'
+
+export type TrialReviewControlRole = 'bookmark' | 'thumbUp' | 'thumbDown' | 'hide'
+
+export type TrialReviewControlStyle = {
+  bg: string
+  border: string
+  icon: string
+  filled: boolean
+}
+
+/** Trial review-panel button chrome for normal / bookmarked / buy-again. */
+export function getTrialReviewControlStyle(
+  tint: PanelTint,
+  role: TrialReviewControlRole,
+  active: boolean,
+): TrialReviewControlStyle {
+  if (tint === 'wishlist') {
+    if (role === 'bookmark') {
+      return { bg: '#99E2DA', border: '#029485', icon: '#029485', filled: true }
+    }
+    return { bg: '#28C6B5', border: '#029485', icon: '#029485', filled: false }
+  }
+
+  if (tint === 'thumbsUp') {
+    const emphasized = (role === 'bookmark' && active) || role === 'thumbUp'
+    if (emphasized) {
+      return { bg: '#FFDD42', border: '#C89010', icon: '#C89010', filled: true }
+    }
+    return { bg: '#ECBF1F', border: '#C89010', icon: '#C89010', filled: false }
+  }
+
+  return { bg: '#F0F0F8', border: '#E4E4EE', icon: '#BCBCCE', filled: false }
+}
 
 function buildOptimisticReview(
   review: WineReview | null | undefined,
@@ -64,6 +94,7 @@ export function PreviewWishlistPicker({
   userId,
   review,
   labelColor,
+  panelTint = 'none',
   onReviewChange,
 }: PreviewWishlistPickerProps) {
   const { colors, visualStyle } = usePreviewTheme()
@@ -71,6 +102,8 @@ export function PreviewWishlistPicker({
   const [error, setError] = useState<string | null>(null)
   const value = normalizeWishlist(review?.wishlist)
   const active = value === 1
+  const trial = visualStyle === 'trial'
+  const trialStyle = trial ? getTrialReviewControlStyle(panelTint, 'bookmark', active) : null
 
   async function toggle() {
     if (saving) return
@@ -101,10 +134,22 @@ export function PreviewWishlistPicker({
     onReviewChange(result.review)
   }
 
-  const activeStyle = visualStyle === 'trial' ? TRIAL_BOOKMARK_BUTTON_STYLE : WISHLISTED_BUTTON_STYLE
-  const borderColor = active ? activeStyle.border : colors.controlIdleBorder
-  const bgColor = active ? activeStyle.bg : colors.controlIdleBg
-  const iconColor = active ? activeStyle.color : colors.controlIdleIcon
+  const borderColor = trialStyle
+    ? trialStyle.border
+    : active
+      ? WISHLISTED_BUTTON_STYLE.border
+      : colors.controlIdleBorder
+  const bgColor = trialStyle
+    ? trialStyle.bg
+    : active
+      ? WISHLISTED_BUTTON_STYLE.bg
+      : colors.controlIdleBg
+  const iconColor = trialStyle
+    ? trialStyle.icon
+    : active
+      ? WISHLISTED_BUTTON_STYLE.color
+      : colors.controlIdleIcon
+  const iconFilled = trialStyle ? trialStyle.filled : active
 
   return (
     <div className="relative flex flex-col items-center gap-1 flex-shrink-0 m-0 p-0">
@@ -122,11 +167,11 @@ export function PreviewWishlistPicker({
           disabled={saving}
           className="w-10 h-10 flex items-center justify-center transition-all hover:scale-105 flex-shrink-0 m-0"
           style={{
-            border: `2px solid ${borderColor}`,
+            border: `${trial ? 1 : 2}px solid ${borderColor}`,
             background: bgColor,
             color: iconColor,
-            borderRadius: colors.buttonRadius,
-            boxShadow: colors.controlShadow,
+            borderRadius: trial ? TRIAL_REVIEW_BUTTON_RADIUS : colors.buttonRadius,
+            boxShadow: trial ? 'none' : colors.controlShadow,
             opacity: saving ? 0.5 : 1,
             cursor: saving ? 'wait' : 'pointer',
           }}
@@ -135,7 +180,8 @@ export function PreviewWishlistPicker({
         <Bookmark
           size={24}
           strokeWidth={2}
-          className={active ? 'fill-current' : undefined}
+          fill={iconFilled ? 'currentColor' : 'none'}
+          className={iconFilled ? 'fill-current' : undefined}
           style={{ color: iconColor }}
         />
       </button>

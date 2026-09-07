@@ -9,7 +9,9 @@ import {
   getCardBorderColor,
   getReviewPanelStyle,
   getReviewPanelTint,
+  getTrialReviewControlStyle,
   PreviewWishlistPicker,
+  TRIAL_REVIEW_BUTTON_RADIUS,
 } from '@/components/preview/preview-wishlist-picker'
 import { InstantTooltip } from '@/components/preview/instant-tooltip'
 import { PreviewShortlistButton } from '@/components/preview/preview-shortlist-button'
@@ -21,7 +23,12 @@ import {
   lowestPrice,
   type PreviewWineCardData,
 } from '@/lib/preview/wine-card-model'
-import { getReviewPanelTextColors, type PreviewColors } from '@/lib/preview/preview-colors'
+import {
+  getReviewPanelTextColors,
+  type PanelTint,
+  type PreviewColors,
+  type PreviewVisualStyle,
+} from '@/lib/preview/preview-colors'
 import { formatStarRating, starRatingColor, vivinoToStarRating } from '@/lib/ratings/vivino-star-rating'
 import { saveReviewField } from '@/lib/reviews'
 import type { WishlistValue, TriedStatusValue } from '@/lib/reviews'
@@ -151,18 +158,24 @@ function HideButton({
   active,
   saving,
   panelLabelColor,
+  panelTint,
   colors,
+  visualStyle,
   onClick,
 }: {
   active: boolean
   saving: boolean
   panelLabelColor: string
+  panelTint: PanelTint
   colors: PreviewColors
+  visualStyle: PreviewVisualStyle
   onClick: () => void
 }) {
-  const borderColor = active ? '#5A3030' : colors.controlIdleBorder
-  const bgColor = active ? '#2A1C1C' : colors.controlIdleBg
-  const iconColor = active ? '#F08080' : colors.controlIdleIcon
+  const trial = visualStyle === 'trial'
+  const trialStyle = trial ? getTrialReviewControlStyle(panelTint, 'hide', active) : null
+  const borderColor = trialStyle ? trialStyle.border : active ? '#5A3030' : colors.controlIdleBorder
+  const bgColor = trialStyle ? trialStyle.bg : active ? '#2A1C1C' : colors.controlIdleBg
+  const iconColor = trialStyle ? trialStyle.icon : active ? '#F08080' : colors.controlIdleIcon
 
   return (
     <div className="flex flex-col items-center gap-1 flex-shrink-0 m-0 p-0">
@@ -180,17 +193,17 @@ function HideButton({
           disabled={saving}
           className="w-10 h-10 flex items-center justify-center transition-all hover:scale-105 flex-shrink-0 m-0"
           style={{
-            border: `2px solid ${borderColor}`,
+            border: `${trial ? 1 : 2}px solid ${borderColor}`,
             background: bgColor,
             color: iconColor,
-            borderRadius: colors.buttonRadius,
-            boxShadow: colors.controlShadow,
+            borderRadius: trial ? TRIAL_REVIEW_BUTTON_RADIUS : colors.buttonRadius,
+            boxShadow: trial ? 'none' : colors.controlShadow,
             opacity: saving ? 0.5 : 1,
             cursor: saving ? 'wait' : 'pointer',
           }}
           onClick={onClick}
         >
-          <EyeOff size={24} strokeWidth={2} style={{ color: iconColor }} />
+          <EyeOff size={24} strokeWidth={2} fill="none" style={{ color: iconColor }} />
         </button>
       </InstantTooltip>
     </div>
@@ -241,7 +254,7 @@ export function PreviewWineCard({
   const infoProducer = colors.producer
   const infoWineName = infoOnDark ? '#F5F2EC' : colors.wineName
   const ratingEmphasis = visualStyle === 'trial' ? colors.ratingValue : infoWineName
-  const infoMuted = infoOnDark ? '#C8C4D0' : colors.muted
+  const infoMuted = infoOnDark ? '#C8C4D0' : visualStyle === 'trial' ? '#BCBCCE' : colors.muted
   const infoGrapeBg = infoOnDark ? 'rgba(255,255,255,0.08)' : colors.grapeBg
   const infoGrapeBorder = infoOnDark ? 'rgba(255,255,255,0.12)' : colors.grapeBorder
   const infoGrapeText = infoOnDark ? '#E8E4DC' : colors.grapeText
@@ -515,6 +528,7 @@ export function PreviewWineCard({
                   userId={userId}
                   review={review}
                   labelColor={panelText.label}
+                  panelTint={panelTint}
                   onReviewChange={onReviewChange}
                 />
               </UsageTipTarget>
@@ -535,7 +549,9 @@ export function PreviewWineCard({
                 active={isHidden}
                 saving={savingHide}
                 panelLabelColor={panelText.label}
+                panelTint={panelTint}
                 colors={colors}
+                visualStyle={visualStyle}
                 onClick={() => void toggleHide()}
               />
             </UsageTipTarget>
@@ -594,6 +610,7 @@ export function PreviewWineCard({
                   wineId={wine.id}
                   userId={userId}
                   review={review}
+                  panelTint={panelTint}
                   onReviewChange={onReviewChange}
                 />
               </UsageTipTarget>

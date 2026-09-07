@@ -4,13 +4,19 @@ import { useState } from 'react'
 import { ThumbsUp, ThumbsDown } from 'lucide-react'
 import type { WineReview } from '@/components/wine-table'
 import { InstantTooltip } from '@/components/preview/instant-tooltip'
+import {
+  getTrialReviewControlStyle,
+  TRIAL_REVIEW_BUTTON_RADIUS,
+} from '@/components/preview/preview-wishlist-picker'
 import { usePreviewTheme } from '@/components/preview/preview-theme-context'
+import type { PanelTint } from '@/lib/preview/preview-colors'
 import { saveReviewTriedStatusField, type TriedStatusValue } from '@/lib/reviews'
 
 type PreviewTriedStatusPickerProps = {
   wineId: string
   userId: string
   review?: WineReview | null
+  panelTint?: PanelTint
   onReviewChange: (review: WineReview | null) => void
 }
 
@@ -48,12 +54,14 @@ export function PreviewTriedStatusPicker({
   wineId,
   userId,
   review,
+  panelTint = 'none',
   onReviewChange,
 }: PreviewTriedStatusPickerProps) {
   const { colors, visualStyle } = usePreviewTheme()
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const value = normalizeTriedStatus(review?.tried_status)
+  const trial = visualStyle === 'trial'
 
   async function setStatus(next: TriedStatusValue) {
     if (saving) return
@@ -85,9 +93,8 @@ export function PreviewTriedStatusPicker({
 
   const upActive = value === 1
   const downActive = value === 2
-  const trialSelected = visualStyle === 'trial'
-  const trialSelectedYellow = '#d4b56a'
-  const trialSelectedInk = '#3f3f3d'
+  const trialUp = trial ? getTrialReviewControlStyle(panelTint, 'thumbUp', upActive) : null
+  const trialDown = trial ? getTrialReviewControlStyle(panelTint, 'thumbDown', downActive) : null
 
   return (
     <div className="flex flex-col items-center gap-0.5 flex-shrink-0">
@@ -102,17 +109,36 @@ export function PreviewTriedStatusPicker({
             style={{
               width: 28,
               height: 28,
-              border: `1.5px solid ${upActive ? (trialSelected ? trialSelectedInk : '#8A7020') : colors.controlIdleBorder}`,
-              background: upActive ? (trialSelected ? trialSelectedYellow : '#3A2E08') : colors.controlIdleBg,
-              color: upActive ? (trialSelected ? trialSelectedInk : '#E0C040') : colors.controlIdleIcon,
-              borderRadius: colors.buttonRadius,
-              boxShadow: colors.controlShadow,
+              border: `${trial ? 1 : 1.5}px solid ${
+                trialUp
+                  ? trialUp.border
+                  : upActive
+                    ? '#8A7020'
+                    : colors.controlIdleBorder
+              }`,
+              background: trialUp
+                ? trialUp.bg
+                : upActive
+                  ? '#3A2E08'
+                  : colors.controlIdleBg,
+              color: trialUp
+                ? trialUp.icon
+                : upActive
+                  ? '#E0C040'
+                  : colors.controlIdleIcon,
+              borderRadius: trial ? TRIAL_REVIEW_BUTTON_RADIUS : colors.buttonRadius,
+              boxShadow: trial ? 'none' : colors.controlShadow,
               opacity: saving ? 0.5 : 1,
               cursor: saving ? 'wait' : 'pointer',
             }}
             onClick={() => void setStatus(1)}
           >
-            <ThumbsUp size={15} strokeWidth={2} fill="none" />
+            <ThumbsUp
+              size={15}
+              strokeWidth={2}
+              fill={trialUp?.filled ? 'currentColor' : 'none'}
+              className={trialUp?.filled ? 'fill-current' : undefined}
+            />
           </button>
         </InstantTooltip>
         <InstantTooltip label="Don't buy again">
@@ -125,18 +151,32 @@ export function PreviewTriedStatusPicker({
             style={{
               width: 28,
               height: 28,
-              border: `1.5px solid ${downActive ? (trialSelected ? trialSelectedInk : '#5A3030') : colors.controlIdleBorder}`,
-              background: downActive ? (trialSelected ? trialSelectedYellow : '#2A1C1C') : colors.controlIdleBg,
-              color: downActive ? (trialSelected ? trialSelectedInk : '#F08080') : colors.controlIdleIcon,
-            borderRadius: colors.buttonRadius,
-            boxShadow: colors.controlShadow,
-            opacity: saving ? 0.5 : 1,
-            cursor: saving ? 'wait' : 'pointer',
-          }}
-          onClick={() => void setStatus(2)}
-        >
+              border: `${trial ? 1 : 1.5}px solid ${
+                trialDown
+                  ? trialDown.border
+                  : downActive
+                    ? '#5A3030'
+                    : colors.controlIdleBorder
+              }`,
+              background: trialDown
+                ? trialDown.bg
+                : downActive
+                  ? '#2A1C1C'
+                  : colors.controlIdleBg,
+              color: trialDown
+                ? trialDown.icon
+                : downActive
+                  ? '#F08080'
+                  : colors.controlIdleIcon,
+              borderRadius: trial ? TRIAL_REVIEW_BUTTON_RADIUS : colors.buttonRadius,
+              boxShadow: trial ? 'none' : colors.controlShadow,
+              opacity: saving ? 0.5 : 1,
+              cursor: saving ? 'wait' : 'pointer',
+            }}
+            onClick={() => void setStatus(2)}
+          >
             <ThumbsDown size={15} strokeWidth={2} fill="none" />
-        </button>
+          </button>
         </InstantTooltip>
       </div>
       {error ? (

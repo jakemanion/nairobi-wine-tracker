@@ -283,14 +283,45 @@ export function getReviewPanelTextColors(
   tint: PanelTint,
   visualStyle: PreviewVisualStyle = 'classic',
 ): ReviewPanelTextColors {
+  if (visualStyle === 'trial') {
+    if (tint === 'thumbsUp') {
+      return {
+        label: '#825600',
+        body: '#825600',
+        muted: '#825600',
+        notesBg: '#FFE25C',
+        notesBorder: '#D4A820',
+        notesText: '#825600',
+      }
+    }
+    if (tint === 'wishlist') {
+      return {
+        label: '#006459',
+        body: '#006459',
+        muted: '#006459',
+        notesBg: '#99E2DA',
+        notesBorder: '#00C0AC',
+        notesText: '#006459',
+      }
+    }
+    return {
+      label: '#7878A0',
+      body: '#7878A0',
+      muted: '#7878A0',
+      notesBg: '#ffffff',
+      notesBorder: '#E4E4EE',
+      notesText: '#7878A0',
+    }
+  }
+
   if (usesLightSurfaces(mode, visualStyle)) {
     return {
-      label: visualStyle === 'trial' ? '#6A5044' : '#4A4540',
-      body: visualStyle === 'trial' ? '#2A1410' : '#1A1814',
-      muted: visualStyle === 'trial' ? '#6A564C' : '#5A5550',
-      notesBg: visualStyle === 'trial' ? '#FFFDF8' : '#FAF9F7',
-      notesBorder: visualStyle === 'trial' ? '#E0D0C0' : '#D8D4CC',
-      notesText: visualStyle === 'trial' ? '#2A1410' : '#1A1814',
+      label: '#4A4540',
+      body: '#1A1814',
+      muted: '#5A5550',
+      notesBg: '#FAF9F7',
+      notesBorder: '#D8D4CC',
+      notesText: '#1A1814',
     }
   }
 
