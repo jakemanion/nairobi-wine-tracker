@@ -10,7 +10,6 @@ import { PreviewWineCard } from '@/components/preview/preview-wine-card'
 import { ShareListsModal } from '@/components/preview/share-lists-modal'
 import { UsageTipsProvider } from '@/components/preview/usage-tips-context'
 import { UsageTipsToggle } from '@/components/preview/usage-tips-toggle'
-import { VisualStyleToggle } from '@/components/preview/visual-style-toggle'
 import { WelcomePanel } from '@/components/preview/welcome-panel'
 import { usePreviewTheme } from '@/components/preview/preview-theme-context'
 import { SiteFooter } from '@/components/site-footer'
@@ -147,7 +146,6 @@ export function PreviewWineList({
             <div className="flex items-center gap-2 flex-shrink-0">
               {isLoggedIn ? (
                 <>
-                  <VisualStyleToggle colors={colors} />
                   <button
                     type="button"
                     className="inline-flex items-center gap-1.5 text-[11px] px-2.5 py-1.5"
@@ -174,7 +172,6 @@ export function PreviewWineList({
                 </>
               ) : (
                 <>
-                    <VisualStyleToggle colors={colors} />
                   <UsageTipsToggle colors={colors} />
                   <LoginNavLink theme={colors.headerNavTheme} nextPath="/" />
                   <RegisterNavLink theme={colors.headerNavTheme} />

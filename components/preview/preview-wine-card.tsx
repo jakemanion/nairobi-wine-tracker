@@ -106,7 +106,7 @@ function WineStarRating({
   )
 
   return (
-    <div className="flex flex-col items-center justify-center gap-1.5 flex-shrink-0 self-stretch min-w-[3.25rem]">
+    <div className="flex flex-col items-center gap-1.5 flex-shrink-0 pt-0.5 min-w-[3.25rem]">
       {starRating != null ? (
         <div className="flex items-center gap-1.5" title={`${formatStarRating(starRating)} stars`}>
           <Star
@@ -392,7 +392,7 @@ export function PreviewWineCard({
           borderRight: visualStyle === 'trial' ? undefined : `1px solid ${colors.infoBorder}`,
         }}
       >
-        <div className="flex items-stretch gap-2.5 pr-2">
+        <div className="flex items-start gap-2.5 pr-2">
           <WineStarRating
             vivinoRating={wine.vivinoRating}
             vivinoUrl={wine.vivinoUrl}

@@ -9,7 +9,6 @@ import { PreviewUserMenu } from '@/components/preview/preview-user-menu'
 import { PreviewWineCard } from '@/components/preview/preview-wine-card'
 import { UsageTipsProvider } from '@/components/preview/usage-tips-context'
 import { UsageTipsToggle } from '@/components/preview/usage-tips-toggle'
-import { VisualStyleToggle } from '@/components/preview/visual-style-toggle'
 import { usePreviewTheme } from '@/components/preview/preview-theme-context'
 import { SiteFooter } from '@/components/site-footer'
 import type { WineReview, WineRow } from '@/components/wine-table'
@@ -121,18 +120,14 @@ export function SharedWineList({
               </div>
               <div className="flex items-center gap-2 flex-shrink-0">
                 {isLoggedIn ? (
-                  <>
-                    <VisualStyleToggle colors={colors} />
-                    <PreviewUserMenu
-                      colors={colors}
-                      theme={colors.headerNavTheme}
-                      userName={userName}
-                      userEmail={userEmail}
-                    />
-                  </>
+                  <PreviewUserMenu
+                    colors={colors}
+                    theme={colors.headerNavTheme}
+                    userName={userName}
+                    userEmail={userEmail}
+                  />
                 ) : (
                   <>
-                    <VisualStyleToggle colors={colors} />
                     <UsageTipsToggle colors={colors} />
                     <LoginNavLink theme={colors.headerNavTheme} nextPath={sharePath} />
                     <RegisterNavLink theme={colors.headerNavTheme} />

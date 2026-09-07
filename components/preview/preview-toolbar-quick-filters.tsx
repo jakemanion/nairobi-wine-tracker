@@ -50,7 +50,7 @@ function chipStyle(colors: PreviewColors, active: boolean): CSSProperties {
     borderRadius: colors.panelRadius,
     cursor: 'pointer',
     fontFamily: 'var(--font-dm-sans), sans-serif',
-    background: active ? colors.searchBg : colors.buttonBg,
+    background: active ? '#ffffff' : colors.buttonBg,
     border: `1px solid ${active ? colors.accent : colors.buttonBorder}`,
     color: active ? colors.summaryStrong : colors.buttonText,
     whiteSpace: 'nowrap',
@@ -162,11 +162,11 @@ function filterSelectStyle(colors: PreviewColors, active: boolean): CSSPropertie
     height: CONTROL_HEIGHT,
     fontSize: 12,
     lineHeight: 1.2,
-    padding: '0 12px',
+    padding: '0 2rem 0 12px',
     borderRadius: colors.panelRadius,
     cursor: 'pointer',
     fontFamily: 'var(--font-dm-sans), sans-serif',
-    background: active ? colors.searchBg : colors.buttonBg,
+    background: active ? '#ffffff' : colors.buttonBg,
     border: `1px solid ${active ? colors.accent : colors.buttonBorder}`,
     color: active ? colors.summaryStrong : colors.buttonText,
     whiteSpace: 'nowrap' as const,
@@ -226,6 +226,7 @@ export function PreviewToolbarQuickFilters({
       filters.triedStatus.length === 0)
 
   const selectedCountries = selectedCountriesFromRegionFilters(filters.regions)
+  const allShopsEnabled = filters.disabledStores.length === 0
 
   function updateFilters(patch: Partial<WineFilters>) {
     onFiltersChange({ ...filters, ...patch })
@@ -323,6 +324,24 @@ export function PreviewToolbarQuickFilters({
         <UsageTipTarget tipId="shops-filter" style={{ ...titledSectionStyle(colors), width: '100%' }}>
           <p style={sectionTitleStyle(colors)}>Choose which shops to show</p>
           <div className="flex flex-wrap items-center justify-center gap-1.5">
+          <InstantTooltip label="Show wines from all shops">
+            <button
+              type="button"
+              aria-pressed={allShopsEnabled}
+              style={{
+                ...chipStyle(colors, allShopsEnabled),
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 4,
+              }}
+              onClick={() => updateFilters({ disabledStores: [] })}
+            >
+              {allShopsEnabled ? (
+                <Check size={12} strokeWidth={2.5} style={{ color: colors.accent }} aria-hidden />
+              ) : null}
+              All
+            </button>
+          </InstantTooltip>
           {stores.map((store) => {
             const enabled = !filters.disabledStores.includes(store)
             return (
@@ -360,7 +379,7 @@ export function PreviewToolbarQuickFilters({
           <div className="flex items-center justify-center gap-1.5">
             <select
               aria-label="Sort by"
-              style={filterSelectStyle(colors, primarySort.key !== 'value_score')}
+              style={filterSelectStyle(colors, true)}
               value={primarySort.key}
               onChange={(event) => {
                 const key = event.target.value as SortFieldKey

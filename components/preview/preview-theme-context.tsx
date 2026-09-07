@@ -31,16 +31,13 @@ function persistVisualStyle(style: PreviewVisualStyle) {
 
 export function PreviewThemeProvider({ children }: { children: ReactNode }) {
   const [mode, setMode] = useState<PreviewThemeMode>('dark')
-  const [visualStyle, setVisualStyleState] = useState<PreviewVisualStyle>('classic')
+  const [visualStyle, setVisualStyleState] = useState<PreviewVisualStyle>('trial')
   const colors = getPreviewColors(mode, visualStyle)
 
   useEffect(() => {
-    try {
-      const stored = window.localStorage.getItem(VISUAL_STYLE_STORAGE_KEY)
-      if (stored === 'trial' || stored === 'classic') setVisualStyleState(stored)
-    } catch {
-      // Ignore storage access errors and keep defaults.
-    }
+    // Trial is the only public style; clear any stored classic preference.
+    persistVisualStyle('trial')
+    setVisualStyleState('trial')
   }, [])
 
   function toggleMode() {
