@@ -265,7 +265,7 @@ export function PreviewToolbarQuickFilters({
 
   return (
     <div className="flex flex-col items-center gap-2.5 p-3">
-      <div className="flex w-full flex-wrap items-center justify-center gap-2">
+      <div className="flex w-full flex-wrap items-center justify-center gap-x-5 gap-y-2">
         <UsageTipTarget tipId="sort-panel" className="flex items-center gap-1.5">
           <select
             aria-label="Sort by"
@@ -330,7 +330,7 @@ export function PreviewToolbarQuickFilters({
           <UsageTipTarget tipId="shops-filter" className="flex-none">
             <PreviewFilterMultiSelect
               colors={colors}
-              label="Show shops..."
+              label="Show shops"
               emptyMessage="No shops in list"
               options={stores}
               selected={selectedShops}

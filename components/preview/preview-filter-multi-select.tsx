@@ -92,8 +92,18 @@ export function PreviewFilterMultiSelect({
   const allValues = allOptions.map((option) => option.value)
   const allSelected =
     allValues.length > 0 && allValues.every((value) => selected.includes(value))
-  const isFiltered = selectAllLabel ? selected.length > 0 && !allSelected : selected.length > 0
-  const triggerLabel = isFiltered ? `${label} (${selected.length})` : label
+  const hasSelection = selected.length > 0
+  const isPartialSelection = selectAllLabel ? hasSelection && !allSelected : hasSelection
+  const isActive = hasSelection
+  const triggerLabel = selectAllLabel
+    ? allSelected
+      ? `${label}: ${selectAllLabel}`
+      : isPartialSelection
+        ? `${label} (${selected.length})`
+        : `${label}...`
+    : hasSelection
+      ? `${label} (${selected.length})`
+      : label
 
   useEffect(() => {
     setMounted(true)
@@ -215,9 +225,9 @@ export function PreviewFilterMultiSelect({
           lineHeight: 1.2,
           padding: '0 12px',
           borderRadius: colors.panelRadius,
-          background: isFiltered ? colors.searchBg : colors.buttonBg,
-          border: `1px solid ${isFiltered ? colors.accent : colors.buttonBorder}`,
-          color: isFiltered ? colors.summaryStrong : colors.buttonText,
+          background: isActive ? colors.searchBg : colors.buttonBg,
+          border: `1px solid ${isActive ? colors.accent : colors.buttonBorder}`,
+          color: isActive ? colors.summaryStrong : colors.buttonText,
           fontFamily: 'var(--font-dm-sans), sans-serif',
           cursor: 'pointer',
           whiteSpace: 'nowrap',
@@ -225,11 +235,11 @@ export function PreviewFilterMultiSelect({
         }}
         onClick={toggleOpen}
       >
-        {isFiltered ? (
+        {isActive ? (
           <Check size={12} strokeWidth={2.5} style={{ color: colors.accent }} aria-hidden className="flex-shrink-0" />
         ) : null}
         <span className="truncate">{triggerLabel}</span>
-        {isFiltered ? (
+        {isPartialSelection ? (
           <span
             role="button"
             tabIndex={0}
