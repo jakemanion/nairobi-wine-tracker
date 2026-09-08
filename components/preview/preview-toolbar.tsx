@@ -51,7 +51,7 @@ export function PreviewToolbar({
   isLoggedIn = false,
 }: PreviewToolbarProps) {
   const { colors, visualStyle } = usePreviewTheme()
-  const [filtersVisible, setFiltersVisible] = useState(false)
+  const [advancedVisible, setAdvancedVisible] = useState(false)
   const toolsActive = activeFilterCount > 0
   const summaryText = buildListStateSummary({
     filters,
@@ -79,45 +79,42 @@ export function PreviewToolbar({
           boxShadow: visualStyle === 'trial' ? colors.cardShadow : undefined,
         }}
       >
-        {filtersVisible ? (
-          <>
-            <p
-              className="m-0 px-3 pt-3 text-center"
-              style={{
-                color: colors.accent,
-                fontFamily: 'var(--font-dm-sans), sans-serif',
-                fontSize: 14,
-                fontWeight: 700,
-                lineHeight: 1.2,
-              }}
-            >
-              Filter and sort your list
-            </p>
-            <PreviewToolbarQuickFilters
-            colors={colors}
-            filters={filters}
-            onFiltersChange={onFiltersChange}
-            stores={filterOptions.stores}
-            grapes={filterOptions.grapes}
-            styles={filterOptions.styles}
-            countries={filterOptions.countries}
-            priceBounds={priceBounds}
-            primarySort={primarySort}
-            onPrimarySortChange={onPrimarySortChange}
-            onSecondarySortChange={onSecondarySortChange}
-            isLoggedIn={isLoggedIn}
-          />
-          </>
-        ) : null}
+        <p
+          className="m-0 px-3 pt-3 text-center"
+          style={{
+            color: colors.accent,
+            fontFamily: 'var(--font-dm-sans), sans-serif',
+            fontSize: 14,
+            fontWeight: 700,
+            lineHeight: 1.2,
+          }}
+        >
+          Filter and sort your list
+        </p>
+        <PreviewToolbarQuickFilters
+          colors={colors}
+          filters={filters}
+          onFiltersChange={onFiltersChange}
+          stores={filterOptions.stores}
+          grapes={filterOptions.grapes}
+          styles={filterOptions.styles}
+          countries={filterOptions.countries}
+          priceBounds={priceBounds}
+          primarySort={primarySort}
+          onPrimarySortChange={onPrimarySortChange}
+          onSecondarySortChange={onSecondarySortChange}
+          isLoggedIn={isLoggedIn}
+          showAdvanced={advancedVisible}
+        />
         <div
           className="flex"
           style={{
-            borderTop: filtersVisible ? `1px solid ${colors.toolbarBorder}` : undefined,
+            borderTop: `1px solid ${colors.toolbarBorder}`,
           }}
         >
           <button
             type="button"
-            aria-expanded={filtersVisible}
+            aria-expanded={advancedVisible}
             className="inline-flex w-full items-center justify-center gap-1.5"
             style={{
               minHeight: 28,
@@ -130,14 +127,14 @@ export function PreviewToolbar({
               fontSize: 10,
               lineHeight: 1.2,
             }}
-            onClick={() => setFiltersVisible((visible) => !visible)}
+            onClick={() => setAdvancedVisible((visible) => !visible)}
           >
-            {filtersVisible ? (
+            {advancedVisible ? (
               <ChevronUp size={12} aria-hidden />
             ) : (
               <ChevronDown size={12} aria-hidden />
             )}
-            {filtersVisible ? 'Hide filters and sorting' : 'Show filters and sorting'}
+            {advancedVisible ? 'Hide advanced filters' : 'Show advanced filters'}
           </button>
         </div>
       </div>

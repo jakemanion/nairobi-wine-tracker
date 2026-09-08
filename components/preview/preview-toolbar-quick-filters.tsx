@@ -37,6 +37,7 @@ type PreviewToolbarQuickFiltersProps = {
   onPrimarySortChange: (next: SortCriterion) => void
   onSecondarySortChange: (next: SortCriterion) => void
   isLoggedIn?: boolean
+  showAdvanced?: boolean
 }
 
 const CONTROL_HEIGHT = 32
@@ -215,6 +216,7 @@ export function PreviewToolbarQuickFilters({
   onPrimarySortChange,
   onSecondarySortChange,
   isLoggedIn = false,
+  showAdvanced = false,
 }: PreviewToolbarQuickFiltersProps) {
   const { visualStyle } = usePreviewTheme()
   const trial = visualStyle === 'trial'
@@ -245,134 +247,6 @@ export function PreviewToolbarQuickFilters({
 
   return (
     <div className="flex flex-col items-center gap-2.5 p-3 pt-2">
-      <div className="flex w-full flex-wrap items-center justify-center gap-2">
-        <div style={titledSectionStyle(colors)}>
-          <p style={sectionTitleStyle(colors)}>Filters</p>
-          <div className="flex flex-1 flex-wrap items-center justify-center gap-1.5">
-          <UsageTipTarget tipId="highest-price-filter" className="flex-none">
-            <select
-              aria-label="Highest price"
-              className="flex-none"
-              style={filterSelectStyle(colors, !!filters.priceMax.trim())}
-              value={filters.priceMax.trim() || ''}
-              onChange={(event) => updateFilters({ priceMax: event.target.value })}
-            >
-              <option value="">Highest price: All</option>
-              {buildPriceOptions(priceMaxBound).map((price) => (
-                <option key={price} value={String(price)}>
-                  Max price: {price.toLocaleString()} KSh
-                </option>
-              ))}
-            </select>
-          </UsageTipTarget>
-
-          <UsageTipTarget tipId="lowest-rating-filter" className="flex-none">
-            <select
-              aria-label="Lowest rating"
-              className="flex-none"
-              style={filterSelectStyle(colors, !!filters.vivinoMin.trim())}
-              value={filters.vivinoMin.trim() || ''}
-              onChange={(event) => updateFilters({ vivinoMin: event.target.value })}
-            >
-              <option value="">Lowest rating: All</option>
-              {buildRatingOptions().map((rating) => (
-                <option key={rating} value={rating}>
-                  {rating}★ and above
-                </option>
-              ))}
-            </select>
-          </UsageTipTarget>
-
-          <UsageTipTarget tipId="type-filter" className="flex-none">
-            <PreviewFilterMultiSelect
-              colors={colors}
-              label="Type"
-              emptyMessage="No wine types in list"
-              options={styles}
-              selected={filters.styles}
-              onChange={(next) => updateFilters({ styles: next })}
-            />
-          </UsageTipTarget>
-
-          <UsageTipTarget tipId="grapes-filter" className="flex-none">
-            <PreviewFilterMultiSelect
-              colors={colors}
-              label="Grapes"
-              emptyMessage="No grapes in list"
-              options={grapes}
-              selected={filters.grapes}
-              onChange={(next) => updateFilters({ grapes: next })}
-            />
-          </UsageTipTarget>
-
-          <UsageTipTarget tipId="countries-filter" className="flex-none">
-            <PreviewFilterMultiSelect
-              colors={colors}
-              label="Countries"
-              emptyMessage="No countries in list"
-              options={countries}
-              selected={selectedCountries}
-              onChange={(next) => updateFilters({ regions: countryFiltersFromSelection(next) })}
-            />
-          </UsageTipTarget>
-
-          </div>
-        </div>
-      </div>
-
-      {stores.length > 0 ? (
-        <UsageTipTarget tipId="shops-filter" style={{ ...titledSectionStyle(colors), width: '100%' }}>
-          <p style={sectionTitleStyle(colors)}>Choose which shops to show</p>
-          <div className="flex flex-wrap items-center justify-center gap-1.5">
-          <InstantTooltip label="Show wines from all shops">
-            <button
-              type="button"
-              aria-pressed={allShopsEnabled}
-              style={{
-                ...chipStyle(colors, allShopsEnabled),
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 4,
-              }}
-              onClick={() => updateFilters({ disabledStores: [] })}
-            >
-              {allShopsEnabled ? (
-                <Check size={12} strokeWidth={2.5} style={{ color: colors.accent }} aria-hidden />
-              ) : null}
-              All
-            </button>
-          </InstantTooltip>
-          {stores.map((store) => {
-            const enabled = !filters.disabledStores.includes(store)
-            return (
-              <InstantTooltip key={store} label={enabled ? `Hide ${store} wines` : `Show ${store} wines`}>
-                <button
-                  type="button"
-                  aria-pressed={enabled}
-                  style={{
-                    ...chipStyle(colors, enabled),
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 4,
-                  }}
-                  onClick={() =>
-                    updateFilters({
-                      disabledStores: toggleStore(filters.disabledStores, store),
-                    })
-                  }
-                >
-                  {enabled ? (
-                    <Check size={12} strokeWidth={2.5} style={{ color: colors.accent }} aria-hidden />
-                  ) : null}
-                  {store}
-                </button>
-              </InstantTooltip>
-            )
-          })}
-          </div>
-        </UsageTipTarget>
-      ) : null}
-
       <div className="flex w-full flex-wrap items-stretch justify-center gap-2">
         <UsageTipTarget tipId="sort-panel" style={titledSectionStyle(colors)}>
           <p style={sectionTitleStyle(colors)}>Sort the list</p>
@@ -501,6 +375,136 @@ export function PreviewToolbarQuickFilters({
           </UsageTipTarget>
         ) : null}
       </div>
+
+      {stores.length > 0 ? (
+        <UsageTipTarget tipId="shops-filter" style={{ ...titledSectionStyle(colors), width: '100%' }}>
+          <p style={sectionTitleStyle(colors)}>Choose which shops to show</p>
+          <div className="flex flex-wrap items-center justify-center gap-1.5">
+          <InstantTooltip label="Show wines from all shops">
+            <button
+              type="button"
+              aria-pressed={allShopsEnabled}
+              style={{
+                ...chipStyle(colors, allShopsEnabled),
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 4,
+              }}
+              onClick={() => updateFilters({ disabledStores: [] })}
+            >
+              {allShopsEnabled ? (
+                <Check size={12} strokeWidth={2.5} style={{ color: colors.accent }} aria-hidden />
+              ) : null}
+              All
+            </button>
+          </InstantTooltip>
+          {stores.map((store) => {
+            const enabled = !filters.disabledStores.includes(store)
+            return (
+              <InstantTooltip key={store} label={enabled ? `Hide ${store} wines` : `Show ${store} wines`}>
+                <button
+                  type="button"
+                  aria-pressed={enabled}
+                  style={{
+                    ...chipStyle(colors, enabled),
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 4,
+                  }}
+                  onClick={() =>
+                    updateFilters({
+                      disabledStores: toggleStore(filters.disabledStores, store),
+                    })
+                  }
+                >
+                  {enabled ? (
+                    <Check size={12} strokeWidth={2.5} style={{ color: colors.accent }} aria-hidden />
+                  ) : null}
+                  {store}
+                </button>
+              </InstantTooltip>
+            )
+          })}
+          </div>
+        </UsageTipTarget>
+      ) : null}
+
+      {showAdvanced ? (
+        <div className="flex w-full flex-wrap items-center justify-center gap-2">
+          <div style={titledSectionStyle(colors)}>
+            <p style={sectionTitleStyle(colors)}>Advanced filters</p>
+            <div className="flex flex-1 flex-wrap items-center justify-center gap-1.5">
+            <UsageTipTarget tipId="highest-price-filter" className="flex-none">
+              <select
+                aria-label="Highest price"
+                className="flex-none"
+                style={filterSelectStyle(colors, !!filters.priceMax.trim())}
+                value={filters.priceMax.trim() || ''}
+                onChange={(event) => updateFilters({ priceMax: event.target.value })}
+              >
+                <option value="">Highest price: All</option>
+                {buildPriceOptions(priceMaxBound).map((price) => (
+                  <option key={price} value={String(price)}>
+                    Max price: {price.toLocaleString()} KSh
+                  </option>
+                ))}
+              </select>
+            </UsageTipTarget>
+
+            <UsageTipTarget tipId="lowest-rating-filter" className="flex-none">
+              <select
+                aria-label="Lowest rating"
+                className="flex-none"
+                style={filterSelectStyle(colors, !!filters.vivinoMin.trim())}
+                value={filters.vivinoMin.trim() || ''}
+                onChange={(event) => updateFilters({ vivinoMin: event.target.value })}
+              >
+                <option value="">Lowest rating: All</option>
+                {buildRatingOptions().map((rating) => (
+                  <option key={rating} value={rating}>
+                    {rating}★ and above
+                  </option>
+                ))}
+              </select>
+            </UsageTipTarget>
+
+            <UsageTipTarget tipId="type-filter" className="flex-none">
+              <PreviewFilterMultiSelect
+                colors={colors}
+                label="Type"
+                emptyMessage="No wine types in list"
+                options={styles}
+                selected={filters.styles}
+                onChange={(next) => updateFilters({ styles: next })}
+              />
+            </UsageTipTarget>
+
+            <UsageTipTarget tipId="grapes-filter" className="flex-none">
+              <PreviewFilterMultiSelect
+                colors={colors}
+                label="Grapes"
+                emptyMessage="No grapes in list"
+                options={grapes}
+                selected={filters.grapes}
+                onChange={(next) => updateFilters({ grapes: next })}
+              />
+            </UsageTipTarget>
+
+            <UsageTipTarget tipId="countries-filter" className="flex-none">
+              <PreviewFilterMultiSelect
+                colors={colors}
+                label="Countries"
+                emptyMessage="No countries in list"
+                options={countries}
+                selected={selectedCountries}
+                onChange={(next) => updateFilters({ regions: countryFiltersFromSelection(next) })}
+              />
+            </UsageTipTarget>
+
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   )
 }
