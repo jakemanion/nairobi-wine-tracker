@@ -234,7 +234,7 @@ export function PreviewToolbarQuickFilters({
   const selectedCountries = selectedCountriesFromRegionFilters(filters.regions)
   const allShopsEnabled = filters.disabledStores.length === 0
   const selectedShops = allShopsEnabled
-    ? []
+    ? stores
     : stores.filter((store) => !filters.disabledStores.includes(store))
   const bestUnderValue = activeBestUnderPrice(filters, primarySort)
 
@@ -254,7 +254,7 @@ export function PreviewToolbarQuickFilters({
   }
 
   function applyShopSelection(next: string[]) {
-    if (next.length === 0 || next.length === stores.length) {
+    if (next.length === stores.length) {
       updateFilters({ disabledStores: [] })
       return
     }
@@ -265,48 +265,45 @@ export function PreviewToolbarQuickFilters({
 
   return (
     <div className="flex flex-col items-center gap-2.5 p-3">
-      <div className="flex w-full flex-wrap items-stretch justify-center gap-2">
-        <UsageTipTarget tipId="sort-panel" style={titledSectionStyle(colors)}>
-          <p style={sectionTitleStyle(colors)}>Sort the list</p>
-          <div className="flex items-center justify-center gap-1.5">
-            <select
-              aria-label="Sort by"
-              style={filterSelectStyle(colors, true)}
-              value={primarySort.key}
-              onChange={(event) => {
-                const key = event.target.value as SortFieldKey
-                const match = QUICK_SORT_OPTIONS.find((o) => o.key === key)
-                onPrimarySortChange({ key, dir: match?.dir ?? 'asc' })
-                onSecondarySortChange({ key: 'none', dir: 'asc' })
+      <div className="flex w-full flex-wrap items-center justify-center gap-2">
+        <UsageTipTarget tipId="sort-panel" className="flex items-center gap-1.5">
+          <select
+            aria-label="Sort by"
+            style={filterSelectStyle(colors, true)}
+            value={primarySort.key}
+            onChange={(event) => {
+              const key = event.target.value as SortFieldKey
+              const match = QUICK_SORT_OPTIONS.find((o) => o.key === key)
+              onPrimarySortChange({ key, dir: match?.dir ?? 'asc' })
+              onSecondarySortChange({ key: 'none', dir: 'asc' })
+            }}
+          >
+            {QUICK_SORT_OPTIONS.map((option) => (
+              <option key={option.key} value={option.key}>
+                Sort by: {option.label}
+              </option>
+            ))}
+          </select>
+          <InstantTooltip label="Reverse sort direction">
+            <button
+              type="button"
+              aria-label="Reverse sort direction"
+              style={{
+                ...chipStyle(colors, false),
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: CONTROL_HEIGHT,
+                padding: 0,
+              }}
+              onClick={() => {
+                const reversed = primarySort.dir === 'asc' ? 'desc' : 'asc'
+                onPrimarySortChange({ ...primarySort, dir: reversed })
               }}
             >
-              {QUICK_SORT_OPTIONS.map((option) => (
-                <option key={option.key} value={option.key}>
-                  Sort by: {option.label}
-                </option>
-              ))}
-            </select>
-            <InstantTooltip label="Reverse sort direction">
-              <button
-                type="button"
-                aria-label="Reverse sort direction"
-                style={{
-                  ...chipStyle(colors, false),
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: CONTROL_HEIGHT,
-                  padding: 0,
-                }}
-                onClick={() => {
-                  const reversed = primarySort.dir === 'asc' ? 'desc' : 'asc'
-                  onPrimarySortChange({ ...primarySort, dir: reversed })
-                }}
-              >
-                <ArrowUpDown size={13} strokeWidth={2} />
-              </button>
-            </InstantTooltip>
-          </div>
+              <ArrowUpDown size={13} strokeWidth={2} />
+            </button>
+          </InstantTooltip>
         </UsageTipTarget>
 
         <UsageTipTarget tipId="best-under-panel" className="flex-none">
@@ -329,72 +326,70 @@ export function PreviewToolbarQuickFilters({
           </select>
         </UsageTipTarget>
 
-        {isLoggedIn ? (
-          <UsageTipTarget tipId="my-wines-filters" style={titledSectionStyle(colors)}>
-            <p style={sectionTitleStyle(colors)}>Your wine list</p>
-            <div className="flex items-center justify-center gap-1.5">
-              <InstantTooltip label="Show bookmarked only">
-                <button
-                  type="button"
-                  aria-label="Show bookmarked only"
-                  aria-pressed={filters.showWishlistOnly}
-                  style={reviewFilterButtonStyle(colors, filters.showWishlistOnly, 'wishlist', trial)}
-                  onClick={() => updateFilters({ showWishlistOnly: !filters.showWishlistOnly })}
-                >
-                  <Bookmark
-                    size={14}
-                    strokeWidth={2}
-                    fill={filters.showWishlistOnly ? 'currentColor' : 'none'}
-                    className={filters.showWishlistOnly ? 'fill-current' : undefined}
-                  />
-                </button>
-              </InstantTooltip>
-              <InstantTooltip label="Only show wines you'll buy again">
-                <button
-                  type="button"
-                  aria-label="Only show wines you'll buy again"
-                  aria-pressed={filters.showThumbsUpOnly}
-                  style={reviewFilterButtonStyle(colors, filters.showThumbsUpOnly, 'thumbsUp', trial)}
-                  onClick={() => updateFilters({ showThumbsUpOnly: !filters.showThumbsUpOnly })}
-                >
-                  <ThumbsUp
-                    size={14}
-                    strokeWidth={2}
-                    fill={trial && filters.showThumbsUpOnly ? 'currentColor' : 'none'}
-                    className={trial && filters.showThumbsUpOnly ? 'fill-current' : undefined}
-                  />
-                </button>
-              </InstantTooltip>
-              <InstantTooltip label={hideUnwantedActive ? 'Show unwanted wines' : 'Hide unwanted wines'}>
-                <button
-                  type="button"
-                  aria-label={hideUnwantedActive ? 'Show unwanted wines' : 'Hide unwanted wines'}
-                  aria-pressed={hideUnwantedActive}
-                  style={reviewFilterButtonStyle(colors, hideUnwantedActive, 'hide', trial)}
-                  onClick={() => onFiltersChange(applyHideUnwantedToggle(filters, !hideUnwantedActive))}
-                >
-                  <EyeOff
-                    size={14}
-                    strokeWidth={2}
-                    fill={trial && hideUnwantedActive ? 'currentColor' : 'none'}
-                    className={trial && hideUnwantedActive ? 'fill-current' : undefined}
-                  />
-                </button>
-              </InstantTooltip>
-            </div>
-          </UsageTipTarget>
-        ) : null}
-
         {stores.length > 0 ? (
           <UsageTipTarget tipId="shops-filter" className="flex-none">
             <PreviewFilterMultiSelect
               colors={colors}
-              label="Shops"
+              label="Show shops..."
               emptyMessage="No shops in list"
               options={stores}
               selected={selectedShops}
               onChange={applyShopSelection}
+              selectAllLabel="All"
             />
+          </UsageTipTarget>
+        ) : null}
+
+        {isLoggedIn ? (
+          <UsageTipTarget tipId="my-wines-filters" className="flex items-center gap-1.5">
+            <InstantTooltip label="Show bookmarked only">
+              <button
+                type="button"
+                aria-label="Show bookmarked only"
+                aria-pressed={filters.showWishlistOnly}
+                style={reviewFilterButtonStyle(colors, filters.showWishlistOnly, 'wishlist', trial)}
+                onClick={() => updateFilters({ showWishlistOnly: !filters.showWishlistOnly })}
+              >
+                <Bookmark
+                  size={14}
+                  strokeWidth={2}
+                  fill={filters.showWishlistOnly ? 'currentColor' : 'none'}
+                  className={filters.showWishlistOnly ? 'fill-current' : undefined}
+                />
+              </button>
+            </InstantTooltip>
+            <InstantTooltip label="Only show wines you'll buy again">
+              <button
+                type="button"
+                aria-label="Only show wines you'll buy again"
+                aria-pressed={filters.showThumbsUpOnly}
+                style={reviewFilterButtonStyle(colors, filters.showThumbsUpOnly, 'thumbsUp', trial)}
+                onClick={() => updateFilters({ showThumbsUpOnly: !filters.showThumbsUpOnly })}
+              >
+                <ThumbsUp
+                  size={14}
+                  strokeWidth={2}
+                  fill={trial && filters.showThumbsUpOnly ? 'currentColor' : 'none'}
+                  className={trial && filters.showThumbsUpOnly ? 'fill-current' : undefined}
+                />
+              </button>
+            </InstantTooltip>
+            <InstantTooltip label={hideUnwantedActive ? 'Show unwanted wines' : 'Hide unwanted wines'}>
+              <button
+                type="button"
+                aria-label={hideUnwantedActive ? 'Show unwanted wines' : 'Hide unwanted wines'}
+                aria-pressed={hideUnwantedActive}
+                style={reviewFilterButtonStyle(colors, hideUnwantedActive, 'hide', trial)}
+                onClick={() => onFiltersChange(applyHideUnwantedToggle(filters, !hideUnwantedActive))}
+              >
+                <EyeOff
+                  size={14}
+                  strokeWidth={2}
+                  fill={trial && hideUnwantedActive ? 'currentColor' : 'none'}
+                  className={trial && hideUnwantedActive ? 'fill-current' : undefined}
+                />
+              </button>
+            </InstantTooltip>
           </UsageTipTarget>
         ) : null}
       </div>

@@ -33,6 +33,8 @@ type PreviewFilterMultiSelectProps = {
   selected: string[]
   onChange: (selected: string[]) => void
   formatSelectedLabel?: (value: string) => string
+  /** When set, shows an All option that selects/deselects every item. */
+  selectAllLabel?: string
 }
 
 function toggleOption(selected: string[], value: string): string[] {
@@ -77,6 +79,7 @@ export function PreviewFilterMultiSelect({
   selected,
   onChange,
   formatSelectedLabel,
+  selectAllLabel,
 }: PreviewFilterMultiSelectProps) {
   const [open, setOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
@@ -86,6 +89,11 @@ export function PreviewFilterMultiSelect({
   const triggerRef = useRef<HTMLButtonElement>(null)
 
   const allOptions = flatOptions(options, groups)
+  const allValues = allOptions.map((option) => option.value)
+  const allSelected =
+    allValues.length > 0 && allValues.every((value) => selected.includes(value))
+  const isFiltered = selectAllLabel ? selected.length > 0 && !allSelected : selected.length > 0
+  const triggerLabel = isFiltered ? `${label} (${selected.length})` : label
 
   useEffect(() => {
     setMounted(true)
@@ -116,9 +124,6 @@ export function PreviewFilterMultiSelect({
       window.removeEventListener('scroll', updatePosition, true)
     }
   }, [open])
-
-  const hasSelection = selected.length > 0
-  const triggerLabel = hasSelection ? `${label} (${selected.length})` : label
 
   const panelStyle: CSSProperties = {
     position: 'fixed',
@@ -163,6 +168,14 @@ export function PreviewFilterMultiSelect({
     setOpen((current) => !current)
   }
 
+  function clearSelection() {
+    onChange(selectAllLabel ? allValues : [])
+  }
+
+  function toggleSelectAll() {
+    onChange(allSelected ? [] : allValues)
+  }
+
   function renderOption(option: FilterMultiSelectOption) {
     const checked = selected.includes(option.value)
     return (
@@ -202,9 +215,9 @@ export function PreviewFilterMultiSelect({
           lineHeight: 1.2,
           padding: '0 12px',
           borderRadius: colors.panelRadius,
-          background: hasSelection ? colors.searchBg : colors.buttonBg,
-          border: `1px solid ${hasSelection ? colors.accent : colors.buttonBorder}`,
-          color: hasSelection ? colors.summaryStrong : colors.buttonText,
+          background: isFiltered ? colors.searchBg : colors.buttonBg,
+          border: `1px solid ${isFiltered ? colors.accent : colors.buttonBorder}`,
+          color: isFiltered ? colors.summaryStrong : colors.buttonText,
           fontFamily: 'var(--font-dm-sans), sans-serif',
           cursor: 'pointer',
           whiteSpace: 'nowrap',
@@ -212,11 +225,11 @@ export function PreviewFilterMultiSelect({
         }}
         onClick={toggleOpen}
       >
-        {hasSelection ? (
+        {isFiltered ? (
           <Check size={12} strokeWidth={2.5} style={{ color: colors.accent }} aria-hidden className="flex-shrink-0" />
         ) : null}
         <span className="truncate">{triggerLabel}</span>
-        {hasSelection ? (
+        {isFiltered ? (
           <span
             role="button"
             tabIndex={0}
@@ -225,13 +238,13 @@ export function PreviewFilterMultiSelect({
             style={{ color: colors.muted }}
             onClick={(event) => {
               event.stopPropagation()
-              onChange([])
+              clearSelection()
             }}
             onKeyDown={(event) => {
               if (event.key === 'Enter' || event.key === ' ') {
                 event.preventDefault()
                 event.stopPropagation()
-                onChange([])
+                clearSelection()
               }
             }}
           >
@@ -255,15 +268,37 @@ export function PreviewFilterMultiSelect({
                 >
                   {emptyMessage}
                 </p>
-              ) : groups?.length ? (
-                groups.map((group) => (
-                  <div key={group.label}>
-                    <div style={groupHeadingStyle}>{group.label}</div>
-                    {group.options.map((option) => renderOption(option))}
-                  </div>
-                ))
               ) : (
-                allOptions.map((option) => renderOption(option))
+                <>
+                  {selectAllLabel ? (
+                    <label
+                      role="option"
+                      aria-selected={allSelected}
+                      style={{
+                        ...optionStyle,
+                        background: allSelected ? `${colors.accent}14` : 'transparent',
+                        fontWeight: 600,
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={allSelected}
+                        className="accent-current"
+                        style={{ accentColor: colors.accent }}
+                        onChange={toggleSelectAll}
+                      />
+                      <span className="truncate">{selectAllLabel}</span>
+                    </label>
+                  ) : null}
+                  {groups?.length
+                    ? groups.map((group) => (
+                        <div key={group.label}>
+                          <div style={groupHeadingStyle}>{group.label}</div>
+                          {group.options.map((option) => renderOption(option))}
+                        </div>
+                      ))
+                    : allOptions.map((option) => renderOption(option))}
+                </>
               )}
             </div>,
             document.body,
