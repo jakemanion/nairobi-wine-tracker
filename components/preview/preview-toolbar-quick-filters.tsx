@@ -121,6 +121,9 @@ const QUICK_SORT_OPTIONS: Array<{ key: SortFieldKey; label: string; dir: 'asc' |
   { key: 'vivino_rating', label: 'Rating', dir: 'desc' },
 ]
 
+/** Sentinel so an empty Type selection can mean "match nothing" (unlike [] = all types). */
+const STYLE_FILTER_NONE = '__none__'
+
 
 const REVIEW_FILTER_COLORS = {
   wishlist: { bg: '#162010', border: '#2A5030', color: '#50A060' },
@@ -236,6 +239,12 @@ export function PreviewToolbarQuickFilters({
   const selectedShops = allShopsEnabled
     ? stores
     : stores.filter((store) => !filters.disabledStores.includes(store))
+  const selectedTypes =
+    filters.styles.length === 0
+      ? styles
+      : filters.styles.includes(STYLE_FILTER_NONE)
+        ? []
+        : filters.styles
   const bestUnderValue = activeBestUnderPrice(filters, primarySort)
 
   function updateFilters(patch: Partial<WineFilters>) {
@@ -263,9 +272,21 @@ export function PreviewToolbarQuickFilters({
     })
   }
 
+  function applyTypeSelection(next: string[]) {
+    if (next.length === styles.length) {
+      updateFilters({ styles: [] })
+      return
+    }
+    if (next.length === 0) {
+      updateFilters({ styles: [STYLE_FILTER_NONE] })
+      return
+    }
+    updateFilters({ styles: next })
+  }
+
   return (
     <div className="flex flex-col items-center gap-2.5 p-3">
-      <div className="flex w-full flex-wrap items-center justify-center gap-x-5 gap-y-2">
+      <div className="flex w-full flex-wrap items-center justify-center gap-x-3 gap-y-2">
         <UsageTipTarget tipId="sort-panel" className="flex items-center gap-1.5">
           <select
             aria-label="Sort by"
@@ -304,6 +325,18 @@ export function PreviewToolbarQuickFilters({
               <ArrowUpDown size={13} strokeWidth={2} />
             </button>
           </InstantTooltip>
+        </UsageTipTarget>
+
+        <UsageTipTarget tipId="type-filter" className="flex-none">
+          <PreviewFilterMultiSelect
+            colors={colors}
+            label="Type"
+            emptyMessage="No wine types in list"
+            options={styles}
+            selected={selectedTypes}
+            onChange={applyTypeSelection}
+            selectAllLabel="All"
+          />
         </UsageTipTarget>
 
         <UsageTipTarget tipId="best-under-panel" className="flex-none">
@@ -431,17 +464,6 @@ export function PreviewToolbarQuickFilters({
                   </option>
                 ))}
               </select>
-            </UsageTipTarget>
-
-            <UsageTipTarget tipId="type-filter" className="flex-none">
-              <PreviewFilterMultiSelect
-                colors={colors}
-                label="Type"
-                emptyMessage="No wine types in list"
-                options={styles}
-                selected={filters.styles}
-                onChange={(next) => updateFilters({ styles: next })}
-              />
             </UsageTipTarget>
 
             <UsageTipTarget tipId="grapes-filter" className="flex-none">
