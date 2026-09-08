@@ -3,10 +3,8 @@
 import type { CSSProperties } from 'react'
 import { ArrowUpDown, Bookmark, EyeOff, ThumbsUp } from 'lucide-react'
 import {
-  applyHideUnwantedToggle,
   BEST_UNDER_PRICE_PRESETS,
   countryFiltersFromSelection,
-  isHideUnwantedPreset,
   selectedCountriesFromRegionFilters,
   type WineFilters,
 } from '@/lib/wine-filters'
@@ -229,11 +227,6 @@ export function PreviewToolbarQuickFilters({
   const { visualStyle } = usePreviewTheme()
   const trial = visualStyle === 'trial'
   const priceMaxBound = priceBounds?.max ?? 10000
-  const hideUnwantedActive =
-    isHideUnwantedPreset(filters) ||
-    (filters.hideUnwanted &&
-      filters.wishlist.length === 0 &&
-      filters.triedStatus.length === 0)
 
   const selectedCountries = selectedCountriesFromRegionFilters(filters.regions)
   const allShopsEnabled = filters.disabledStores.length === 0
@@ -337,6 +330,7 @@ export function PreviewToolbarQuickFilters({
             selected={selectedTypes}
             onChange={applyTypeSelection}
             selectAllLabel="All"
+            allSelectedLabel="All colours"
           />
         </UsageTipTarget>
 
@@ -376,51 +370,51 @@ export function PreviewToolbarQuickFilters({
 
         {isLoggedIn ? (
           <UsageTipTarget tipId="my-wines-filters" className="flex items-center gap-1.5">
-            <InstantTooltip label="Show bookmarked only">
+            <InstantTooltip label={filters.includeBookmarked ? 'Hide bookmarked wines' : 'Show bookmarked wines'}>
               <button
                 type="button"
-                aria-label="Show bookmarked only"
-                aria-pressed={filters.showWishlistOnly}
-                style={reviewFilterButtonStyle(colors, filters.showWishlistOnly, 'wishlist', trial)}
-                onClick={() => updateFilters({ showWishlistOnly: !filters.showWishlistOnly })}
+                aria-label={filters.includeBookmarked ? 'Hide bookmarked wines' : 'Show bookmarked wines'}
+                aria-pressed={filters.includeBookmarked}
+                style={reviewFilterButtonStyle(colors, filters.includeBookmarked, 'wishlist', trial)}
+                onClick={() => updateFilters({ includeBookmarked: !filters.includeBookmarked })}
               >
                 <Bookmark
                   size={11}
                   strokeWidth={2}
-                  fill={filters.showWishlistOnly ? 'currentColor' : 'none'}
-                  className={filters.showWishlistOnly ? 'fill-current' : undefined}
+                  fill={filters.includeBookmarked ? 'currentColor' : 'none'}
+                  className={filters.includeBookmarked ? 'fill-current' : undefined}
                 />
               </button>
             </InstantTooltip>
-            <InstantTooltip label="Only show wines you'll buy again">
+            <InstantTooltip label={filters.includeBuyAgain ? 'Hide buy again wines' : 'Show buy again wines'}>
               <button
                 type="button"
-                aria-label="Only show wines you'll buy again"
-                aria-pressed={filters.showThumbsUpOnly}
-                style={reviewFilterButtonStyle(colors, filters.showThumbsUpOnly, 'thumbsUp', trial)}
-                onClick={() => updateFilters({ showThumbsUpOnly: !filters.showThumbsUpOnly })}
+                aria-label={filters.includeBuyAgain ? 'Hide buy again wines' : 'Show buy again wines'}
+                aria-pressed={filters.includeBuyAgain}
+                style={reviewFilterButtonStyle(colors, filters.includeBuyAgain, 'thumbsUp', trial)}
+                onClick={() => updateFilters({ includeBuyAgain: !filters.includeBuyAgain })}
               >
                 <ThumbsUp
                   size={11}
                   strokeWidth={2}
-                  fill={trial && filters.showThumbsUpOnly ? 'currentColor' : 'none'}
-                  className={trial && filters.showThumbsUpOnly ? 'fill-current' : undefined}
+                  fill={trial && filters.includeBuyAgain ? 'currentColor' : 'none'}
+                  className={trial && filters.includeBuyAgain ? 'fill-current' : undefined}
                 />
               </button>
             </InstantTooltip>
-            <InstantTooltip label={hideUnwantedActive ? 'Show unwanted wines' : 'Hide unwanted wines'}>
+            <InstantTooltip label={filters.includeHidden ? 'Hide hidden wines' : 'Show hidden wines'}>
               <button
                 type="button"
-                aria-label={hideUnwantedActive ? 'Show unwanted wines' : 'Hide unwanted wines'}
-                aria-pressed={hideUnwantedActive}
-                style={reviewFilterButtonStyle(colors, hideUnwantedActive, 'hide', trial)}
-                onClick={() => onFiltersChange(applyHideUnwantedToggle(filters, !hideUnwantedActive))}
+                aria-label={filters.includeHidden ? 'Hide hidden wines' : 'Show hidden wines'}
+                aria-pressed={filters.includeHidden}
+                style={reviewFilterButtonStyle(colors, filters.includeHidden, 'hide', trial)}
+                onClick={() => updateFilters({ includeHidden: !filters.includeHidden })}
               >
                 <EyeOff
                   size={11}
                   strokeWidth={2}
-                  fill={trial && hideUnwantedActive ? 'currentColor' : 'none'}
-                  className={trial && hideUnwantedActive ? 'fill-current' : undefined}
+                  fill={trial && filters.includeHidden ? 'currentColor' : 'none'}
+                  className={trial && filters.includeHidden ? 'fill-current' : undefined}
                 />
               </button>
             </InstantTooltip>

@@ -16,15 +16,17 @@ export type WineFilters = {
   triedStatus: TriedStatusFilterValue[]
   stores: string[]
   disabledStores: string[]
-  hideUnwanted: boolean
   grapes: string[]
   styles: string[]
   producer: string
   country: string
   regions: string[]
-  showWishlistOnly: boolean
-  showShortlistOnly: boolean
-  showThumbsUpOnly: boolean
+  /** When false, wines marked bookmarked are excluded. Default on. */
+  includeBookmarked: boolean
+  /** When false, wines marked buy-again are excluded. Default on. */
+  includeBuyAgain: boolean
+  /** When false, wines marked hidden/unwanted are excluded. Default on. */
+  includeHidden: boolean
 }
 
 export const EMPTY_WINE_FILTERS: WineFilters = {
@@ -36,21 +38,17 @@ export const EMPTY_WINE_FILTERS: WineFilters = {
   triedStatus: [],
   stores: [],
   disabledStores: [],
-  hideUnwanted: false,
   grapes: [],
   styles: [],
   producer: '',
   country: '',
   regions: [],
-  showWishlistOnly: false,
-  showShortlistOnly: false,
-  showThumbsUpOnly: false,
+  includeBookmarked: true,
+  includeBuyAgain: true,
+  includeHidden: true,
 }
 
 export const BEST_UNDER_PRICE_PRESETS = [1500, 2000, 3000, 4000, 5000] as const
-
-export const HIDE_UNWANTED_WISHLIST_FILTERS: WishlistFilterValue[] = ['unset', 1]
-export const HIDE_UNWANTED_TRIED_FILTERS: TriedStatusFilterValue[] = ['unset', 1]
 
 export const WISHLIST_FILTER_LABELS: Record<WishlistFilterValue, string> = {
   unset: 'Not set',
@@ -118,39 +116,6 @@ export function decodeReviewFilterSelection(selected: string[]): {
   }
 
   return { wishlist, triedStatus }
-}
-
-function filterArraysEqual<T>(left: T[], right: T[]): boolean {
-  if (left.length !== right.length) return false
-  const leftSorted = [...left].sort()
-  const rightSorted = [...right].sort()
-  return leftSorted.every((value, index) => value === rightSorted[index])
-}
-
-export function isHideUnwantedPreset(filters: WineFilters): boolean {
-  return (
-    filters.hideUnwanted &&
-    filterArraysEqual(filters.wishlist, HIDE_UNWANTED_WISHLIST_FILTERS) &&
-    filterArraysEqual(filters.triedStatus, HIDE_UNWANTED_TRIED_FILTERS)
-  )
-}
-
-export function applyHideUnwantedToggle(filters: WineFilters, enable: boolean): WineFilters {
-  if (enable) {
-    return {
-      ...filters,
-      hideUnwanted: true,
-      wishlist: [...HIDE_UNWANTED_WISHLIST_FILTERS],
-      triedStatus: [...HIDE_UNWANTED_TRIED_FILTERS],
-    }
-  }
-
-  return {
-    ...filters,
-    hideUnwanted: false,
-    wishlist: [],
-    triedStatus: [],
-  }
 }
 
 export function selectedCountriesFromRegionFilters(regions: string[]): string[] {
@@ -379,11 +344,10 @@ export function countActiveFilters(filters: WineFilters): number {
   if (filters.producer.trim()) count += 1
   if (filters.country.trim()) count += 1
   if (filters.regions.length > 0) count += 1
-  if (filters.hideUnwanted) count += 1
+  if (!filters.includeBookmarked) count += 1
+  if (!filters.includeBuyAgain) count += 1
+  if (!filters.includeHidden) count += 1
   if (filters.disabledStores.length > 0) count += 1
-  if (filters.showWishlistOnly) count += 1
-  if (filters.showShortlistOnly) count += 1
-  if (filters.showThumbsUpOnly) count += 1
   return count
 }
 
@@ -397,15 +361,22 @@ export function filterWines<T extends WineRow>(wines: T[], filters: WineFilters)
   const selectedGrapes = filters.grapes.map((grape) => grape.toLowerCase())
   const selectedStyles = filters.styles.map((style) => style.toLowerCase())
 
-  const hasMyWinesFilter = filters.showWishlistOnly || filters.showShortlistOnly || filters.showThumbsUpOnly
-
   return wines.filter((wine) => {
-    if (hasMyWinesFilter) {
-      const matchesAny =
-        (filters.showWishlistOnly && normalizeWishlist(wine.review?.wishlist) === 1) ||
-        (filters.showShortlistOnly && wine.review?.shortlist === 1) ||
-        (filters.showThumbsUpOnly && normalizeTriedStatus(wine.review?.tried_status) === 1)
-      if (!matchesAny) return false
+    if (!filters.includeBookmarked && normalizeWishlist(wine.review?.wishlist) === 1) {
+      return false
+    }
+    if (!filters.includeBuyAgain && normalizeTriedStatus(wine.review?.tried_status) === 1) {
+      return false
+    }
+    if (!filters.includeHidden) {
+      if (
+        wine.review?.wishlist === 0 ||
+        wine.review?.tried_status === 2 ||
+        wine.review?.tried_status === 3 ||
+        wine.review?.hide === true
+      ) {
+        return false
+      }
     }
 
     const price = minWinePriceKES(wine.store_listings)
@@ -443,10 +414,6 @@ export function filterWines<T extends WineRow>(wines: T[], filters: WineFilters)
       if (wineStores.some((store) => filters.disabledStores.includes(store))) {
         return false
       }
-    }
-
-    if (filters.hideUnwanted) {
-      if (wine.review?.wishlist === 0 || wine.review?.tried_status === 2 || wine.review?.tried_status === 3 || wine.review?.hide === true) return false
     }
 
     if (selectedGrapes.length > 0) {

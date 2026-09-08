@@ -37,6 +37,8 @@ type PreviewFilterMultiSelectProps = {
   formatSelectedLabel?: (value: string) => string
   /** When set, shows an All option that selects/deselects every item. */
   selectAllLabel?: string
+  /** Trigger label when every option is selected. Defaults to `${label}: ${selectAllLabel}`. */
+  allSelectedLabel?: string
 }
 
 function toggleOption(selected: string[], value: string): string[] {
@@ -82,6 +84,7 @@ export function PreviewFilterMultiSelect({
   onChange,
   formatSelectedLabel,
   selectAllLabel,
+  allSelectedLabel,
 }: PreviewFilterMultiSelectProps) {
   const [open, setOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
@@ -99,7 +102,7 @@ export function PreviewFilterMultiSelect({
   const isActive = hasSelection
   const triggerLabel = selectAllLabel
     ? allSelected
-      ? `${label}: ${selectAllLabel}`
+      ? allSelectedLabel ?? `${label}: ${selectAllLabel}`
       : isPartialSelection
         ? `${label} (${selected.length})`
         : `${label}...`

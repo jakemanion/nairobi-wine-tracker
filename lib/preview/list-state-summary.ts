@@ -126,14 +126,14 @@ export function buildListStateSummary({
     parts.push(`Hide shops ${joinList(filters.disabledStores)}`)
   }
 
-  if (filters.showWishlistOnly) {
-    parts.push('Bookmark only')
+  if (!filters.includeBookmarked) {
+    parts.push('Hide bookmarked')
   }
-  if (filters.showShortlistOnly) {
-    parts.push('Shortlist only')
+  if (!filters.includeBuyAgain) {
+    parts.push('Hide buy again')
   }
-  if (filters.showThumbsUpOnly) {
-    parts.push('Buy again only')
+  if (!filters.includeHidden) {
+    parts.push('Hide hidden')
   }
 
   if (filters.wishlist.length > 0) {
@@ -146,10 +146,6 @@ export function buildListStateSummary({
     parts.push(
       `Tried ${filters.triedStatus.map((v) => TRIED_LABELS[String(v)]).join(', ')}`,
     )
-  }
-
-  if (filters.hideUnwanted) {
-    parts.push('Hide unwanted')
   }
 
   const primaryLabel = primarySort.key === 'none' ? 'None' : SORT_LABELS[primarySort.key]

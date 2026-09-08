@@ -80,7 +80,7 @@ export const USAGE_TIPS: Record<UsageTipId, UsageTipContent> = {
   'my-wines-filters': {
     id: 'my-wines-filters',
     heading: 'Your wine list',
-    body: "Show only wines on your bookmark or shortlist, or those you'd buy again—and hide wines you're not interested in.",
+    body: 'Toggle whether bookmarked, buy-again, and hidden wines appear in your list. All start on.',
     estimatedHeight: 148,
   },
   'shops-filter': {
@@ -95,8 +95,8 @@ export const USAGE_TIPS: Record<UsageTipId, UsageTipContent> = {
   },
   'hide-unwanted': {
     id: 'hide-unwanted',
-    heading: 'Hide unwanted',
-    body: "Hide wines you've already ruled out.",
+    heading: 'Hidden wines',
+    body: 'Toggle whether wines you have hidden appear in the list.',
   },
   'sort-panel': {
     id: 'sort-panel',
