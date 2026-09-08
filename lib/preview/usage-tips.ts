@@ -85,7 +85,7 @@ export const USAGE_TIPS: Record<UsageTipId, UsageTipContent> = {
   },
   'shops-filter': {
     id: 'shops-filter',
-    heading: 'Choose which shops to show',
+    heading: 'Shops',
     body: 'Show wines available in specific shops.',
   },
   'hide-wine': {
@@ -106,7 +106,7 @@ export const USAGE_TIPS: Record<UsageTipId, UsageTipContent> = {
   },
   'best-under-panel': {
     id: 'best-under-panel',
-    heading: 'Best under...',
+    heading: 'Best bottles under...',
     body: 'Find the best-rated wines within your budget.',
   },
   'shortlist-panel': {

@@ -1,7 +1,7 @@
 'use client'
 
 import type { CSSProperties } from 'react'
-import { ArrowUpDown, Bookmark, Check, EyeOff, ThumbsUp } from 'lucide-react'
+import { ArrowUpDown, Bookmark, EyeOff, ThumbsUp } from 'lucide-react'
 import {
   applyHideUnwantedToggle,
   BEST_UNDER_PRICE_PRESETS,
@@ -95,18 +95,22 @@ function sectionTitleStyle(colors: PreviewColors): CSSProperties {
   }
 }
 
-function toggleStore(disabledStores: string[], store: string): string[] {
-  return disabledStores.includes(store)
-    ? disabledStores.filter((name) => name !== store)
-    : [...disabledStores, store]
-}
-
 function isBestUnderActive(filters: WineFilters, primarySort: SortCriterion, price: number): boolean {
   return (
     filters.priceMax.trim() === String(price) &&
     primarySort.key === 'vivino_rating' &&
     primarySort.dir === 'desc'
   )
+}
+
+function activeBestUnderPrice(filters: WineFilters, primarySort: SortCriterion): string {
+  const priceMax = filters.priceMax.trim()
+  if (!priceMax) return ''
+  const price = Number(priceMax)
+  if (!BEST_UNDER_PRICE_PRESETS.includes(price as (typeof BEST_UNDER_PRICE_PRESETS)[number])) {
+    return ''
+  }
+  return isBestUnderActive(filters, primarySort, price) ? priceMax : ''
 }
 
 const QUICK_SORT_OPTIONS: Array<{ key: SortFieldKey; label: string; dir: 'asc' | 'desc' }> = [
@@ -229,13 +233,17 @@ export function PreviewToolbarQuickFilters({
 
   const selectedCountries = selectedCountriesFromRegionFilters(filters.regions)
   const allShopsEnabled = filters.disabledStores.length === 0
+  const selectedShops = allShopsEnabled
+    ? []
+    : stores.filter((store) => !filters.disabledStores.includes(store))
+  const bestUnderValue = activeBestUnderPrice(filters, primarySort)
 
   function updateFilters(patch: Partial<WineFilters>) {
     onFiltersChange({ ...filters, ...patch })
   }
 
-  function applyBestUnder(price: number) {
-    if (isBestUnderActive(filters, primarySort, price)) {
+  function applyBestUnder(price: number | null) {
+    if (price === null) {
       updateFilters({ priceMax: '' })
       return
     }
@@ -245,8 +253,18 @@ export function PreviewToolbarQuickFilters({
     onSecondarySortChange({ key: 'none', dir: 'asc' })
   }
 
+  function applyShopSelection(next: string[]) {
+    if (next.length === 0 || next.length === stores.length) {
+      updateFilters({ disabledStores: [] })
+      return
+    }
+    updateFilters({
+      disabledStores: stores.filter((store) => !next.includes(store)),
+    })
+  }
+
   return (
-    <div className="flex flex-col items-center gap-2.5 p-3 pt-2">
+    <div className="flex flex-col items-center gap-2.5 p-3">
       <div className="flex w-full flex-wrap items-stretch justify-center gap-2">
         <UsageTipTarget tipId="sort-panel" style={titledSectionStyle(colors)}>
           <p style={sectionTitleStyle(colors)}>Sort the list</p>
@@ -291,32 +309,24 @@ export function PreviewToolbarQuickFilters({
           </div>
         </UsageTipTarget>
 
-        <UsageTipTarget tipId="best-under-panel" style={titledSectionStyle(colors)}>
-          <p style={sectionTitleStyle(colors)}>Best wines under ...</p>
-          <div className="flex flex-wrap items-center justify-center gap-1.5">
-            {BEST_UNDER_PRICE_PRESETS.map((price) => {
-              const active = isBestUnderActive(filters, primarySort, price)
-              return (
-              <button
-                key={price}
-                type="button"
-                aria-pressed={active}
-                style={{
-                  ...chipStyle(colors, active),
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 4,
-                }}
-                onClick={() => applyBestUnder(price)}
-              >
-                {active ? (
-                  <Check size={12} strokeWidth={2.5} style={{ color: colors.accent }} aria-hidden />
-                ) : null}
-                {price.toLocaleString()}
-              </button>
-              )
-            })}
-          </div>
+        <UsageTipTarget tipId="best-under-panel" className="flex-none">
+          <select
+            aria-label="Best bottles under"
+            className="flex-none"
+            style={filterSelectStyle(colors, !!bestUnderValue)}
+            value={bestUnderValue}
+            onChange={(event) => {
+              const value = event.target.value
+              applyBestUnder(value ? Number(value) : null)
+            }}
+          >
+            <option value="">Best bottles under...</option>
+            {BEST_UNDER_PRICE_PRESETS.map((price) => (
+              <option key={price} value={String(price)}>
+                Best bottles under {price.toLocaleString()} KSh
+              </option>
+            ))}
+          </select>
         </UsageTipTarget>
 
         {isLoggedIn ? (
@@ -374,60 +384,20 @@ export function PreviewToolbarQuickFilters({
             </div>
           </UsageTipTarget>
         ) : null}
-      </div>
 
-      {stores.length > 0 ? (
-        <UsageTipTarget tipId="shops-filter" style={{ ...titledSectionStyle(colors), width: '100%' }}>
-          <p style={sectionTitleStyle(colors)}>Choose which shops to show</p>
-          <div className="flex flex-wrap items-center justify-center gap-1.5">
-          <InstantTooltip label="Show wines from all shops">
-            <button
-              type="button"
-              aria-pressed={allShopsEnabled}
-              style={{
-                ...chipStyle(colors, allShopsEnabled),
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 4,
-              }}
-              onClick={() => updateFilters({ disabledStores: [] })}
-            >
-              {allShopsEnabled ? (
-                <Check size={12} strokeWidth={2.5} style={{ color: colors.accent }} aria-hidden />
-              ) : null}
-              All
-            </button>
-          </InstantTooltip>
-          {stores.map((store) => {
-            const enabled = !filters.disabledStores.includes(store)
-            return (
-              <InstantTooltip key={store} label={enabled ? `Hide ${store} wines` : `Show ${store} wines`}>
-                <button
-                  type="button"
-                  aria-pressed={enabled}
-                  style={{
-                    ...chipStyle(colors, enabled),
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 4,
-                  }}
-                  onClick={() =>
-                    updateFilters({
-                      disabledStores: toggleStore(filters.disabledStores, store),
-                    })
-                  }
-                >
-                  {enabled ? (
-                    <Check size={12} strokeWidth={2.5} style={{ color: colors.accent }} aria-hidden />
-                  ) : null}
-                  {store}
-                </button>
-              </InstantTooltip>
-            )
-          })}
-          </div>
-        </UsageTipTarget>
-      ) : null}
+        {stores.length > 0 ? (
+          <UsageTipTarget tipId="shops-filter" className="flex-none">
+            <PreviewFilterMultiSelect
+              colors={colors}
+              label="Shops"
+              emptyMessage="No shops in list"
+              options={stores}
+              selected={selectedShops}
+              onChange={applyShopSelection}
+            />
+          </UsageTipTarget>
+        ) : null}
+      </div>
 
       {showAdvanced ? (
         <div className="flex w-full flex-wrap items-center justify-center gap-2">

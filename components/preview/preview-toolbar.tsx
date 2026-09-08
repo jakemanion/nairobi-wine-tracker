@@ -79,18 +79,6 @@ export function PreviewToolbar({
           boxShadow: visualStyle === 'trial' ? colors.cardShadow : undefined,
         }}
       >
-        <p
-          className="m-0 px-3 pt-3 text-center"
-          style={{
-            color: colors.accent,
-            fontFamily: 'var(--font-dm-sans), sans-serif',
-            fontSize: 14,
-            fontWeight: 700,
-            lineHeight: 1.2,
-          }}
-        >
-          Filter and sort your list
-        </p>
         <PreviewToolbarQuickFilters
           colors={colors}
           filters={filters}
