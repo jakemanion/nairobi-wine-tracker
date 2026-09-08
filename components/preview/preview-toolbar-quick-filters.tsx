@@ -40,13 +40,14 @@ type PreviewToolbarQuickFiltersProps = {
   showAdvanced?: boolean
 }
 
-const CONTROL_HEIGHT = 32
+const CONTROL_HEIGHT = 22
+const CONTROL_FONT_SIZE = 10
 
 function chipStyle(colors: PreviewColors, active: boolean): CSSProperties {
   return {
     height: CONTROL_HEIGHT,
-    padding: '0 10px',
-    fontSize: 12,
+    padding: '0 7px',
+    fontSize: CONTROL_FONT_SIZE,
     lineHeight: 1.2,
     borderRadius: colors.panelRadius,
     cursor: 'pointer',
@@ -153,7 +154,7 @@ function reviewFilterButtonStyle(
     width: CONTROL_HEIGHT,
     height: CONTROL_HEIGHT,
     padding: 0,
-    fontSize: 12,
+    fontSize: CONTROL_FONT_SIZE,
     lineHeight: 1.2,
     borderRadius: colors.buttonRadius,
     cursor: 'pointer',
@@ -168,9 +169,9 @@ function reviewFilterButtonStyle(
 function filterSelectStyle(colors: PreviewColors, active: boolean): CSSProperties {
   return {
     height: CONTROL_HEIGHT,
-    fontSize: 12,
+    fontSize: CONTROL_FONT_SIZE,
     lineHeight: 1.2,
-    padding: '0 2rem 0 12px',
+    padding: '0 1.35rem 0 8px',
     borderRadius: colors.panelRadius,
     cursor: 'pointer',
     fontFamily: 'var(--font-dm-sans), sans-serif',
@@ -285,7 +286,7 @@ export function PreviewToolbarQuickFilters({
   }
 
   return (
-    <div className="flex flex-col items-center gap-2.5 p-3">
+    <div className="flex flex-col items-center gap-2 p-2">
       <div className="flex w-full flex-wrap items-center justify-center gap-x-3 gap-y-2">
         <UsageTipTarget tipId="sort-panel" className="flex items-center gap-1.5">
           <select
@@ -322,7 +323,7 @@ export function PreviewToolbarQuickFilters({
                 onPrimarySortChange({ ...primarySort, dir: reversed })
               }}
             >
-              <ArrowUpDown size={13} strokeWidth={2} />
+              <ArrowUpDown size={11} strokeWidth={2} />
             </button>
           </InstantTooltip>
         </UsageTipTarget>
@@ -384,7 +385,7 @@ export function PreviewToolbarQuickFilters({
                 onClick={() => updateFilters({ showWishlistOnly: !filters.showWishlistOnly })}
               >
                 <Bookmark
-                  size={14}
+                  size={11}
                   strokeWidth={2}
                   fill={filters.showWishlistOnly ? 'currentColor' : 'none'}
                   className={filters.showWishlistOnly ? 'fill-current' : undefined}
@@ -400,7 +401,7 @@ export function PreviewToolbarQuickFilters({
                 onClick={() => updateFilters({ showThumbsUpOnly: !filters.showThumbsUpOnly })}
               >
                 <ThumbsUp
-                  size={14}
+                  size={11}
                   strokeWidth={2}
                   fill={trial && filters.showThumbsUpOnly ? 'currentColor' : 'none'}
                   className={trial && filters.showThumbsUpOnly ? 'fill-current' : undefined}
@@ -416,7 +417,7 @@ export function PreviewToolbarQuickFilters({
                 onClick={() => onFiltersChange(applyHideUnwantedToggle(filters, !hideUnwantedActive))}
               >
                 <EyeOff
-                  size={14}
+                  size={11}
                   strokeWidth={2}
                   fill={trial && hideUnwantedActive ? 'currentColor' : 'none'}
                   className={trial && hideUnwantedActive ? 'fill-current' : undefined}

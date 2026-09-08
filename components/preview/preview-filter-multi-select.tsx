@@ -10,9 +10,11 @@ import { createPortal } from 'react-dom'
 import { ChevronDown, Check, X } from 'lucide-react'
 import type { PreviewColors } from '@/lib/preview/preview-colors'
 
-const PANEL_MAX_HEIGHT = 260
-const PANEL_WIDTH = 280
+const PANEL_MAX_HEIGHT = 220
+const PANEL_WIDTH = 240
 const PANEL_GAP = 4
+const TRIGGER_HEIGHT = 22
+const TRIGGER_FONT_SIZE = 10
 
 export type FilterMultiSelectOption = {
   value: string
@@ -153,17 +155,17 @@ export function PreviewFilterMultiSelect({
   const optionStyle: CSSProperties = {
     display: 'flex',
     alignItems: 'center',
-    gap: 8,
-    padding: '6px 10px',
-    fontSize: 11,
+    gap: 6,
+    padding: '4px 8px',
+    fontSize: 10,
     color: colors.summaryStrong,
     fontFamily: 'var(--font-dm-sans), sans-serif',
     cursor: 'pointer',
   }
 
   const groupHeadingStyle: CSSProperties = {
-    padding: '8px 10px 4px',
-    fontSize: 10,
+    padding: '6px 8px 2px',
+    fontSize: 9,
     fontWeight: 600,
     letterSpacing: '0.06em',
     textTransform: 'uppercase',
@@ -220,10 +222,10 @@ export function PreviewFilterMultiSelect({
         className="flex items-center gap-1 flex-shrink-0"
 
         style={{
-          height: 32,
-          fontSize: 12,
+          height: TRIGGER_HEIGHT,
+          fontSize: TRIGGER_FONT_SIZE,
           lineHeight: 1.2,
-          padding: '0 12px',
+          padding: '0 8px',
           borderRadius: colors.panelRadius,
           background: isActive ? colors.searchBg : colors.buttonBg,
           border: `1px solid ${isActive ? colors.accent : colors.buttonBorder}`,
@@ -231,12 +233,12 @@ export function PreviewFilterMultiSelect({
           fontFamily: 'var(--font-dm-sans), sans-serif',
           cursor: 'pointer',
           whiteSpace: 'nowrap',
-          maxWidth: 200,
+          maxWidth: 160,
         }}
         onClick={toggleOpen}
       >
         {isActive ? (
-          <Check size={12} strokeWidth={2.5} style={{ color: colors.accent }} aria-hidden className="flex-shrink-0" />
+          <Check size={10} strokeWidth={2.5} style={{ color: colors.accent }} aria-hidden className="flex-shrink-0" />
         ) : null}
         <span className="truncate">{triggerLabel}</span>
         {isPartialSelection ? (
@@ -258,10 +260,10 @@ export function PreviewFilterMultiSelect({
               }
             }}
           >
-            <X className="w-3.5 h-3.5" />
+            <X className="w-3 h-3" />
           </span>
         ) : null}
-        <ChevronDown className="w-3.5 h-3.5 flex-shrink-0" />
+        <ChevronDown className="w-3 h-3 flex-shrink-0" />
       </button>
 
       {mounted && open
@@ -269,9 +271,9 @@ export function PreviewFilterMultiSelect({
             <div ref={panelRef} role="listbox" aria-multiselectable style={panelStyle}>
               {allOptions.length === 0 ? (
                 <p
-                  className="m-0 px-3 py-1"
+                  className="m-0 px-2 py-1"
                   style={{
-                    fontSize: 11,
+                    fontSize: 10,
                     color: colors.muted,
                     fontFamily: 'var(--font-dm-sans), sans-serif',
                   }}
