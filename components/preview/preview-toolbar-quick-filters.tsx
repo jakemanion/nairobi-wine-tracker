@@ -1,7 +1,7 @@
 'use client'
 
 import type { CSSProperties } from 'react'
-import { ArrowUpDown, Bookmark, EyeOff, ThumbsUp } from 'lucide-react'
+import { ArrowUpDown, Bookmark, Check, EyeOff, ThumbsUp } from 'lucide-react'
 import {
   BEST_UNDER_PRICE_PRESETS,
   countryFiltersFromSelection,
@@ -146,6 +146,7 @@ function reviewFilterButtonStyle(
 ): CSSProperties {
   const accent = (trial ? TRIAL_REVIEW_FILTER_COLORS : REVIEW_FILTER_COLORS)[kind]
   return {
+    position: 'relative',
     display: 'inline-flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -162,6 +163,26 @@ function reviewFilterButtonStyle(
     color: active ? accent.color : colors.buttonText,
     whiteSpace: 'nowrap' as const,
   }
+}
+
+function ReviewFilterOnTick({ colors }: { colors: PreviewColors }) {
+  return (
+    <span
+      aria-hidden
+      className="pointer-events-none absolute inline-flex items-center justify-center"
+      style={{
+        left: -2,
+        bottom: -2,
+        width: 12,
+        height: 12,
+        borderRadius: '50%',
+        background: '#ffffff',
+        boxShadow: `0 0 0 1px ${colors.buttonBorder}`,
+      }}
+    >
+      <Check size={10} strokeWidth={2.5} style={{ color: colors.accent }} />
+    </span>
+  )
 }
 
 function filterSelectStyle(colors: PreviewColors, active: boolean): CSSProperties {
@@ -384,6 +405,7 @@ export function PreviewToolbarQuickFilters({
                   fill={filters.includeBookmarked ? 'currentColor' : 'none'}
                   className={filters.includeBookmarked ? 'fill-current' : undefined}
                 />
+                {filters.includeBookmarked ? <ReviewFilterOnTick colors={colors} /> : null}
               </button>
             </InstantTooltip>
             <InstantTooltip label={filters.includeBuyAgain ? 'Hide buy again wines' : 'Show buy again wines'}>
@@ -400,6 +422,7 @@ export function PreviewToolbarQuickFilters({
                   fill={trial && filters.includeBuyAgain ? 'currentColor' : 'none'}
                   className={trial && filters.includeBuyAgain ? 'fill-current' : undefined}
                 />
+                {filters.includeBuyAgain ? <ReviewFilterOnTick colors={colors} /> : null}
               </button>
             </InstantTooltip>
             <InstantTooltip label={filters.includeHidden ? 'Hide hidden wines' : 'Show hidden wines'}>
@@ -416,6 +439,7 @@ export function PreviewToolbarQuickFilters({
                   fill={trial && filters.includeHidden ? 'currentColor' : 'none'}
                   className={trial && filters.includeHidden ? 'fill-current' : undefined}
                 />
+                {filters.includeHidden ? <ReviewFilterOnTick colors={colors} /> : null}
               </button>
             </InstantTooltip>
           </UsageTipTarget>
