@@ -24,11 +24,11 @@ const tooltipStyle: CSSProperties = {
   whiteSpace: 'nowrap',
   pointerEvents: 'none',
   zIndex: 10000,
-  background: '#1A1A22',
-  color: '#E8E6F0',
-  border: '1px solid #3A3848',
+  background: '#ffffff',
+  color: '#3A3A44',
+  border: '1px solid #E4E4EE',
   fontFamily: 'var(--font-dm-sans), sans-serif',
-  boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
+  boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
   transform: 'translate(-50%, -100%)',
 }
 

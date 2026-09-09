@@ -1,9 +1,10 @@
 'use client'
 
-import type { CSSProperties } from 'react'
-import { ArrowUpDown, Bookmark, EyeOff, HelpCircle, ThumbsUp } from 'lucide-react'
+import type { CSSProperties, ReactNode, SelectHTMLAttributes } from 'react'
+import { ArrowUpDown, Bookmark, ChevronDown, EyeOff, HelpCircle, ThumbsUp } from 'lucide-react'
 import {
   BEST_UNDER_PRICE_PRESETS,
+  countryFilterValue,
   countryFiltersFromSelection,
   selectedCountriesFromRegionFilters,
   type WineFilters,
@@ -86,20 +87,22 @@ const QUICK_SORT_OPTIONS: Array<{ key: SortFieldKey; label: string; dir: 'asc' |
 
 /** Sentinel so an empty Type selection can mean "match nothing" (unlike [] = all types). */
 const STYLE_FILTER_NONE = '__none__'
+const GRAPE_FILTER_NONE = '__none__'
+const COUNTRY_FILTER_NONE = '__none__'
 
 
 const REVIEW_FILTER_COLORS = {
   wishlist: { bg: '#162010', border: '#2A5030', color: '#50A060' },
   shortlist: { bg: '#101830', border: '#2040A0', color: '#6090E0' },
   thumbsUp: { bg: '#3A2E08', border: '#8A7020', color: '#E0C040' },
-  hide: { bg: '#2A1C1C', border: '#5A3030', color: '#F08080' },
+  hide: { bg: '#2A1C1C', border: '#5A3030', color: '#C8AAAA' },
 } as const
 
 const TRIAL_REVIEW_FILTER_COLORS = {
   wishlist: { bg: '#99E2DA', border: '#029485', color: '#029485' },
   shortlist: { bg: '#F0F0F8', border: '#E4E4EE', color: '#7878A0' },
   thumbsUp: { bg: '#FFDD42', border: '#C89010', color: '#C89010' },
-  hide: { bg: '#ffffff', border: '#E4E4EE', color: '#BCBCCE' },
+  hide: { bg: '#ffffff', border: '#E4E4EE', color: '#C8AAAA' },
 } as const
 
 function reviewFilterButtonStyle(
@@ -156,7 +159,7 @@ function filterSelectStyle(colors: PreviewColors, active: boolean): CSSPropertie
     height: CONTROL_HEIGHT,
     fontSize: CONTROL_FONT_SIZE,
     lineHeight: 1.2,
-    padding: '0 1.35rem 0 8px',
+    padding: '0 22px 0 8px',
     margin: 0,
     borderRadius: colors.panelRadius,
     cursor: 'pointer',
@@ -167,7 +170,44 @@ function filterSelectStyle(colors: PreviewColors, active: boolean): CSSPropertie
     whiteSpace: 'nowrap' as const,
     boxSizing: 'border-box',
     verticalAlign: 'middle',
+    appearance: 'none',
+    WebkitAppearance: 'none',
+    MozAppearance: 'none',
   }
+}
+
+function FilterSelect({
+  colors,
+  active,
+  children,
+  className,
+  ...props
+}: {
+  colors: PreviewColors
+  active: boolean
+  children: ReactNode
+  className?: string
+} & Omit<SelectHTMLAttributes<HTMLSelectElement>, 'className' | 'style'>) {
+  return (
+    <div className={`relative flex-none self-center ${className ?? ''}`}>
+      <select {...props} style={filterSelectStyle(colors, active)}>
+        {children}
+      </select>
+      <ChevronDown
+        aria-hidden
+        size={12}
+        strokeWidth={2}
+        className="pointer-events-none absolute"
+        style={{
+          right: 6,
+          top: '50%',
+          transform: 'translateY(-50%)',
+          color: active ? colors.summaryStrong : colors.buttonText,
+          opacity: 0.75,
+        }}
+      />
+    </div>
+  )
 }
 
 function buildPriceOptions(maxBound: number): number[] {
@@ -229,6 +269,17 @@ export function PreviewToolbarQuickFilters({
       : filters.styles.includes(STYLE_FILTER_NONE)
         ? []
         : filters.styles
+  const selectedGrapes =
+    filters.grapes.length === 0
+      ? grapes
+      : filters.grapes.includes(GRAPE_FILTER_NONE)
+        ? []
+        : filters.grapes
+  const selectedCountriesForUi = filters.regions.includes(countryFilterValue(COUNTRY_FILTER_NONE))
+    ? []
+    : filters.regions.length === 0
+      ? countries
+      : selectedCountries
   const bestUnderValue = activeBestUnderPrice(filters, primarySort)
 
   function updateFilters(patch: Partial<WineFilters>) {
@@ -268,13 +319,38 @@ export function PreviewToolbarQuickFilters({
     updateFilters({ styles: next })
   }
 
+  function applyGrapeSelection(next: string[]) {
+    if (next.length === grapes.length) {
+      updateFilters({ grapes: [] })
+      return
+    }
+    if (next.length === 0) {
+      updateFilters({ grapes: [GRAPE_FILTER_NONE] })
+      return
+    }
+    updateFilters({ grapes: next })
+  }
+
+  function applyCountrySelection(next: string[]) {
+    if (next.length === countries.length) {
+      updateFilters({ regions: [] })
+      return
+    }
+    if (next.length === 0) {
+      updateFilters({ regions: [countryFilterValue(COUNTRY_FILTER_NONE)] })
+      return
+    }
+    updateFilters({ regions: countryFiltersFromSelection(next) })
+  }
+
   return (
     <div className="flex flex-col items-center gap-2 p-2">
       <div className="flex w-full flex-wrap items-center justify-center gap-x-3 gap-y-2">
         <UsageTipTarget tipId="sort-panel" className="flex items-center gap-1.5">
-          <select
+          <FilterSelect
+            colors={colors}
+            active
             aria-label="Sort by"
-            style={filterSelectStyle(colors, true)}
             value={primarySort.key}
             onChange={(event) => {
               const key = event.target.value as SortFieldKey
@@ -285,10 +361,10 @@ export function PreviewToolbarQuickFilters({
           >
             {QUICK_SORT_OPTIONS.map((option) => (
               <option key={option.key} value={option.key}>
-                Sort by: {option.label}
+                Sort by {option.label}
               </option>
             ))}
-          </select>
+          </FilterSelect>
           <InstantTooltip label="Reverse sort direction">
             <button
               type="button"
@@ -339,10 +415,10 @@ export function PreviewToolbarQuickFilters({
         ) : null}
 
         <UsageTipTarget tipId="best-under-panel" className="flex-none self-center">
-          <select
+          <FilterSelect
+            colors={colors}
+            active={!!bestUnderValue}
             aria-label="Best bottles under"
-            className="flex-none"
-            style={filterSelectStyle(colors, !!bestUnderValue)}
             value={bestUnderValue}
             onChange={(event) => {
               const value = event.target.value
@@ -355,7 +431,7 @@ export function PreviewToolbarQuickFilters({
                 Best bottles under {price.toLocaleString()} KSh
               </option>
             ))}
-          </select>
+          </FilterSelect>
         </UsageTipTarget>
 
         {isLoggedIn ? (
@@ -368,7 +444,7 @@ export function PreviewToolbarQuickFilters({
                 style={reviewFilterButtonStyle(colors, filters.includeUnmarked, 'unmarked', trial)}
                 onClick={() => updateFilters({ includeUnmarked: !filters.includeUnmarked })}
               >
-                <HelpCircle size={11} strokeWidth={2} />
+                <HelpCircle size={12} strokeWidth={2} />
                 {filters.includeUnmarked ? <ReviewOnTick colors={colors} /> : null}
               </button>
             </InstantTooltip>
@@ -430,37 +506,37 @@ export function PreviewToolbarQuickFilters({
       {showAdvanced ? (
         <div className="flex w-full flex-wrap items-center justify-center gap-1.5">
             <UsageTipTarget tipId="highest-price-filter" className="flex-none self-center">
-              <select
+              <FilterSelect
+                colors={colors}
+                active={!!filters.priceMax.trim()}
                 aria-label="Highest price"
-                className="flex-none"
-                style={filterSelectStyle(colors, !!filters.priceMax.trim())}
                 value={filters.priceMax.trim() || ''}
                 onChange={(event) => updateFilters({ priceMax: event.target.value })}
               >
-                <option value="">Highest price: All</option>
+                <option value="">All prices</option>
                 {buildPriceOptions(priceMaxBound).map((price) => (
                   <option key={price} value={String(price)}>
-                    Max price: {price.toLocaleString()} KSh
+                    Highest price: {price.toLocaleString()} KSh
                   </option>
                 ))}
-              </select>
+              </FilterSelect>
             </UsageTipTarget>
 
             <UsageTipTarget tipId="lowest-rating-filter" className="flex-none self-center">
-              <select
+              <FilterSelect
+                colors={colors}
+                active={!!filters.vivinoMin.trim()}
                 aria-label="Lowest star rating"
-                className="flex-none"
-                style={filterSelectStyle(colors, !!filters.vivinoMin.trim())}
                 value={filters.vivinoMin.trim() || ''}
                 onChange={(event) => updateFilters({ vivinoMin: event.target.value })}
               >
-                <option value="">Lowest ★ rating: All</option>
+                <option value="">All ratings</option>
                 {buildRatingOptions().map((rating) => (
                   <option key={rating} value={rating}>
                     {Number(rating) >= 5 ? `${rating}★` : `${rating}★ and above`}
                   </option>
                 ))}
-              </select>
+              </FilterSelect>
             </UsageTipTarget>
 
             <UsageTipTarget tipId="grapes-filter" className="flex-none self-center">
@@ -469,8 +545,9 @@ export function PreviewToolbarQuickFilters({
                 label="Grapes"
                 emptyMessage="No grapes in list"
                 options={grapes}
-                selected={filters.grapes}
-                onChange={(next) => updateFilters({ grapes: next })}
+                selected={selectedGrapes}
+                onChange={applyGrapeSelection}
+                selectAllLabel="All"
               />
             </UsageTipTarget>
 
@@ -480,8 +557,9 @@ export function PreviewToolbarQuickFilters({
                 label="Countries"
                 emptyMessage="No countries in list"
                 options={countries}
-                selected={selectedCountries}
-                onChange={(next) => updateFilters({ regions: countryFiltersFromSelection(next) })}
+                selected={selectedCountriesForUi}
+                onChange={applyCountrySelection}
+                selectAllLabel="All"
               />
             </UsageTipTarget>
         </div>
