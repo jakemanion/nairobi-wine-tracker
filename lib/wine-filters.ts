@@ -27,6 +27,8 @@ export type WineFilters = {
   includeBuyAgain: boolean
   /** When false, wines marked hidden/unwanted are excluded. Default on. */
   includeHidden: boolean
+  /** When false, unmarked wines (no bookmark/hide/thumbs) are excluded. Default on. */
+  includeUnmarked: boolean
 }
 
 export const EMPTY_WINE_FILTERS: WineFilters = {
@@ -46,6 +48,7 @@ export const EMPTY_WINE_FILTERS: WineFilters = {
   includeBookmarked: true,
   includeBuyAgain: true,
   includeHidden: true,
+  includeUnmarked: true,
 }
 
 export const BEST_UNDER_PRICE_PRESETS = [1500, 2000, 3000, 4000, 5000] as const
@@ -195,6 +198,14 @@ function normalizeTriedStatus(value: number | null | undefined): TriedStatusFilt
   if (value === 1) return 1
   if (value === 2 || value === 3) return 2
   return 'unset'
+}
+
+function isUnmarkedReview(review: WineRow['review'] | null | undefined): boolean {
+  const bookmarked = normalizeWishlist(review?.wishlist) === 1
+  const thumbsUp = normalizeTriedStatus(review?.tried_status) === 1
+  const thumbsDown = normalizeTriedStatus(review?.tried_status) === 2
+  const hidden = review?.hide === true
+  return !bookmarked && !thumbsUp && !thumbsDown && !hidden
 }
 
 export type RegionFilterGroup = {
@@ -347,6 +358,7 @@ export function countActiveFilters(filters: WineFilters): number {
   if (!filters.includeBookmarked) count += 1
   if (!filters.includeBuyAgain) count += 1
   if (!filters.includeHidden) count += 1
+  if (!filters.includeUnmarked) count += 1
   if (filters.disabledStores.length > 0) count += 1
   return count
 }
@@ -377,6 +389,9 @@ export function filterWines<T extends WineRow>(wines: T[], filters: WineFilters)
       ) {
         return false
       }
+    }
+    if (!filters.includeUnmarked && isUnmarkedReview(wine.review)) {
+      return false
     }
 
     const price = minWinePriceKES(wine.store_listings)

@@ -5,6 +5,7 @@ import { Bookmark } from 'lucide-react'
 import type { CSSProperties } from 'react'
 import type { WineReview } from '@/components/wine-table'
 import { InstantTooltip } from '@/components/preview/instant-tooltip'
+import { ReviewOnTick } from '@/components/preview/review-on-tick'
 import { saveReviewWishlistField, type WishlistValue } from '@/lib/reviews'
 import type { PreviewThemeMode, PanelTint, PreviewVisualStyle } from '@/lib/preview/preview-colors'
 import { usePreviewTheme } from '@/components/preview/preview-theme-context'
@@ -168,7 +169,7 @@ export function PreviewWishlistPicker({
           aria-label={active ? 'Remove from bookmark' : 'Add to bookmark'}
           aria-pressed={active}
           disabled={saving}
-          className="w-10 h-10 flex items-center justify-center transition-all hover:scale-105 flex-shrink-0 m-0"
+          className="w-10 h-10 relative flex items-center justify-center transition-all hover:scale-105 flex-shrink-0 m-0"
           style={{
             border: `${trial ? 1 : 2}px solid ${borderColor}`,
             background: bgColor,
@@ -187,6 +188,7 @@ export function PreviewWishlistPicker({
           className={iconFilled ? 'fill-current' : undefined}
           style={{ color: iconColor }}
         />
+        {active ? <ReviewOnTick colors={colors} accentColor={iconColor} /> : null}
       </button>
       </InstantTooltip>
       {error ? (

@@ -1,7 +1,7 @@
 'use client'
 
 import type { CSSProperties } from 'react'
-import { ArrowUpDown, Bookmark, Check, EyeOff, ThumbsUp } from 'lucide-react'
+import { ArrowUpDown, Bookmark, EyeOff, HelpCircle, ThumbsUp } from 'lucide-react'
 import {
   BEST_UNDER_PRICE_PRESETS,
   countryFiltersFromSelection,
@@ -10,6 +10,7 @@ import {
 } from '@/lib/wine-filters'
 import { InstantTooltip } from '@/components/preview/instant-tooltip'
 import { PreviewFilterMultiSelect } from '@/components/preview/preview-filter-multi-select'
+import { ReviewOnTick } from '@/components/preview/review-on-tick'
 import { UsageTipTarget } from '@/components/preview/usage-tip-target'
 import { usePreviewTheme } from '@/components/preview/preview-theme-context'
 import type { PreviewColors } from '@/lib/preview/preview-colors'
@@ -54,43 +55,6 @@ function chipStyle(colors: PreviewColors, active: boolean): CSSProperties {
     border: `1px solid ${active ? colors.accent : colors.buttonBorder}`,
     color: active ? colors.summaryStrong : colors.buttonText,
     whiteSpace: 'nowrap',
-  }
-}
-
-function sliderGroupStyle(colors: PreviewColors): CSSProperties {
-  return {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 8,
-    padding: 8,
-    borderRadius: colors.panelRadius,
-    background: colors.previewShellBg,
-    border: `1px solid ${colors.toolbarBorder}`,
-    fontFamily: 'var(--font-dm-sans), sans-serif',
-  }
-}
-
-function titledSectionStyle(colors: PreviewColors): CSSProperties {
-  return {
-    ...sliderGroupStyle(colors),
-    flexDirection: 'column',
-    alignItems: 'center',
-    gap: 6,
-    width: 'fit-content',
-    maxWidth: '100%',
-  }
-}
-
-function sectionTitleStyle(colors: PreviewColors): CSSProperties {
-  return {
-    margin: 0,
-    width: '100%',
-    textAlign: 'center',
-    fontSize: 11,
-    fontWeight: 600,
-    color: colors.accent,
-    fontFamily: 'var(--font-dm-sans), sans-serif',
-    lineHeight: 1.2,
   }
 }
 
@@ -141,9 +105,29 @@ const TRIAL_REVIEW_FILTER_COLORS = {
 function reviewFilterButtonStyle(
   colors: PreviewColors,
   active: boolean,
-  kind: 'wishlist' | 'shortlist' | 'thumbsUp' | 'hide',
+  kind: 'wishlist' | 'shortlist' | 'thumbsUp' | 'hide' | 'unmarked',
   trial = false,
 ): CSSProperties {
+  if (kind === 'unmarked') {
+    return {
+      position: 'relative',
+      display: 'inline-flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      width: CONTROL_HEIGHT,
+      height: CONTROL_HEIGHT,
+      padding: 0,
+      fontSize: CONTROL_FONT_SIZE,
+      lineHeight: 1.2,
+      borderRadius: colors.buttonRadius,
+      cursor: 'pointer',
+      fontFamily: 'var(--font-dm-sans), sans-serif',
+      background: active ? '#F0F0F8' : colors.buttonBg,
+      border: `1px solid ${active ? '#E4E4EE' : colors.buttonBorder}`,
+      color: active ? '#7878A0' : colors.buttonText,
+      whiteSpace: 'nowrap' as const,
+    }
+  }
   const accent = (trial ? TRIAL_REVIEW_FILTER_COLORS : REVIEW_FILTER_COLORS)[kind]
   return {
     position: 'relative',
@@ -165,32 +149,15 @@ function reviewFilterButtonStyle(
   }
 }
 
-function ReviewFilterOnTick({ colors }: { colors: PreviewColors }) {
-  return (
-    <span
-      aria-hidden
-      className="pointer-events-none absolute inline-flex items-center justify-center"
-      style={{
-        left: -2,
-        bottom: -2,
-        width: 12,
-        height: 12,
-        borderRadius: '50%',
-        background: '#ffffff',
-        boxShadow: `0 0 0 1px ${colors.buttonBorder}`,
-      }}
-    >
-      <Check size={10} strokeWidth={2.5} style={{ color: colors.accent }} />
-    </span>
-  )
-}
-
 function filterSelectStyle(colors: PreviewColors, active: boolean): CSSProperties {
   return {
+    display: 'block',
+    alignSelf: 'center',
     height: CONTROL_HEIGHT,
     fontSize: CONTROL_FONT_SIZE,
     lineHeight: 1.2,
     padding: '0 1.35rem 0 8px',
+    margin: 0,
     borderRadius: colors.panelRadius,
     cursor: 'pointer',
     fontFamily: 'var(--font-dm-sans), sans-serif',
@@ -198,6 +165,8 @@ function filterSelectStyle(colors: PreviewColors, active: boolean): CSSPropertie
     border: `1px solid ${active ? colors.accent : colors.buttonBorder}`,
     color: active ? colors.summaryStrong : colors.buttonText,
     whiteSpace: 'nowrap' as const,
+    boxSizing: 'border-box',
+    verticalAlign: 'middle',
   }
 }
 
@@ -342,7 +311,7 @@ export function PreviewToolbarQuickFilters({
           </InstantTooltip>
         </UsageTipTarget>
 
-        <UsageTipTarget tipId="type-filter" className="flex-none">
+        <UsageTipTarget tipId="type-filter" className="flex-none self-center">
           <PreviewFilterMultiSelect
             colors={colors}
             label="Type"
@@ -355,7 +324,21 @@ export function PreviewToolbarQuickFilters({
           />
         </UsageTipTarget>
 
-        <UsageTipTarget tipId="best-under-panel" className="flex-none">
+        {stores.length > 0 ? (
+          <UsageTipTarget tipId="shops-filter" className="flex-none self-center">
+            <PreviewFilterMultiSelect
+              colors={colors}
+              label="Show shops"
+              emptyMessage="No shops in list"
+              options={stores}
+              selected={selectedShops}
+              onChange={applyShopSelection}
+              selectAllLabel="All"
+            />
+          </UsageTipTarget>
+        ) : null}
+
+        <UsageTipTarget tipId="best-under-panel" className="flex-none self-center">
           <select
             aria-label="Best bottles under"
             className="flex-none"
@@ -375,22 +358,20 @@ export function PreviewToolbarQuickFilters({
           </select>
         </UsageTipTarget>
 
-        {stores.length > 0 ? (
-          <UsageTipTarget tipId="shops-filter" className="flex-none">
-            <PreviewFilterMultiSelect
-              colors={colors}
-              label="Show shops"
-              emptyMessage="No shops in list"
-              options={stores}
-              selected={selectedShops}
-              onChange={applyShopSelection}
-              selectAllLabel="All"
-            />
-          </UsageTipTarget>
-        ) : null}
-
         {isLoggedIn ? (
-          <UsageTipTarget tipId="my-wines-filters" className="flex items-center gap-1.5">
+          <UsageTipTarget tipId="my-wines-filters" className="flex items-center gap-1.5 self-center">
+            <InstantTooltip label={filters.includeUnmarked ? 'Hide unmarked wines' : 'Show unmarked wines'}>
+              <button
+                type="button"
+                aria-label={filters.includeUnmarked ? 'Hide unmarked wines' : 'Show unmarked wines'}
+                aria-pressed={filters.includeUnmarked}
+                style={reviewFilterButtonStyle(colors, filters.includeUnmarked, 'unmarked', trial)}
+                onClick={() => updateFilters({ includeUnmarked: !filters.includeUnmarked })}
+              >
+                <HelpCircle size={11} strokeWidth={2} />
+                {filters.includeUnmarked ? <ReviewOnTick colors={colors} /> : null}
+              </button>
+            </InstantTooltip>
             <InstantTooltip label={filters.includeBookmarked ? 'Hide bookmarked wines' : 'Show bookmarked wines'}>
               <button
                 type="button"
@@ -405,7 +386,7 @@ export function PreviewToolbarQuickFilters({
                   fill={filters.includeBookmarked ? 'currentColor' : 'none'}
                   className={filters.includeBookmarked ? 'fill-current' : undefined}
                 />
-                {filters.includeBookmarked ? <ReviewFilterOnTick colors={colors} /> : null}
+                {filters.includeBookmarked ? <ReviewOnTick colors={colors} /> : null}
               </button>
             </InstantTooltip>
             <InstantTooltip label={filters.includeBuyAgain ? 'Hide buy again wines' : 'Show buy again wines'}>
@@ -422,7 +403,7 @@ export function PreviewToolbarQuickFilters({
                   fill={trial && filters.includeBuyAgain ? 'currentColor' : 'none'}
                   className={trial && filters.includeBuyAgain ? 'fill-current' : undefined}
                 />
-                {filters.includeBuyAgain ? <ReviewFilterOnTick colors={colors} /> : null}
+                {filters.includeBuyAgain ? <ReviewOnTick colors={colors} /> : null}
               </button>
             </InstantTooltip>
             <InstantTooltip label={filters.includeHidden ? 'Hide hidden wines' : 'Show hidden wines'}>
@@ -439,7 +420,7 @@ export function PreviewToolbarQuickFilters({
                   fill={trial && filters.includeHidden ? 'currentColor' : 'none'}
                   className={trial && filters.includeHidden ? 'fill-current' : undefined}
                 />
-                {filters.includeHidden ? <ReviewFilterOnTick colors={colors} /> : null}
+                {filters.includeHidden ? <ReviewOnTick colors={colors} /> : null}
               </button>
             </InstantTooltip>
           </UsageTipTarget>
@@ -447,11 +428,8 @@ export function PreviewToolbarQuickFilters({
       </div>
 
       {showAdvanced ? (
-        <div className="flex w-full flex-wrap items-center justify-center gap-2">
-          <div style={titledSectionStyle(colors)}>
-            <p style={sectionTitleStyle(colors)}>Advanced filters</p>
-            <div className="flex flex-1 flex-wrap items-center justify-center gap-1.5">
-            <UsageTipTarget tipId="highest-price-filter" className="flex-none">
+        <div className="flex w-full flex-wrap items-center justify-center gap-1.5">
+            <UsageTipTarget tipId="highest-price-filter" className="flex-none self-center">
               <select
                 aria-label="Highest price"
                 className="flex-none"
@@ -468,24 +446,24 @@ export function PreviewToolbarQuickFilters({
               </select>
             </UsageTipTarget>
 
-            <UsageTipTarget tipId="lowest-rating-filter" className="flex-none">
+            <UsageTipTarget tipId="lowest-rating-filter" className="flex-none self-center">
               <select
-                aria-label="Lowest rating"
+                aria-label="Lowest star rating"
                 className="flex-none"
                 style={filterSelectStyle(colors, !!filters.vivinoMin.trim())}
                 value={filters.vivinoMin.trim() || ''}
                 onChange={(event) => updateFilters({ vivinoMin: event.target.value })}
               >
-                <option value="">Lowest rating: All</option>
+                <option value="">Lowest ★ rating: All</option>
                 {buildRatingOptions().map((rating) => (
                   <option key={rating} value={rating}>
-                    {rating}★ and above
+                    {Number(rating) >= 5 ? `${rating}★` : `${rating}★ and above`}
                   </option>
                 ))}
               </select>
             </UsageTipTarget>
 
-            <UsageTipTarget tipId="grapes-filter" className="flex-none">
+            <UsageTipTarget tipId="grapes-filter" className="flex-none self-center">
               <PreviewFilterMultiSelect
                 colors={colors}
                 label="Grapes"
@@ -496,7 +474,7 @@ export function PreviewToolbarQuickFilters({
               />
             </UsageTipTarget>
 
-            <UsageTipTarget tipId="countries-filter" className="flex-none">
+            <UsageTipTarget tipId="countries-filter" className="flex-none self-center">
               <PreviewFilterMultiSelect
                 colors={colors}
                 label="Countries"
@@ -506,9 +484,6 @@ export function PreviewToolbarQuickFilters({
                 onChange={(next) => updateFilters({ regions: countryFiltersFromSelection(next) })}
               />
             </UsageTipTarget>
-
-            </div>
-          </div>
         </div>
       ) : null}
     </div>

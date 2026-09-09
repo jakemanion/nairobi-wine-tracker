@@ -135,6 +135,9 @@ export function buildListStateSummary({
   if (!filters.includeHidden) {
     parts.push('Hide hidden')
   }
+  if (!filters.includeUnmarked) {
+    parts.push('Hide unmarked')
+  }
 
   if (filters.wishlist.length > 0) {
     parts.push(

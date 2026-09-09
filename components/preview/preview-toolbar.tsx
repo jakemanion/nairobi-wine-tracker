@@ -52,6 +52,7 @@ export function PreviewToolbar({
 }: PreviewToolbarProps) {
   const { colors, visualStyle } = usePreviewTheme()
   const [advancedVisible, setAdvancedVisible] = useState(false)
+  const [toggleHovered, setToggleHovered] = useState(false)
   const toolsActive = activeFilterCount > 0
   const summaryText = buildListStateSummary({
     filters,
@@ -98,7 +99,15 @@ export function PreviewToolbar({
           className="flex"
           style={{
             borderTop: `1px solid ${colors.toolbarBorder}`,
+            background: toggleHovered
+              ? visualStyle === 'trial'
+                ? 'rgba(0, 0, 0, 0.04)'
+                : 'rgba(255, 255, 255, 0.06)'
+              : 'transparent',
+            transition: 'background 120ms ease',
           }}
+          onMouseEnter={() => setToggleHovered(true)}
+          onMouseLeave={() => setToggleHovered(false)}
         >
           <button
             type="button"
@@ -122,7 +131,7 @@ export function PreviewToolbar({
             ) : (
               <ChevronDown size={12} aria-hidden />
             )}
-            {advancedVisible ? 'Hide advanced filters' : 'Show advanced filters'}
+            {advancedVisible ? 'Hide more filters' : 'Show more filters'}
           </button>
         </div>
       </div>

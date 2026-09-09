@@ -80,7 +80,7 @@ export const USAGE_TIPS: Record<UsageTipId, UsageTipContent> = {
   'my-wines-filters': {
     id: 'my-wines-filters',
     heading: 'Your wine list',
-    body: 'Toggle whether bookmarked, buy-again, and hidden wines appear in your list. All start on.',
+    body: 'Toggle whether unmarked, bookmarked, buy-again, and hidden wines appear in your list. All start on.',
     estimatedHeight: 148,
   },
   'shops-filter': {

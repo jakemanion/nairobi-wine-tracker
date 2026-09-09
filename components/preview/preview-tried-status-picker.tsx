@@ -8,6 +8,7 @@ import {
   getTrialReviewControlStyle,
   TRIAL_REVIEW_BUTTON_RADIUS,
 } from '@/components/preview/preview-wishlist-picker'
+import { ReviewOnTick } from '@/components/preview/review-on-tick'
 import { usePreviewTheme } from '@/components/preview/preview-theme-context'
 import type { PanelTint } from '@/lib/preview/preview-colors'
 import { saveReviewTriedStatusField, type TriedStatusValue } from '@/lib/reviews'
@@ -105,7 +106,7 @@ export function PreviewTriedStatusPicker({
             aria-label="Buy again"
             aria-pressed={upActive}
             disabled={saving}
-            className="flex items-center justify-center transition-all hover:scale-105 flex-shrink-0"
+            className="relative flex items-center justify-center transition-all hover:scale-105 flex-shrink-0"
             style={{
               width: 28,
               height: 28,
@@ -139,6 +140,12 @@ export function PreviewTriedStatusPicker({
               fill={trialUp?.filled ? 'currentColor' : 'none'}
               className={trialUp?.filled ? 'fill-current' : undefined}
             />
+            {upActive ? (
+              <ReviewOnTick
+                colors={colors}
+                accentColor={trialUp?.icon ?? '#E0C040'}
+              />
+            ) : null}
           </button>
         </InstantTooltip>
         <InstantTooltip label="Don't buy again">
@@ -147,7 +154,7 @@ export function PreviewTriedStatusPicker({
             aria-label="Don't buy again"
             aria-pressed={downActive}
             disabled={saving}
-            className="flex items-center justify-center transition-all hover:scale-105 flex-shrink-0"
+            className="relative flex items-center justify-center transition-all hover:scale-105 flex-shrink-0"
             style={{
               width: 28,
               height: 28,
@@ -181,6 +188,12 @@ export function PreviewTriedStatusPicker({
               fill={trialDown?.filled ? 'currentColor' : 'none'}
               className={trialDown?.filled ? 'fill-current' : undefined}
             />
+            {downActive ? (
+              <ReviewOnTick
+                colors={colors}
+                accentColor={trialDown?.icon ?? '#F08080'}
+              />
+            ) : null}
           </button>
         </InstantTooltip>
       </div>
