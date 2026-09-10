@@ -80,7 +80,7 @@ function formatPrice(value: number): string {
   return value.toLocaleString('en-KE', { maximumFractionDigits: 0 })
 }
 
-const STAR_SLOT_SIZE = 14
+const STAR_SLOT_SIZE = 7
 const EMPTY_STAR_COLOR = '#D2D2DC'
 const FILLED_STAR_COLOR = '#E8B84A'
 const RATING_CIRCLE_SIZE = 30
@@ -109,7 +109,7 @@ function FractionalStar({
     >
       <Star
         size={STAR_SLOT_SIZE}
-        strokeWidth={1.4}
+        strokeWidth={1.2}
         className="absolute inset-0"
         style={{ color: EMPTY_STAR_COLOR, fill: 'none' }}
       />
@@ -156,7 +156,7 @@ function WineStarRating({
   )
 
   return (
-    <div className="flex flex-col items-start gap-1 flex-shrink-0">
+    <div className="flex flex-col items-center gap-1 flex-shrink-0 pt-0.5">
       <div
         className="flex items-center"
         title={starRating != null ? `${ratingLabel} stars` : 'No rating'}
@@ -187,12 +187,12 @@ function WineStarRating({
           </span>
         </div>
         <div
-          className="flex items-center gap-[3px] -ml-2 pl-3.5 pr-2"
+          className="flex items-center gap-px -ml-1.5 pl-2 pr-1"
           style={{
-            height: 24,
+            height: 14,
             background: '#FFFFFF',
             border: '1px solid #E8E8F0',
-            borderRadius: 8,
+            borderRadius: 4,
             boxShadow: '0 1px 2px rgba(26, 24, 20, 0.06)',
           }}
         >
@@ -533,13 +533,13 @@ export function PreviewWineCard({
           borderRight: visualStyle === 'trial' ? undefined : `1px solid ${colors.infoBorder}`,
         }}
       >
-        <div className="flex flex-col gap-1.5 pr-2">
+        <div className="flex items-start gap-2.5 pr-2">
           <WineStarRating
             vivinoRating={wine.vivinoRating}
             vivinoUrl={wine.vivinoUrl}
             mutedColor={infoMuted}
           />
-          <div className="flex-1 min-w-0 flex flex-col gap-1.5">
+          <div className="flex-1 min-w-0 flex flex-col gap-1.5 pt-0.5">
             <p
               className="text-[9px] font-semibold uppercase tracking-[0.14em] leading-none"
               style={{ color: infoProducer, fontFamily: 'var(--font-dm-sans), sans-serif' }}
