@@ -513,7 +513,7 @@ export function PreviewWineCard({
       ) : null}
 
       <div
-        className="w-[96px] flex-shrink-0 self-stretch relative min-h-[112px]"
+        className="w-[64px] flex-shrink-0 self-stretch relative min-h-[112px]"
         style={{ background: colors.imageColumnBg }}
       >
         <PreviewBottleImage
@@ -524,7 +524,7 @@ export function PreviewWineCard({
       </div>
 
       <div
-        className="flex-1 min-w-0 px-3.5 py-2.5 flex flex-col justify-between gap-1.5 relative"
+        className="flex-1 min-w-0 pl-0 pr-3.5 py-2.5 flex flex-col justify-between gap-1.5 relative"
         style={{
           background: colors.wineInfoBg,
           boxShadow: colors.wineInfoSheen,
