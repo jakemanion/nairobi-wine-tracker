@@ -30,7 +30,7 @@ import {
   type PreviewColors,
   type PreviewVisualStyle,
 } from '@/lib/preview/preview-colors'
-import { formatStarRating, starRatingColor, vivinoToStarRating } from '@/lib/ratings/vivino-star-rating'
+import { formatStarRating, vivinoToStarRating } from '@/lib/ratings/vivino-star-rating'
 import { saveReviewField } from '@/lib/reviews'
 import type { WishlistValue, TriedStatusValue } from '@/lib/reviews'
 
@@ -80,21 +80,70 @@ function formatPrice(value: number): string {
   return value.toLocaleString('en-KE', { maximumFractionDigits: 0 })
 }
 
+const STAR_SLOT_SIZE = 14
+const EMPTY_STAR_COLOR = '#D2D2DC'
+const FILLED_STAR_COLOR = '#E8B84A'
+const RATING_CIRCLE_SIZE = 30
+
+function starFillAmount(rating: number, index: number): number {
+  const remainder = rating - index
+  if (remainder >= 1) return 1
+  if (remainder <= 0) return 0
+  return Math.round(remainder * 4) / 4
+}
+
+function FractionalStar({
+  fill,
+  filledColor,
+}: {
+  fill: number
+  filledColor: string
+}) {
+  const clamped = Math.min(1, Math.max(0, fill))
+
+  return (
+    <span
+      className="relative inline-block flex-shrink-0"
+      style={{ width: STAR_SLOT_SIZE, height: STAR_SLOT_SIZE }}
+      aria-hidden
+    >
+      <Star
+        size={STAR_SLOT_SIZE}
+        strokeWidth={1.4}
+        className="absolute inset-0"
+        style={{ color: EMPTY_STAR_COLOR, fill: 'none' }}
+      />
+      {clamped > 0 ? (
+        <span
+          className="absolute inset-0 overflow-hidden"
+          style={{ width: `${clamped * 100}%` }}
+        >
+          <Star
+            size={STAR_SLOT_SIZE}
+            strokeWidth={0}
+            style={{ color: filledColor, fill: filledColor }}
+          />
+        </span>
+      ) : null}
+    </span>
+  )
+}
+
 function WineStarRating({
   vivinoRating,
   vivinoUrl,
   mutedColor,
-  emphasisColor,
 }: {
   vivinoRating: number | null
   vivinoUrl: string | null
   mutedColor: string
-  emphasisColor: string
 }) {
   const starRating = vivinoToStarRating(vivinoRating)
   const hasVivino = vivinoRating != null
   const vivinoLabel = hasVivino ? `${vivinoRating.toFixed(1)} on Vivino` : 'Vivino'
-  const starColor = starRating != null ? starRatingColor(starRating) : '#7A7A82'
+  const starColor = starRating != null && starRating > 0 ? FILLED_STAR_COLOR : '#7A7A82'
+  const ratingLabel = starRating != null ? formatStarRating(starRating) : '–'
+  const circleTextColor = starRating != null && starRating > 0 ? '#1A1814' : '#FFFFFF'
 
   const vivinoLine = (
     <span
@@ -107,35 +156,55 @@ function WineStarRating({
   )
 
   return (
-    <div className="flex flex-col items-center gap-1.5 flex-shrink-0 pt-0.5 min-w-[3.25rem]">
-      {starRating != null ? (
-        <div className="flex items-center gap-1.5" title={`${formatStarRating(starRating)} stars`}>
-          <Star
-            size={26}
-            strokeWidth={0}
-            className="flex-shrink-0"
-            style={{ fill: starColor, color: starColor }}
-            aria-hidden
-          />
+    <div className="flex flex-col items-start gap-1 flex-shrink-0">
+      <div
+        className="flex items-center"
+        title={starRating != null ? `${ratingLabel} stars` : 'No rating'}
+        role="img"
+        aria-label={starRating != null ? `Rated ${ratingLabel} out of 5 stars` : 'No rating'}
+      >
+        <div
+          className="relative z-10 flex items-center justify-center rounded-full flex-shrink-0"
+          style={{
+            width: RATING_CIRCLE_SIZE,
+            height: RATING_CIRCLE_SIZE,
+            background: starColor,
+            border: '2px solid #FFFFFF',
+            boxShadow: '0 1px 3px rgba(26, 24, 20, 0.18)',
+          }}
+          aria-hidden={starRating == null}
+        >
           <span
-            className="tabular-nums text-[22px] font-bold leading-none"
+            className="tabular-nums font-bold leading-none"
             style={{
-              color: emphasisColor,
+              color: circleTextColor,
               fontFamily: 'var(--font-dm-sans), sans-serif',
+              fontSize: ratingLabel.length > 3 ? 9 : ratingLabel.length > 2 ? 10 : 12,
               letterSpacing: '-0.03em',
             }}
           >
-            {formatStarRating(starRating)}
+            {ratingLabel}
           </span>
         </div>
-      ) : (
-        <span
-          className="text-[11px] font-medium leading-snug text-center"
-          style={{ color: mutedColor, fontFamily: 'var(--font-dm-sans), sans-serif' }}
+        <div
+          className="flex items-center gap-[3px] -ml-2 pl-3.5 pr-2"
+          style={{
+            height: 24,
+            background: '#FFFFFF',
+            border: '1px solid #E8E8F0',
+            borderRadius: 8,
+            boxShadow: '0 1px 2px rgba(26, 24, 20, 0.06)',
+          }}
         >
-          No rating
-        </span>
-      )}
+          {[0, 1, 2, 3, 4].map((index) => (
+            <FractionalStar
+              key={index}
+              fill={starRating != null ? starFillAmount(starRating, index) : 0}
+              filledColor={starColor}
+            />
+          ))}
+        </div>
+      </div>
 
       {vivinoUrl ? (
         <a
@@ -151,6 +220,41 @@ function WineStarRating({
       ) : hasVivino ? (
         vivinoLine
       ) : null}
+    </div>
+  )
+}
+
+function CardStatusLabel({
+  text,
+  background,
+  color,
+}: {
+  text: string
+  background: string
+  color: string
+}) {
+  return (
+    <div
+      className="flex items-center justify-center"
+      style={{
+        background,
+        color,
+        borderRadius: '6px 0 0 6px',
+        padding: '8px 5px',
+        boxShadow: '0 1px 4px rgba(26, 24, 20, 0.16)',
+      }}
+    >
+      <span
+        className="text-[9px] font-bold uppercase leading-none whitespace-nowrap"
+        style={{
+          writingMode: 'vertical-rl',
+          transform: 'rotate(180deg)',
+          letterSpacing: '0.14em',
+          fontFamily: 'var(--font-dm-sans), sans-serif',
+        }}
+      >
+        {text}
+      </span>
     </div>
   )
 }
@@ -272,8 +376,17 @@ export function PreviewWineCard({
   const infoOnDark = colors.infoOnDark
   const infoProducer = colors.producer
   const infoWineName = infoOnDark ? '#F5F2EC' : colors.wineName
-  const ratingEmphasis = visualStyle === 'trial' ? colors.ratingValue : infoWineName
   const infoMuted = infoOnDark ? '#C8C4D0' : visualStyle === 'trial' ? '#BCBCCE' : colors.muted
+  const bookmarkBorder = getCardBorderColor('wishlist', mode, visualStyle)
+  const buyAgainBorder = getCardBorderColor('thumbsUp', mode, visualStyle)
+  const statusLabels = [
+    ...(wishlist === 1 && bookmarkBorder
+      ? [{ key: 'bookmarked', text: 'Bookmarked', background: bookmarkBorder, color: '#FFFFFF' }]
+      : []),
+    ...(triedStatus === 1 && buyAgainBorder
+      ? [{ key: 'buy-again', text: 'Buy again', background: buyAgainBorder, color: '#3A2808' }]
+      : []),
+  ]
   const infoGrapeBg = infoOnDark ? 'rgba(255,255,255,0.08)' : colors.grapeBg
   const infoGrapeBorder = infoOnDark ? 'rgba(255,255,255,0.12)' : colors.grapeBorder
   const infoGrapeText = infoOnDark ? '#E8E4DC' : colors.grapeText
@@ -355,14 +468,30 @@ export function PreviewWineCard({
   }
 
   return (
+    <div className="relative transition-opacity duration-300" style={{ opacity: isDimmed ? 0.4 : 1 }}>
+      {statusLabels.length > 0 ? (
+        <div
+          className="absolute top-1/2 z-20 flex flex-col gap-1 pointer-events-none"
+          style={{ left: 0, transform: 'translate(calc(-100% + 3px), -50%)' }}
+        >
+          {statusLabels.map((label) => (
+            <CardStatusLabel
+              key={label.key}
+              text={label.text}
+              background={label.background}
+              color={label.color}
+            />
+          ))}
+        </div>
+      ) : null}
+
     <div
-      className="relative flex items-stretch overflow-hidden transition-opacity duration-300"
+      className="relative flex items-stretch overflow-hidden"
       style={{
         background: colors.cardBg,
         ...cardBorderStyle,
         borderRadius: colors.cardRadius,
         boxShadow: isDimmed ? 'none' : colors.cardShadow,
-        opacity: isDimmed ? 0.4 : 1,
       }}
     >
       {ribbon ? (
@@ -404,14 +533,13 @@ export function PreviewWineCard({
           borderRight: visualStyle === 'trial' ? undefined : `1px solid ${colors.infoBorder}`,
         }}
       >
-        <div className="flex items-start gap-2.5 pr-2">
+        <div className="flex flex-col gap-1.5 pr-2">
           <WineStarRating
             vivinoRating={wine.vivinoRating}
             vivinoUrl={wine.vivinoUrl}
             mutedColor={infoMuted}
-            emphasisColor={ratingEmphasis}
           />
-          <div className="flex-1 min-w-0 flex flex-col gap-1.5 pt-0.5">
+          <div className="flex-1 min-w-0 flex flex-col gap-1.5">
             <p
               className="text-[9px] font-semibold uppercase tracking-[0.14em] leading-none"
               style={{ color: infoProducer, fontFamily: 'var(--font-dm-sans), sans-serif' }}
@@ -646,6 +774,7 @@ export function PreviewWineCard({
           ) : null}
         </div>
       </div>
+    </div>
     </div>
   )
 }

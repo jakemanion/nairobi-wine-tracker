@@ -81,7 +81,7 @@ export function SharedWineList({
             }}
           >
             <div
-              className="mx-auto px-6 py-3 flex items-center justify-between gap-4"
+              className="mx-auto pl-10 pr-6 py-3 flex items-center justify-between gap-4"
               style={{ maxWidth: PREVIEW_CONTENT_MAX_WIDTH }}
             >
               <div className="min-w-0 flex-shrink-0">
@@ -139,7 +139,7 @@ export function SharedWineList({
         </div>
 
         <main
-          className={`mx-auto px-6 py-5 flex-1 w-full ${visualStyle === 'trial' ? 'space-y-5' : 'space-y-2.5'}`}
+          className={`mx-auto pl-10 pr-6 py-5 flex-1 w-full ${visualStyle === 'trial' ? 'space-y-5' : 'space-y-2.5'}`}
           style={{ maxWidth: PREVIEW_CONTENT_MAX_WIDTH }}
         >
           <div

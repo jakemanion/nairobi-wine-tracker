@@ -11,7 +11,6 @@ type PreviewUserMenuProps = {
   theme: PreviewThemeMode
   userName: string
   userEmail: string
-  onShareClick?: () => void
 }
 
 export function PreviewUserMenu({
@@ -19,7 +18,6 @@ export function PreviewUserMenu({
   theme,
   userName,
   userEmail,
-  onShareClick,
 }: PreviewUserMenuProps) {
   const { visualStyle } = usePreviewTheme()
   const trial = visualStyle === 'trial'
@@ -71,23 +69,6 @@ export function PreviewUserMenu({
                 : undefined
             }
           />
-          {onShareClick ? (
-            <button
-              type="button"
-              className="w-full inline-flex items-center justify-center gap-1.5 text-[11px] px-2 py-1.5"
-              style={{
-                background: colors.buttonBg,
-                border: `1px solid ${colors.buttonBorder}`,
-                color: colors.buttonText,
-                borderRadius: colors.buttonRadius,
-                fontFamily: 'var(--font-dm-sans), sans-serif',
-                cursor: 'pointer',
-              }}
-              onClick={onShareClick}
-            >
-              Share your list
-            </button>
-          ) : null}
           <LogoutButton
             theme={theme}
             className="w-full justify-center"

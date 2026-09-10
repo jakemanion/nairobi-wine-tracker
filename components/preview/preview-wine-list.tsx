@@ -110,7 +110,7 @@ export function PreviewWineList({
             borderBottom: `1px solid ${colors.headerBorder}`,
           }}
         >
-          <div className="mx-auto px-6 py-3 flex items-center justify-between gap-4" style={{ maxWidth: PREVIEW_CONTENT_MAX_WIDTH }}>
+          <div className="mx-auto pl-10 pr-6 py-3 flex items-center justify-between gap-4" style={{ maxWidth: PREVIEW_CONTENT_MAX_WIDTH }}>
             <div className="min-w-0 flex-shrink-0">
               <h1
                 className="text-base font-semibold leading-none truncate"
@@ -119,7 +119,7 @@ export function PreviewWineList({
                 WineDiviner: Nairobi
               </h1>
               <p className="text-[10px] mt-1 truncate" style={{ color: colors.headerSub }}>
-                Find Nairobi&apos;s best wine for your money
+                Find Nairobi&apos;s best bottles for your budget
               </p>
             </div>
             <div className="relative flex-1 max-w-xs">
@@ -167,7 +167,6 @@ export function PreviewWineList({
                     theme={colors.headerNavTheme}
                     userName={userName}
                     userEmail={userEmail}
-                    onShareClick={() => setShareOpen(true)}
                   />
                 </>
               ) : (
@@ -181,7 +180,7 @@ export function PreviewWineList({
           </div>
         </header>
 
-        <div className="mx-auto px-6 py-4" style={{ maxWidth: PREVIEW_CONTENT_MAX_WIDTH }}>
+        <div className="mx-auto pl-10 pr-6 py-4" style={{ maxWidth: PREVIEW_CONTENT_MAX_WIDTH }}>
           <PreviewToolbar
             activeFilterCount={activeFilterCount}
             filters={filters}
@@ -201,7 +200,7 @@ export function PreviewWineList({
       </div>
 
       <main
-        className={`mx-auto px-6 py-5 flex-1 w-full ${visualStyle === 'trial' ? 'space-y-5' : 'space-y-2.5'}`}
+        className={`mx-auto pl-10 pr-6 py-5 flex-1 w-full ${visualStyle === 'trial' ? 'space-y-5' : 'space-y-2.5'}`}
         style={{ maxWidth: PREVIEW_CONTENT_MAX_WIDTH }}
       >
         <WelcomePanel />
