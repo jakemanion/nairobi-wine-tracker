@@ -82,7 +82,6 @@ function formatPrice(value: number): string {
 
 const STAR_SLOT_SIZE = 9
 const EMPTY_STAR_COLOR = '#D2D2DC'
-const FILLED_STAR_COLOR = '#E8B84A'
 const RATING_CIRCLE_SIZE = 30
 
 type RatingCircleStyle = {
@@ -90,62 +89,28 @@ type RatingCircleStyle = {
   border: string
   boxShadow: string
   textColor: string
+  fillColor: string
+}
+
+function ratingTierColor(stars: number | null): string {
+  if (stars == null) return '#D2D2DC'
+  if (stars >= 5) return '#57e32c'
+  if (stars >= 4) return '#b7dd29'
+  if (stars >= 3) return '#ffe234'
+  if (stars >= 2) return '#ffa534'
+  return '#ff4545'
 }
 
 function ratingCircleStyle(stars: number | null): RatingCircleStyle {
-  if (stars == null) {
-    return {
-      background: 'linear-gradient(145deg, #F4F4F8 0%, #D8D8E0 55%, #ECECF2 100%)',
-      border: '2px solid #FFFFFF',
-      boxShadow: '0 1px 3px rgba(26, 24, 20, 0.18)',
-      textColor: '#1A1814',
-    }
-  }
-
-  if (stars >= 5) {
-    return {
-      background:
-        'linear-gradient(145deg, #FFFFFF 0%, #F2F4F8 22%, #C8D0DC 48%, #E8ECF2 72%, #A8B4C4 100%)',
-      border: '2px solid #F8FAFC',
-      boxShadow: '0 1px 4px rgba(80, 100, 130, 0.35), inset 0 1px 0 rgba(255,255,255,0.85)',
-      textColor: '#1A2030',
-    }
-  }
-
-  if (stars >= 4) {
-    return {
-      background:
-        'linear-gradient(145deg, #FFF6C8 0%, #F0D060 28%, #D4A820 52%, #F5E08A 78%, #B88818 100%)',
-      border: '2px solid #FFF8DC',
-      boxShadow: '0 1px 4px rgba(160, 110, 20, 0.35), inset 0 1px 0 rgba(255,255,255,0.75)',
-      textColor: '#3A2808',
-    }
-  }
-
-  if (stars >= 3.5) {
-    return {
-      background:
-        'linear-gradient(145deg, #FFFFFF 0%, #E8E8EE 30%, #B8BCC8 55%, #F0F0F4 78%, #9AA0AC 100%)',
-      border: '2px solid #F4F4F8',
-      boxShadow: '0 1px 4px rgba(90, 95, 110, 0.3), inset 0 1px 0 rgba(255,255,255,0.8)',
-      textColor: '#1A1814',
-    }
-  }
-
-  if (stars >= 2) {
-    return {
-      background: 'linear-gradient(145deg, #F6F6F8 0%, #E0E0E6 55%, #ECECF0 100%)',
-      border: '2px solid #FFFFFF',
-      boxShadow: '0 1px 3px rgba(26, 24, 20, 0.16)',
-      textColor: '#1A1814',
-    }
-  }
+  const fillColor = ratingTierColor(stars)
+  const textColor = stars != null && stars < 2 ? '#FFFFFF' : '#1A1814'
 
   return {
-    background: '#FFFFFF',
-    border: '2px solid #F0F0F4',
-    boxShadow: '0 1px 3px rgba(26, 24, 20, 0.14)',
-    textColor: '#1A1814',
+    background: fillColor,
+    border: '2px solid #FFFFFF',
+    boxShadow: '0 1px 3px rgba(26, 24, 20, 0.18)',
+    textColor,
+    fillColor,
   }
 }
 
@@ -205,7 +170,6 @@ function WineStarRating({
   const starRating = vivinoToStarRating(vivinoRating)
   const hasVivino = vivinoRating != null
   const vivinoLabel = hasVivino ? `${vivinoRating.toFixed(1)} on Vivino` : 'Vivino'
-  const starColor = starRating != null && starRating > 0 ? FILLED_STAR_COLOR : '#7A7A82'
   const ratingLabel = starRating != null ? formatStarRating(starRating) : '–'
   const circle = ratingCircleStyle(starRating)
 
@@ -243,7 +207,7 @@ function WineStarRating({
             size={22}
             strokeWidth={0}
             className="absolute"
-            style={{ color: '#FFFFFF', fill: '#FFFFFF', opacity: 0.92 }}
+            style={{ color: '#FFFFFF', fill: '#FFFFFF', opacity: 0.33 }}
             aria-hidden
           />
           <span
@@ -272,7 +236,7 @@ function WineStarRating({
             <FractionalStar
               key={index}
               fill={starRating != null ? starFillAmount(starRating, index) : 0}
-              filledColor={starColor}
+              filledColor={circle.fillColor}
             />
           ))}
         </div>
