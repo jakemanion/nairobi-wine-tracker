@@ -379,14 +379,12 @@ export function PreviewWineCard({
   const infoMuted = infoOnDark ? '#C8C4D0' : visualStyle === 'trial' ? '#BCBCCE' : colors.muted
   const bookmarkBorder = getCardBorderColor('wishlist', mode, visualStyle)
   const buyAgainBorder = getCardBorderColor('thumbsUp', mode, visualStyle)
-  const statusLabels = [
-    ...(wishlist === 1 && bookmarkBorder
-      ? [{ key: 'bookmarked', text: 'Bookmarked', background: bookmarkBorder, color: '#FFFFFF' }]
-      : []),
-    ...(triedStatus === 1 && buyAgainBorder
+  const statusLabels =
+    triedStatus === 1 && buyAgainBorder
       ? [{ key: 'buy-again', text: 'Buy again', background: buyAgainBorder, color: '#3A2808' }]
-      : []),
-  ]
+      : wishlist === 1 && bookmarkBorder
+        ? [{ key: 'bookmarked', text: 'Bookmarked', background: bookmarkBorder, color: '#FFFFFF' }]
+        : []
   const infoGrapeBg = infoOnDark ? 'rgba(255,255,255,0.08)' : colors.grapeBg
   const infoGrapeBorder = infoOnDark ? 'rgba(255,255,255,0.12)' : colors.grapeBorder
   const infoGrapeText = infoOnDark ? '#E8E4DC' : colors.grapeText
