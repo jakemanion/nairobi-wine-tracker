@@ -94,16 +94,16 @@ type RatingCircleStyle = {
 
 function ratingTierColor(stars: number | null): string {
   if (stars == null) return '#D2D2DC'
-  if (stars >= 5) return '#57e32c'
-  if (stars >= 4) return '#b7dd29'
-  if (stars >= 3) return '#ffe234'
-  if (stars >= 2) return '#ffa534'
-  return '#ff4545'
+  if (stars >= 5) return '#6DB86A'
+  if (stars >= 4) return '#A8B85C'
+  if (stars >= 3) return '#D4C05A'
+  if (stars >= 2) return '#D49858'
+  return '#D66A6A'
 }
 
 function ratingCircleStyle(stars: number | null): RatingCircleStyle {
   const fillColor = ratingTierColor(stars)
-  const textColor = stars != null && stars < 2 ? '#FFFFFF' : '#1A1814'
+  const textColor = '#1A1814'
 
   return {
     background: fillColor,
