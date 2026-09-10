@@ -80,10 +80,74 @@ function formatPrice(value: number): string {
   return value.toLocaleString('en-KE', { maximumFractionDigits: 0 })
 }
 
-const STAR_SLOT_SIZE = 7
+const STAR_SLOT_SIZE = 9
 const EMPTY_STAR_COLOR = '#D2D2DC'
 const FILLED_STAR_COLOR = '#E8B84A'
 const RATING_CIRCLE_SIZE = 30
+
+type RatingCircleStyle = {
+  background: string
+  border: string
+  boxShadow: string
+  textColor: string
+}
+
+function ratingCircleStyle(stars: number | null): RatingCircleStyle {
+  if (stars == null) {
+    return {
+      background: 'linear-gradient(145deg, #F4F4F8 0%, #D8D8E0 55%, #ECECF2 100%)',
+      border: '2px solid #FFFFFF',
+      boxShadow: '0 1px 3px rgba(26, 24, 20, 0.18)',
+      textColor: '#1A1814',
+    }
+  }
+
+  if (stars >= 5) {
+    return {
+      background:
+        'linear-gradient(145deg, #FFFFFF 0%, #F2F4F8 22%, #C8D0DC 48%, #E8ECF2 72%, #A8B4C4 100%)',
+      border: '2px solid #F8FAFC',
+      boxShadow: '0 1px 4px rgba(80, 100, 130, 0.35), inset 0 1px 0 rgba(255,255,255,0.85)',
+      textColor: '#1A2030',
+    }
+  }
+
+  if (stars >= 4) {
+    return {
+      background:
+        'linear-gradient(145deg, #FFF6C8 0%, #F0D060 28%, #D4A820 52%, #F5E08A 78%, #B88818 100%)',
+      border: '2px solid #FFF8DC',
+      boxShadow: '0 1px 4px rgba(160, 110, 20, 0.35), inset 0 1px 0 rgba(255,255,255,0.75)',
+      textColor: '#3A2808',
+    }
+  }
+
+  if (stars >= 3.5) {
+    return {
+      background:
+        'linear-gradient(145deg, #FFFFFF 0%, #E8E8EE 30%, #B8BCC8 55%, #F0F0F4 78%, #9AA0AC 100%)',
+      border: '2px solid #F4F4F8',
+      boxShadow: '0 1px 4px rgba(90, 95, 110, 0.3), inset 0 1px 0 rgba(255,255,255,0.8)',
+      textColor: '#1A1814',
+    }
+  }
+
+  if (stars >= 2) {
+    return {
+      background: 'linear-gradient(145deg, #F6F6F8 0%, #E0E0E6 55%, #ECECF0 100%)',
+      border: '2px solid #FFFFFF',
+      boxShadow: '0 1px 3px rgba(26, 24, 20, 0.16)',
+      textColor: '#1A1814',
+    }
+  }
+
+  return {
+    background: '#FFFFFF',
+    border: '2px solid #F0F0F4',
+    boxShadow: '0 1px 3px rgba(26, 24, 20, 0.14)',
+    textColor: '#1A1814',
+  }
+}
 
 function starFillAmount(rating: number, index: number): number {
   const remainder = rating - index
@@ -143,7 +207,7 @@ function WineStarRating({
   const vivinoLabel = hasVivino ? `${vivinoRating.toFixed(1)} on Vivino` : 'Vivino'
   const starColor = starRating != null && starRating > 0 ? FILLED_STAR_COLOR : '#7A7A82'
   const ratingLabel = starRating != null ? formatStarRating(starRating) : '–'
-  const circleTextColor = starRating != null && starRating > 0 ? '#1A1814' : '#FFFFFF'
+  const circle = ratingCircleStyle(starRating)
 
   const vivinoLine = (
     <span
@@ -158,7 +222,7 @@ function WineStarRating({
   return (
     <div className="flex flex-col items-center gap-1 flex-shrink-0 pt-0.5">
       <div
-        className="flex flex-col items-center gap-0.5"
+        className="flex flex-col items-center"
         title={starRating != null ? `${ratingLabel} stars` : 'No rating'}
         role="img"
         aria-label={starRating != null ? `Rated ${ratingLabel} out of 5 stars` : 'No rating'}
@@ -168,16 +232,24 @@ function WineStarRating({
           style={{
             width: RATING_CIRCLE_SIZE,
             height: RATING_CIRCLE_SIZE,
-            background: starColor,
-            border: '2px solid #FFFFFF',
-            boxShadow: '0 1px 3px rgba(26, 24, 20, 0.18)',
+            background: circle.background,
+            border: circle.border,
+            boxShadow: circle.boxShadow,
+            marginBottom: -8,
           }}
           aria-hidden={starRating == null}
         >
+          <Star
+            size={22}
+            strokeWidth={0}
+            className="absolute"
+            style={{ color: '#FFFFFF', fill: '#FFFFFF', opacity: 0.92 }}
+            aria-hidden
+          />
           <span
-            className="tabular-nums font-bold leading-none"
+            className="relative tabular-nums font-bold leading-none"
             style={{
-              color: circleTextColor,
+              color: circle.textColor,
               fontFamily: 'var(--font-dm-sans), sans-serif',
               fontSize: ratingLabel.length > 3 ? 9 : ratingLabel.length > 2 ? 10 : 12,
               letterSpacing: '-0.03em',
@@ -187,12 +259,12 @@ function WineStarRating({
           </span>
         </div>
         <div
-          className="flex items-center gap-px px-1"
+          className="flex items-center gap-px px-1.5"
           style={{
-            height: 14,
+            height: 16,
             background: '#FFFFFF',
             border: '1px solid #E8E8F0',
-            borderRadius: 4,
+            borderRadius: 5,
             boxShadow: '0 1px 2px rgba(26, 24, 20, 0.06)',
           }}
         >
