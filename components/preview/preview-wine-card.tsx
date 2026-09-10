@@ -158,7 +158,7 @@ function WineStarRating({
   return (
     <div className="flex flex-col items-center gap-1 flex-shrink-0 pt-0.5">
       <div
-        className="flex items-center"
+        className="flex flex-col items-center gap-0.5"
         title={starRating != null ? `${ratingLabel} stars` : 'No rating'}
         role="img"
         aria-label={starRating != null ? `Rated ${ratingLabel} out of 5 stars` : 'No rating'}
@@ -187,7 +187,7 @@ function WineStarRating({
           </span>
         </div>
         <div
-          className="flex items-center gap-px -ml-1.5 pl-2 pr-1"
+          className="flex items-center gap-px px-1"
           style={{
             height: 14,
             background: '#FFFFFF',
@@ -513,7 +513,7 @@ export function PreviewWineCard({
       ) : null}
 
       <div
-        className="w-[64px] flex-shrink-0 self-stretch relative min-h-[112px]"
+        className="w-[96px] flex-shrink-0 self-stretch relative min-h-[112px]"
         style={{ background: colors.imageColumnBg }}
       >
         <PreviewBottleImage
