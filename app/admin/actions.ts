@@ -252,13 +252,40 @@ export async function adminMatchImportToStoreListing({
 
   const { data, error } = await client
     .from('store_listings_imports')
-    .update({ matched_store_listing_id: storeListingId })
+    .update({ matched_store_listing_id: storeListingId, status: 'matched' })
     .eq('id', importId)
     .select(importSelect)
     .maybeSingle()
 
   if (error) return { error: error.message }
   if (!data) return { error: 'Import match failed — no row returned.' }
+
+  revalidatePath('/admin')
+  return { importRow: normalizeStoreListingImport(data) }
+}
+
+export async function adminUpdateImportStatus({
+  importId,
+  status,
+}: {
+  importId: string
+  status: string
+}): Promise<ImportMutationResult> {
+  const access = await requireAdminAccess()
+  if (!access.ok) return { error: access.error }
+
+  const { client, configError } = getAdminClient()
+  if (!client) return { error: configError! }
+
+  const { data, error } = await client
+    .from('store_listings_imports')
+    .update({ status })
+    .eq('id', importId)
+    .select(importSelect)
+    .maybeSingle()
+
+  if (error) return { error: error.message }
+  if (!data) return { error: 'Import status update failed — no row returned.' }
 
   revalidatePath('/admin')
   return { importRow: normalizeStoreListingImport(data) }

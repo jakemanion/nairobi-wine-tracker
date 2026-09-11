@@ -19,6 +19,7 @@ import {
   adminMatchImportToStoreListing,
   adminMatchStoreListingToWine,
   adminPromoteListingToCanonicalWine,
+  adminUpdateImportStatus,
   adminUpdateStoreListingField,
   adminUpdateWineField,
 } from '@/app/admin/actions'
@@ -228,6 +229,56 @@ const fieldDiffStyle: CSSProperties = {
   boxShadow: 'inset 0 0 0 1px #e6c200',
   borderRadius: 2,
   padding: '0 2px',
+}
+
+const applyDiffButtonStyle: CSSProperties = {
+  padding: '0 4px',
+  fontSize: 10,
+  lineHeight: '14px',
+  border: '1px solid #c9a227',
+  borderRadius: 3,
+  background: '#fff8e1',
+  color: '#664d00',
+  flexShrink: 0,
+}
+
+function ImportDiffValue({
+  differs,
+  enabled,
+  fieldLabel,
+  onApply,
+  children,
+}: {
+  differs: boolean
+  enabled: boolean
+  fieldLabel: string
+  onApply: () => void
+  children: ReactNode
+}) {
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, maxWidth: '100%' }}>
+      <span style={differs ? fieldDiffStyle : undefined}>{children}</span>
+      {differs ? (
+        <button
+          type="button"
+          disabled={!enabled}
+          title={`Update store listing ${fieldLabel.toLowerCase()} from this import`}
+          aria-label={`Apply import ${fieldLabel} to store listing`}
+          onClick={(event) => {
+            event.stopPropagation()
+            onApply()
+          }}
+          style={{
+            ...applyDiffButtonStyle,
+            cursor: enabled ? 'pointer' : 'not-allowed',
+            opacity: enabled ? 1 : 0.55,
+          }}
+        >
+          Apply
+        </button>
+      ) : null}
+    </span>
+  )
 }
 
 const panelStyle = {
@@ -674,6 +725,7 @@ export function AdminMatcher({
   const [matchError, setMatchError] = useState<string | null>(null)
   const [unmatchedOnly, setUnmatchedOnly] = useState(false)
   const [unmatchedImportsOnly, setUnmatchedImportsOnly] = useState(false)
+  const [hideCompletedImports, setHideCompletedImports] = useState(false)
   const [importsPanelCollapsed, setImportsPanelCollapsed] = useState(false)
   const [storePanelCollapsed, setStorePanelCollapsed] = useState(false)
   const [canonicalPanelCollapsed, setCanonicalPanelCollapsed] = useState(false)
@@ -704,13 +756,16 @@ export function AdminMatcher({
     [listings],
   )
 
-  const visibleImports = useMemo(
-    () =>
-      unmatchedImportsOnly
-        ? imports.filter((listing) => !listing.matched_store_listing_id)
-        : imports,
-    [imports, unmatchedImportsOnly],
-  )
+  const visibleImports = useMemo(() => {
+    let rows = imports
+    if (hideCompletedImports) {
+      rows = rows.filter((row) => row.status?.trim().toLowerCase() !== 'done')
+    }
+    if (unmatchedImportsOnly) {
+      rows = rows.filter((row) => !row.matched_store_listing_id)
+    }
+    return rows
+  }, [hideCompletedImports, imports, unmatchedImportsOnly])
 
   const visibleListings = useMemo(
     () => (unmatchedOnly ? listings.filter((listing) => !listing.wine_id) : listings),
@@ -869,6 +924,61 @@ export function AdminMatcher({
 
     setImports((current) => updateImportInState(current, result.importRow!))
     setSelectedImportId(result.importRow.id)
+  }
+
+  async function handleMarkImportDone(importRow: StoreListingImportRecord) {
+    if (busy) return
+
+    setBusy(true)
+    setMatchError(null)
+
+    const result = await adminUpdateImportStatus({
+      importId: importRow.id,
+      status: 'done',
+    })
+
+    setBusy(false)
+
+    if (result.error || !result.importRow) {
+      setMatchError(result.error ?? 'Failed to mark import as done.')
+      return
+    }
+
+    setImports((current) => updateImportInState(current, result.importRow!))
+  }
+
+  async function handleApplyImportFieldToListing(
+    importRow: StoreListingImportRecord,
+    field: ImportCompareField,
+  ) {
+    if (!importRow.matched_store_listing_id || busy) return
+
+    const storeListing = listingsById.get(importRow.matched_store_listing_id)
+    if (!storeListing) {
+      setMatchError('Matched store listing was not found.')
+      return
+    }
+
+    let value: string | boolean | null
+    if (field === 'grape_varieties') {
+      value = formatGrapeVarieties(importRow.grape_varieties) || null
+    } else if (field === 'current_price_ksh') {
+      value =
+        importRow.current_price_ksh == null ? null : String(importRow.current_price_ksh)
+    } else if (field === 'vintage') {
+      value = importRow.vintage == null ? null : String(importRow.vintage)
+    } else {
+      value = importRow[field]
+    }
+
+    setBusy(true)
+    setMatchError(null)
+    const result = await saveListingField(storeListing, field, value)
+    setBusy(false)
+
+    if (result.error) {
+      setMatchError(result.error)
+    }
   }
 
   async function handleMatch() {
@@ -1165,6 +1275,18 @@ export function AdminMatcher({
         >
           {canonicalPanelCollapsed ? 'Show canonical wines' : 'Hide canonical wines'}
         </button>
+        <button
+          type="button"
+          onClick={() => setHideCompletedImports((hidden) => !hidden)}
+          style={actionButtonStyle('default', true)}
+          title={
+            hideCompletedImports
+              ? 'Show imports with status done'
+              : 'Hide imports with status done'
+          }
+        >
+          {hideCompletedImports ? 'Show completed imports' : 'Hide completed imports'}
+        </button>
         <span style={{ color: '#555' }}>
           {selectedImport && selectedListing && !selectedWine
             ? `Import → ${selectedListing.raw_title ?? 'store listing'}`
@@ -1297,6 +1419,11 @@ export function AdminMatcher({
                             const canMatchThisImport = Boolean(
                               isSelected && selectedListingId && !busy,
                             )
+                            const isDone = listing.status?.trim().toLowerCase() === 'done'
+                            const canApplyDiffs = Boolean(
+                              matchedStoreListing && !busy,
+                            )
+                            const canMarkDone = Boolean(!busy && !isDone)
 
                             return (
                               <div
@@ -1332,45 +1459,59 @@ export function AdminMatcher({
                                 </span>
                                 <div style={inlineLineStyle}>
                                   <LabeledField label="Producer">
-                                    <span
-                                      style={
-                                        fieldDiffs.has('producer') ? fieldDiffStyle : undefined
+                                    <ImportDiffValue
+                                      differs={fieldDiffs.has('producer')}
+                                      enabled={canApplyDiffs}
+                                      fieldLabel="Producer"
+                                      onApply={() =>
+                                        void handleApplyImportFieldToListing(listing, 'producer')
                                       }
                                     >
                                       {listing.producer?.trim() || '—'}
-                                    </span>
+                                    </ImportDiffValue>
                                   </LabeledField>
                                   <Pipe />
                                   <LabeledField label="Raw title">
-                                    <span
-                                      style={
-                                        fieldDiffs.has('raw_title') ? fieldDiffStyle : undefined
+                                    <ImportDiffValue
+                                      differs={fieldDiffs.has('raw_title')}
+                                      enabled={canApplyDiffs}
+                                      fieldLabel="Raw title"
+                                      onApply={() =>
+                                        void handleApplyImportFieldToListing(listing, 'raw_title')
                                       }
                                     >
                                       {listing.raw_title?.trim() || '—'}
-                                    </span>
+                                    </ImportDiffValue>
                                   </LabeledField>
                                   <Pipe />
                                   <LabeledField label="Price">
-                                    <span
-                                      style={
-                                        fieldDiffs.has('current_price_ksh')
-                                          ? fieldDiffStyle
-                                          : undefined
+                                    <ImportDiffValue
+                                      differs={fieldDiffs.has('current_price_ksh')}
+                                      enabled={canApplyDiffs}
+                                      fieldLabel="Price"
+                                      onApply={() =>
+                                        void handleApplyImportFieldToListing(
+                                          listing,
+                                          'current_price_ksh',
+                                        )
                                       }
                                     >
                                       {listing.current_price_ksh != null
                                         ? `KES ${listing.current_price_ksh}`
                                         : '—'}
-                                    </span>
+                                    </ImportDiffValue>
                                   </LabeledField>
                                   <Pipe />
                                   <LabeledField label="URL">
-                                    <span
-                                      style={
-                                        fieldDiffs.has('store_product_url')
-                                          ? fieldDiffStyle
-                                          : undefined
+                                    <ImportDiffValue
+                                      differs={fieldDiffs.has('store_product_url')}
+                                      enabled={canApplyDiffs}
+                                      fieldLabel="URL"
+                                      onApply={() =>
+                                        void handleApplyImportFieldToListing(
+                                          listing,
+                                          'store_product_url',
+                                        )
                                       }
                                     >
                                       {listing.store_product_url ? (
@@ -1387,66 +1528,87 @@ export function AdminMatcher({
                                       ) : (
                                         '—'
                                       )}
-                                    </span>
+                                    </ImportDiffValue>
                                   </LabeledField>
                                   <Pipe />
                                   <LabeledField label="Vintage">
-                                    <span
-                                      style={
-                                        fieldDiffs.has('vintage') ? fieldDiffStyle : undefined
+                                    <ImportDiffValue
+                                      differs={fieldDiffs.has('vintage')}
+                                      enabled={canApplyDiffs}
+                                      fieldLabel="Vintage"
+                                      onApply={() =>
+                                        void handleApplyImportFieldToListing(listing, 'vintage')
                                       }
                                     >
                                       {listing.vintage != null && String(listing.vintage).trim()
                                         ? String(listing.vintage)
                                         : '—'}
-                                    </span>
+                                    </ImportDiffValue>
                                   </LabeledField>
                                   <Pipe />
                                   <LabeledField label="Country">
-                                    <span
-                                      style={
-                                        fieldDiffs.has('country') ? fieldDiffStyle : undefined
+                                    <ImportDiffValue
+                                      differs={fieldDiffs.has('country')}
+                                      enabled={canApplyDiffs}
+                                      fieldLabel="Country"
+                                      onApply={() =>
+                                        void handleApplyImportFieldToListing(listing, 'country')
                                       }
                                     >
                                       {listing.country?.trim() || '—'}
-                                    </span>
+                                    </ImportDiffValue>
                                   </LabeledField>
                                   <Pipe />
                                   <LabeledField label="Region">
-                                    <span
-                                      style={
-                                        fieldDiffs.has('region') ? fieldDiffStyle : undefined
+                                    <ImportDiffValue
+                                      differs={fieldDiffs.has('region')}
+                                      enabled={canApplyDiffs}
+                                      fieldLabel="Region"
+                                      onApply={() =>
+                                        void handleApplyImportFieldToListing(listing, 'region')
                                       }
                                     >
                                       {listing.region?.trim() || '—'}
-                                    </span>
+                                    </ImportDiffValue>
                                   </LabeledField>
                                   <Pipe />
                                   <LabeledField label="Style">
-                                    <span
-                                      style={fieldDiffs.has('style') ? fieldDiffStyle : undefined}
+                                    <ImportDiffValue
+                                      differs={fieldDiffs.has('style')}
+                                      enabled={canApplyDiffs}
+                                      fieldLabel="Style"
+                                      onApply={() =>
+                                        void handleApplyImportFieldToListing(listing, 'style')
+                                      }
                                     >
                                       {listing.style?.trim() || '—'}
-                                    </span>
+                                    </ImportDiffValue>
                                   </LabeledField>
                                   <Pipe />
                                   <LabeledField label="Grapes">
-                                    <span
-                                      style={
-                                        fieldDiffs.has('grape_varieties')
-                                          ? fieldDiffStyle
-                                          : undefined
+                                    <ImportDiffValue
+                                      differs={fieldDiffs.has('grape_varieties')}
+                                      enabled={canApplyDiffs}
+                                      fieldLabel="Grapes"
+                                      onApply={() =>
+                                        void handleApplyImportFieldToListing(
+                                          listing,
+                                          'grape_varieties',
+                                        )
                                       }
                                     >
                                       {formatGrapeVarieties(listing.grape_varieties) || '—'}
-                                    </span>
+                                    </ImportDiffValue>
                                   </LabeledField>
                                   <Pipe />
                                   <LabeledField label="Status">
                                     <span
                                       style={{
-                                        color: isMatched ? '#060' : '#555',
-                                        fontWeight: isMatched ? 500 : 400,
+                                        color:
+                                          isDone || isMatched
+                                            ? '#060'
+                                            : '#555',
+                                        fontWeight: isDone || isMatched ? 500 : 400,
                                       }}
                                     >
                                       {statusLabel}
@@ -1464,27 +1626,50 @@ export function AdminMatcher({
                                     </span>
                                   </LabeledField>
                                 </div>
-                                {showImportMatchButton ? (
-                                  <span style={rowActionsColumnStyle}>
+                                <span style={rowActionsColumnStyle}>
+                                  <span style={rowActionsStyle}>
+                                    {showImportMatchButton ? (
+                                      <button
+                                        type="button"
+                                        disabled={!canMatchThisImport}
+                                        title={matchImportHint}
+                                        onClick={(event) => {
+                                          event.stopPropagation()
+                                          void handleMatchImportToListing(listing)
+                                        }}
+                                        style={{
+                                          ...actionButtonStyle('default', canMatchThisImport),
+                                          padding: '3px 6px',
+                                          fontSize: 11,
+                                          minWidth: 22,
+                                        }}
+                                      >
+                                        Match
+                                      </button>
+                                    ) : null}
                                     <button
                                       type="button"
-                                      disabled={!canMatchThisImport}
-                                      title={matchImportHint}
+                                      disabled={!canMarkDone}
+                                      title={
+                                        isDone
+                                          ? 'Import already marked done'
+                                          : 'Mark this import as done'
+                                      }
                                       onClick={(event) => {
                                         event.stopPropagation()
-                                        void handleMatchImportToListing(listing)
+                                        void handleMarkImportDone(listing)
                                       }}
                                       style={{
-                                        ...actionButtonStyle('default', canMatchThisImport),
+                                        ...actionButtonStyle('default', canMarkDone),
                                         padding: '3px 6px',
                                         fontSize: 11,
                                         minWidth: 22,
                                       }}
                                     >
-                                      Match
+                                      Done
                                     </button>
                                   </span>
-                                ) : null}
+                                </span>
                                 <ListingThumbnail
                                   imageUrl={listing.image_url}
                                   alt={listing.raw_title ?? 'Imported listing'}
