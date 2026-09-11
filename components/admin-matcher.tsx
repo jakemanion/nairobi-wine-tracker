@@ -1959,6 +1959,30 @@ export function AdminMatcher({
                               </span>
                             </LabeledField>
                             <Pipe />
+                            <LabeledField label="URL">
+                              <span
+                                style={
+                                  matchHighlights.has('store_product_url')
+                                    ? fieldMatchStyle
+                                    : undefined
+                                }
+                              >
+                                {listing.store_product_url ? (
+                                  <a
+                                    href={listing.store_product_url}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    onClick={(event) => event.stopPropagation()}
+                                    style={{ color: '#0a7', textDecoration: 'none' }}
+                                  >
+                                    {formatStoreUrlDirectory(listing.store_product_url) || 'link'}
+                                  </a>
+                                ) : (
+                                  '—'
+                                )}
+                              </span>
+                            </LabeledField>
+                            <Pipe />
                             <LabeledField label="Vintage">
                               <span
                                 style={

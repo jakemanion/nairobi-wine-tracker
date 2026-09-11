@@ -77,10 +77,33 @@ export type StoreListingMatchHighlightField =
   | 'raw_title'
   | 'current_price_ksh'
   | 'vintage'
+  | 'store_product_url'
 
 function isGoodTextMatch(a: string, b: string): boolean {
   if (!a || !b) return false
   return a === b || a.includes(b) || b.includes(a)
+}
+
+function normalizeUrlForMatch(value: string | null | undefined): string {
+  const raw = (value ?? '').trim().toLowerCase()
+  if (!raw) return ''
+  try {
+    const url = new URL(raw)
+    const path = url.pathname.replace(/\/+$/, '') || '/'
+    return `${url.origin}${path}${url.search}`
+  } catch {
+    return raw.replace(/\/+$/, '')
+  }
+}
+
+function isGoodUrlMatch(
+  a: string | null | undefined,
+  b: string | null | undefined,
+): boolean {
+  const urlA = normalizeUrlForMatch(a)
+  const urlB = normalizeUrlForMatch(b)
+  if (!urlA || !urlB) return false
+  return urlA === urlB || urlA.includes(urlB) || urlB.includes(urlA)
 }
 
 function isGoodPriceMatch(
@@ -110,9 +133,12 @@ function isGoodVintageMatch(
 export function getStoreListingMatchHighlights(
   importRow: Pick<
     StoreListingImportRecord,
-    'producer' | 'raw_title' | 'current_price_ksh' | 'vintage'
+    'producer' | 'raw_title' | 'current_price_ksh' | 'vintage' | 'store_product_url'
   >,
-  listing: Pick<StoreListingRecord, 'producer' | 'raw_title' | 'current_price_ksh' | 'vintage'>,
+  listing: Pick<
+    StoreListingRecord,
+    'producer' | 'raw_title' | 'current_price_ksh' | 'vintage' | 'store_product_url'
+  >,
 ): Set<StoreListingMatchHighlightField> {
   const highlights = new Set<StoreListingMatchHighlightField>()
 
@@ -134,6 +160,10 @@ export function getStoreListingMatchHighlights(
 
   if (isGoodVintageMatch(importRow.vintage, listing.vintage)) {
     highlights.add('vintage')
+  }
+
+  if (isGoodUrlMatch(importRow.store_product_url, listing.store_product_url)) {
+    highlights.add('store_product_url')
   }
 
   return highlights
