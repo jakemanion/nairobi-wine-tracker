@@ -20,6 +20,25 @@ export type StoreListingRecord = {
   wines?: Pick<WineRecord, 'id' | 'producer' | 'wine_name' | 'vintage'> | null
 }
 
+/** Pending import rows — same shape as store_listings plus match/status fields. */
+export type StoreListingImportRecord = {
+  id: string
+  raw_title: string | null
+  store_product_url: string | null
+  image_url: string | null
+  current_price_ksh: string | number | null
+  in_stock: boolean | null
+  producer: string | null
+  vintage: string | number | null
+  country: string | null
+  region: string | null
+  style: string | null
+  grape_varieties: unknown
+  status: string | null
+  matched_store_listing_id: string | null
+  stores?: { id?: string; name?: string | null } | null
+}
+
 export type StoreListingField =
   | 'producer'
   | 'raw_title'
@@ -84,6 +103,17 @@ export function normalizeStoreListing(raw: unknown): StoreListingRecord {
     ...row,
     stores: normalizeRelation<{ id?: string; name?: string | null }>(row.stores),
     wines: normalizeRelation<NonNullable<StoreListingRecord['wines']>>(row.wines),
+  }
+}
+
+export function normalizeStoreListingImport(raw: unknown): StoreListingImportRecord {
+  const row = raw as StoreListingImportRecord & {
+    stores?: unknown
+  }
+
+  return {
+    ...row,
+    stores: normalizeRelation<{ id?: string; name?: string | null }>(row.stores),
   }
 }
 

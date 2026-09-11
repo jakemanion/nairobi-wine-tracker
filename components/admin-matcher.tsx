@@ -25,7 +25,7 @@ import {
   formatGrapeVarieties,
   parseGrapeVarietiesInput,
 } from '@/lib/grape-varieties'
-import { type StoreListingField, type StoreListingRecord } from '@/lib/store-listings'
+import { type StoreListingField, type StoreListingImportRecord, type StoreListingRecord } from '@/lib/store-listings'
 import { formatStoreUrlDirectory, formatVivinoProductName } from '@/lib/url-display'
 import { suggestWineMatches } from '@/lib/wine-match-suggestions'
 import {
@@ -111,10 +111,10 @@ function formatListingPriceLabel(listing: StoreListingRecord): string {
   return `${store}: ${price}`
 }
 
-function groupListingsByStore(
-  listings: StoreListingRecord[],
-): Array<{ storeName: string; listings: StoreListingRecord[] }> {
-  const groups = new Map<string, StoreListingRecord[]>()
+function groupListingsByStore<
+  T extends { stores?: { name?: string | null } | null; raw_title?: string | null },
+>(listings: T[]): Array<{ storeName: string; listings: T[] }> {
+  const groups = new Map<string, T[]>()
 
   for (const listing of listings) {
     const storeName = listing.stores?.name?.trim() || 'Unknown store'
@@ -568,11 +568,17 @@ function DeleteIconButton({
 }
 
 type AdminMatcherProps = {
+  initialImports: StoreListingImportRecord[]
   initialListings: StoreListingRecord[]
   initialWines: WineRecord[]
 }
 
-export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProps) {
+export function AdminMatcher({
+  initialImports,
+  initialListings,
+  initialWines,
+}: AdminMatcherProps) {
+  const [imports, setImports] = useState(initialImports)
   const [listings, setListings] = useState(initialListings)
   const [wines, setWines] = useState(initialWines)
   const [selectedListingId, setSelectedListingId] = useState<string | null>(null)
@@ -580,8 +586,18 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
   const [busy, setBusy] = useState(false)
   const [matchError, setMatchError] = useState<string | null>(null)
   const [unmatchedOnly, setUnmatchedOnly] = useState(false)
+  const [unmatchedImportsOnly, setUnmatchedImportsOnly] = useState(false)
+  const [importsPanelCollapsed, setImportsPanelCollapsed] = useState(false)
   const [storePanelCollapsed, setStorePanelCollapsed] = useState(false)
+  const [canonicalPanelCollapsed, setCanonicalPanelCollapsed] = useState(false)
   const [collapsedStores, setCollapsedStores] = useState<Set<string>>(() => new Set())
+  const [collapsedImportStores, setCollapsedImportStores] = useState<Set<string>>(
+    () => new Set(),
+  )
+
+  useEffect(() => {
+    setImports(initialImports)
+  }, [initialImports])
 
   useEffect(() => {
     setListings(initialListings)
@@ -591,15 +607,30 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
     setWines(initialWines)
   }, [initialWines])
 
+  const unmatchedImportCount = useMemo(
+    () => imports.filter((listing) => !listing.matched_store_listing_id).length,
+    [imports],
+  )
+
   const unmatchedCount = useMemo(
     () => listings.filter((listing) => !listing.wine_id).length,
     [listings],
+  )
+
+  const visibleImports = useMemo(
+    () =>
+      unmatchedImportsOnly
+        ? imports.filter((listing) => !listing.matched_store_listing_id)
+        : imports,
+    [imports, unmatchedImportsOnly],
   )
 
   const visibleListings = useMemo(
     () => (unmatchedOnly ? listings.filter((listing) => !listing.wine_id) : listings),
     [listings, unmatchedOnly],
   )
+
+  const groupedImports = useMemo(() => groupListingsByStore(visibleImports), [visibleImports])
 
   const groupedListings = useMemo(() => groupListingsByStore(visibleListings), [visibleListings])
 
@@ -615,6 +646,15 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
 
   function toggleStoreCollapsed(storeName: string) {
     setCollapsedStores((current) => {
+      const next = new Set(current)
+      if (next.has(storeName)) next.delete(storeName)
+      else next.add(storeName)
+      return next
+    })
+  }
+
+  function toggleImportStoreCollapsed(storeName: string) {
+    setCollapsedImportStores((current) => {
       const next = new Set(current)
       if (next.has(storeName)) next.delete(storeName)
       else next.add(storeName)
@@ -956,11 +996,31 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
         </button>
         <button
           type="button"
+          onClick={() => setImportsPanelCollapsed((collapsed) => !collapsed)}
+          style={actionButtonStyle('default', true)}
+          title={
+            importsPanelCollapsed ? 'Show imported listings panel' : 'Hide imported listings panel'
+          }
+        >
+          {importsPanelCollapsed ? 'Show imports' : 'Hide imports'}
+        </button>
+        <button
+          type="button"
           onClick={() => setStorePanelCollapsed((collapsed) => !collapsed)}
           style={actionButtonStyle('default', true)}
           title={storePanelCollapsed ? 'Show store listings panel' : 'Hide store listings panel'}
         >
-          {storePanelCollapsed ? 'Show listings' : 'Hide listings'}
+          {storePanelCollapsed ? 'Show store listings' : 'Hide store listings'}
+        </button>
+        <button
+          type="button"
+          onClick={() => setCanonicalPanelCollapsed((collapsed) => !collapsed)}
+          style={actionButtonStyle('default', true)}
+          title={
+            canonicalPanelCollapsed ? 'Show canonical wines panel' : 'Hide canonical wines panel'
+          }
+        >
+          {canonicalPanelCollapsed ? 'Show canonical wines' : 'Hide canonical wines'}
         </button>
         <span style={{ color: '#555' }}>
           {selectedListing && selectedWine
@@ -971,6 +1031,222 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
       </div>
 
       <div style={{ display: 'flex', gap: 12, flex: 1, minHeight: 0, overflow: 'hidden' }}>
+        {!importsPanelCollapsed ? (
+          <section style={{ ...panelStyle, flex: 1 }}>
+            <header
+              style={{
+                padding: '6px 10px',
+                borderBottom: '1px solid #eee',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 8,
+                fontSize: 13,
+                flexWrap: 'wrap',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                <span style={{ fontWeight: 600 }}>
+                  Imports (
+                  {unmatchedImportsOnly
+                    ? `${visibleImports.length} unmatched`
+                    : imports.length}
+                  )
+                </span>
+                <label
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 5,
+                    fontSize: 12,
+                    color: '#555',
+                    cursor: 'pointer',
+                    userSelect: 'none',
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={unmatchedImportsOnly}
+                    onChange={(event) => setUnmatchedImportsOnly(event.target.checked)}
+                  />
+                  Unmatched only ({unmatchedImportCount})
+                </label>
+                {storePanelCollapsed ? (
+                  <button
+                    type="button"
+                    onClick={() => setStorePanelCollapsed(false)}
+                    style={{ padding: '2px 8px', fontSize: 11, cursor: 'pointer' }}
+                  >
+                    Show store listings
+                  </button>
+                ) : null}
+                {canonicalPanelCollapsed ? (
+                  <button
+                    type="button"
+                    onClick={() => setCanonicalPanelCollapsed(false)}
+                    style={{ padding: '2px 8px', fontSize: 11, cursor: 'pointer' }}
+                  >
+                    Show canonical wines
+                  </button>
+                ) : null}
+              </div>
+            </header>
+            <div style={scrollStyle}>
+              {groupedImports.length === 0 ? (
+                <p style={{ color: '#888', fontSize: 12, margin: 0 }}>
+                  {unmatchedImportsOnly
+                    ? 'No unmatched imports.'
+                    : 'No imported listings yet.'}
+                </p>
+              ) : (
+                groupedImports.map((group) => {
+                  const isCollapsed = collapsedImportStores.has(group.storeName)
+
+                  return (
+                    <div key={group.storeName} style={{ marginBottom: 6 }}>
+                      <button
+                        type="button"
+                        onClick={() => toggleImportStoreCollapsed(group.storeName)}
+                        aria-expanded={!isCollapsed}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 6,
+                          width: '100%',
+                          margin: '0 0 3px',
+                          padding: '2px 0',
+                          border: 'none',
+                          background: 'none',
+                          fontSize: 11,
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.04em',
+                          color: '#666',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          textAlign: 'left',
+                        }}
+                      >
+                        <span aria-hidden style={{ width: 10, flexShrink: 0 }}>
+                          {isCollapsed ? '▶' : '▼'}
+                        </span>
+                        <span>{group.storeName}</span>
+                        <span style={{ color: '#999', fontWeight: 400 }}>
+                          ({group.listings.length})
+                        </span>
+                      </button>
+                      {!isCollapsed && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                          {group.listings.map((listing) => {
+                            const isMatched = Boolean(listing.matched_store_listing_id)
+                            const statusLabel = listing.status?.trim() || '—'
+
+                            return (
+                              <div
+                                key={listing.id}
+                                style={{
+                                  ...rowStyle,
+                                  ...(isMatched ? matchedRowStyle : {}),
+                                }}
+                              >
+                                <div style={inlineLineStyle}>
+                                  <LabeledField label="Producer">
+                                    <span>{listing.producer?.trim() || '—'}</span>
+                                  </LabeledField>
+                                  <Pipe />
+                                  <LabeledField label="Raw title">
+                                    <span>{listing.raw_title?.trim() || '—'}</span>
+                                  </LabeledField>
+                                  <Pipe />
+                                  <LabeledField label="Price">
+                                    <span>
+                                      {listing.current_price_ksh != null
+                                        ? `KES ${listing.current_price_ksh}`
+                                        : '—'}
+                                    </span>
+                                  </LabeledField>
+                                  <Pipe />
+                                  <LabeledField label="URL">
+                                    {listing.store_product_url ? (
+                                      <a
+                                        href={listing.store_product_url}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        onClick={(event) => event.stopPropagation()}
+                                        style={{ color: '#0a7', textDecoration: 'none' }}
+                                      >
+                                        {formatStoreUrlDirectory(listing.store_product_url) ||
+                                          'link'}
+                                      </a>
+                                    ) : (
+                                      <span>—</span>
+                                    )}
+                                  </LabeledField>
+                                  <Pipe />
+                                  <LabeledField label="Vintage">
+                                    <span>
+                                      {listing.vintage != null && String(listing.vintage).trim()
+                                        ? String(listing.vintage)
+                                        : '—'}
+                                    </span>
+                                  </LabeledField>
+                                  <Pipe />
+                                  <LabeledField label="Country">
+                                    <span>{listing.country?.trim() || '—'}</span>
+                                  </LabeledField>
+                                  <Pipe />
+                                  <LabeledField label="Region">
+                                    <span>{listing.region?.trim() || '—'}</span>
+                                  </LabeledField>
+                                  <Pipe />
+                                  <LabeledField label="Style">
+                                    <span>{listing.style?.trim() || '—'}</span>
+                                  </LabeledField>
+                                  <Pipe />
+                                  <LabeledField label="Grapes">
+                                    <span>
+                                      {formatGrapeVarieties(listing.grape_varieties) || '—'}
+                                    </span>
+                                  </LabeledField>
+                                  <Pipe />
+                                  <LabeledField label="Status">
+                                    <span
+                                      style={{
+                                        color: isMatched ? '#060' : '#555',
+                                        fontWeight: isMatched ? 500 : 400,
+                                      }}
+                                    >
+                                      {statusLabel}
+                                    </span>
+                                  </LabeledField>
+                                  <Pipe />
+                                  <LabeledField label="Matched listing">
+                                    <span
+                                      style={{
+                                        color: isMatched ? '#060' : '#aaa',
+                                        fontWeight: isMatched ? 500 : 400,
+                                      }}
+                                    >
+                                      {listing.matched_store_listing_id ?? '—'}
+                                    </span>
+                                  </LabeledField>
+                                </div>
+                                <ListingThumbnail
+                                  imageUrl={listing.image_url}
+                                  alt={listing.raw_title ?? 'Imported listing'}
+                                />
+                              </div>
+                            )
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })
+              )}
+            </div>
+          </section>
+        ) : null}
+
         {!storePanelCollapsed ? (
         <section style={{ ...panelStyle, flex: 1 }}>
           <header
@@ -1007,6 +1283,24 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
                 />
                 Unmatched only ({unmatchedCount})
               </label>
+              {importsPanelCollapsed ? (
+                <button
+                  type="button"
+                  onClick={() => setImportsPanelCollapsed(false)}
+                  style={{ padding: '2px 8px', fontSize: 11, cursor: 'pointer' }}
+                >
+                  Show imports
+                </button>
+              ) : null}
+              {canonicalPanelCollapsed ? (
+                <button
+                  type="button"
+                  onClick={() => setCanonicalPanelCollapsed(false)}
+                  style={{ padding: '2px 8px', fontSize: 11, cursor: 'pointer' }}
+                >
+                  Show canonical wines
+                </button>
+              ) : null}
             </div>
             <AddToWinesButton
               enabled={canAddListingToWines}
@@ -1222,6 +1516,7 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
         </section>
         ) : null}
 
+        {!canonicalPanelCollapsed ? (
         <section style={{ ...panelStyle, flex: 1 }}>
           <header
             style={{
@@ -1237,13 +1532,22 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
             <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
                 <span style={{ fontWeight: 600 }}>Canonical wines ({wines.length})</span>
+                {importsPanelCollapsed ? (
+                  <button
+                    type="button"
+                    onClick={() => setImportsPanelCollapsed(false)}
+                    style={{ padding: '2px 8px', fontSize: 11, cursor: 'pointer' }}
+                  >
+                    Show imports
+                  </button>
+                ) : null}
                 {storePanelCollapsed ? (
                   <button
                     type="button"
                     onClick={() => setStorePanelCollapsed(false)}
                     style={{ padding: '2px 8px', fontSize: 11, cursor: 'pointer' }}
                   >
-                    Show listings
+                    Show store listings
                   </button>
                 ) : null}
               </div>
@@ -1347,6 +1651,7 @@ export function AdminMatcher({ initialListings, initialWines }: AdminMatcherProp
             )}
           </div>
         </section>
+        ) : null}
       </div>
     </div>
   )

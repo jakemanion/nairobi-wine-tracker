@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { AdminMatcher } from '@/components/admin-matcher'
 import { ADMIN_UNAUTHORIZED_MESSAGE, getSessionUserId, isActorAdmin } from '@/lib/auth/admin'
 import { createServerReadClient } from '@/lib/supabase-server'
-import { normalizeStoreListing } from '@/lib/store-listings'
+import { normalizeStoreListing, normalizeStoreListingImport } from '@/lib/store-listings'
 import type { WineRecord } from '@/lib/wines'
 
 export const dynamic = 'force-dynamic'
@@ -31,11 +31,37 @@ export default async function AdminPage() {
 
   const supabase = createServerReadClient()
 
-  const [{ data: listings, error: listingsError }, { data: wines, error: winesError }] =
-    await Promise.all([
-      supabase
-        .from('store_listings')
-        .select(`
+  const [
+    { data: imports, error: importsError },
+    { data: listings, error: listingsError },
+    { data: wines, error: winesError },
+  ] = await Promise.all([
+    supabase
+      .from('store_listings_imports')
+      .select(`
+          id,
+          raw_title,
+          store_product_url,
+          image_url,
+          current_price_ksh,
+          in_stock,
+          producer,
+          vintage,
+          country,
+          region,
+          style,
+          grape_varieties,
+          status,
+          matched_store_listing_id,
+          stores (
+            id,
+            name
+          )
+        `)
+      .order('raw_title'),
+    supabase
+      .from('store_listings')
+      .select(`
           id,
           raw_title,
           store_product_url,
@@ -60,10 +86,10 @@ export default async function AdminPage() {
             vintage
           )
         `)
-        .order('raw_title'),
-      supabase
-        .from('wines')
-        .select(`
+      .order('raw_title'),
+    supabase
+      .from('wines')
+      .select(`
           id,
           producer,
           wine_name,
@@ -76,11 +102,11 @@ export default async function AdminPage() {
           vivino_rating,
           vivino_match_confidence
         `)
-        .order('producer')
-        .order('wine_name'),
-    ])
+      .order('producer')
+      .order('wine_name'),
+  ])
 
-  const error = listingsError ?? winesError
+  const error = importsError ?? listingsError ?? winesError
   const hasServiceRoleKey = Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY)
 
   return (
@@ -127,6 +153,7 @@ export default async function AdminPage() {
 
       <div style={{ flex: 1, minHeight: 0, display: 'flex' }}>
         <AdminMatcher
+          initialImports={(imports ?? []).map(normalizeStoreListingImport)}
           initialListings={(listings ?? []).map(normalizeStoreListing)}
           initialWines={(wines ?? []) as WineRecord[]}
         />
