@@ -4,6 +4,7 @@ import { createWine, type WineRecord } from '@/lib/wines'
 
 export type StoreListingRecord = {
   id: string
+  store_id?: string | null
   raw_title: string | null
   store_product_url: string | null
   image_url: string | null
@@ -54,6 +55,7 @@ export type StoreListingField =
 
 const listingSelect = `
   id,
+  store_id,
   raw_title,
   store_product_url,
   image_url,

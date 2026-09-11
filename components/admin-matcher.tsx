@@ -535,6 +535,7 @@ function iconActionButtonStyle(
 }
 
 const SUGGESTION_LIMIT = 10
+const IMPORT_SUGGESTION_LIMIT = 4
 const SUGGESTION_PANEL_MAX_HEIGHT = 520
 
 const rowActionsStyle: CSSProperties = {
@@ -870,7 +871,7 @@ export function AdminMatcher({
   const suggestedStoreListings = useMemo(
     () =>
       selectedImport && showImportMatchSuggestions
-        ? suggestStoreListingMatches(selectedImport, listings, SUGGESTION_LIMIT)
+        ? suggestStoreListingMatches(selectedImport, listings, IMPORT_SUGGESTION_LIMIT)
         : [],
     [listings, selectedImport, showImportMatchSuggestions],
   )

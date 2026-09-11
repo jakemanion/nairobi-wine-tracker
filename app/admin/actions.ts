@@ -31,6 +31,7 @@ const wineSelect = `
 
 const listingSelect = `
   id,
+  store_id,
   raw_title,
   store_product_url,
   image_url,

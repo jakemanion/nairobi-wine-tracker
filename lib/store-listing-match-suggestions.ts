@@ -69,20 +69,19 @@ function importStoreId(importRow: StoreListingImportRecord): string | null {
 }
 
 function listingStoreId(listing: StoreListingRecord): string | null {
-  return listing.stores?.id ?? null
+  return listing.store_id ?? listing.stores?.id ?? null
 }
 
 export function suggestStoreListingMatches(
   importRow: StoreListingImportRecord,
   listings: StoreListingRecord[],
-  limit = 10,
+  limit = 4,
 ): StoreListingRecord[] {
   const storeId = importStoreId(importRow)
-  const candidates = storeId
-    ? listings.filter((listing) => listingStoreId(listing) === storeId)
-    : listings
+  if (!storeId) return []
 
-  return candidates
+  return listings
+    .filter((listing) => listingStoreId(listing) === storeId)
     .map((listing) => ({ listing, score: scoreStoreListingMatch(importRow, listing) }))
     .filter(({ score }) => score > 0)
     .sort((a, b) => b.score - a.score)
