@@ -6,7 +6,9 @@ import { buildWineFromListing } from '@/lib/build-wine-from-listing'
 import { createAdminClient } from '@/lib/supabase-admin'
 import {
   normalizeStoreListing,
+  normalizeStoreListingImport,
   type StoreListingField,
+  type StoreListingImportRecord,
   type StoreListingRecord,
 } from '@/lib/store-listings'
 import type { WineField, WineRecord } from '@/lib/wines'
@@ -52,6 +54,27 @@ const listingSelect = `
   )
 `
 
+const importSelect = `
+  id,
+  raw_title,
+  store_product_url,
+  image_url,
+  current_price_ksh,
+  in_stock,
+  producer,
+  vintage,
+  country,
+  region,
+  style,
+  grape_varieties,
+  status,
+  matched_store_listing_id,
+  stores (
+    id,
+    name
+  )
+`
+
 type WineMutationResult =
   | { wine: WineRecord; error?: undefined }
   | { wine?: undefined; error: string }
@@ -59,6 +82,10 @@ type WineMutationResult =
 type ListingMutationResult =
   | { listing: StoreListingRecord; error?: undefined }
   | { listing?: undefined; error: string }
+
+type ImportMutationResult =
+  | { importRow: StoreListingImportRecord; error?: undefined }
+  | { importRow?: undefined; error: string }
 
 function adminErrorMessage(error: unknown, fallback: string): string {
   if (error instanceof Error) return error.message
@@ -208,6 +235,33 @@ export async function adminClearStoreListingMatch(
 
   revalidateWinePages()
   return { listing: normalizeStoreListing(data) }
+}
+
+export async function adminMatchImportToStoreListing({
+  importId,
+  storeListingId,
+}: {
+  importId: string
+  storeListingId: string
+}): Promise<ImportMutationResult> {
+  const access = await requireAdminAccess()
+  if (!access.ok) return { error: access.error }
+
+  const { client, configError } = getAdminClient()
+  if (!client) return { error: configError! }
+
+  const { data, error } = await client
+    .from('store_listings_imports')
+    .update({ matched_store_listing_id: storeListingId })
+    .eq('id', importId)
+    .select(importSelect)
+    .maybeSingle()
+
+  if (error) return { error: error.message }
+  if (!data) return { error: 'Import match failed — no row returned.' }
+
+  revalidatePath('/admin')
+  return { importRow: normalizeStoreListingImport(data) }
 }
 
 export async function adminDeleteStoreListing(

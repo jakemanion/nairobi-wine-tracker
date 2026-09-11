@@ -16,6 +16,7 @@ import {
   adminCreateWine,
   adminDeleteStoreListing,
   adminDeleteWine,
+  adminMatchImportToStoreListing,
   adminMatchStoreListingToWine,
   adminPromoteListingToCanonicalWine,
   adminUpdateStoreListingField,
@@ -140,8 +141,93 @@ function updateListingInState(
   return listings.map((row) => (row.id === listing.id ? listing : row))
 }
 
+function updateImportInState(
+  imports: StoreListingImportRecord[],
+  importRow: StoreListingImportRecord,
+): StoreListingImportRecord[] {
+  return imports.map((row) => (row.id === importRow.id ? importRow : row))
+}
+
 function updateWineInState(wines: WineRecord[], wine: WineRecord): WineRecord[] {
   return wines.map((row) => (row.id === wine.id ? wine : row))
+}
+
+type ImportCompareField =
+  | 'producer'
+  | 'raw_title'
+  | 'current_price_ksh'
+  | 'store_product_url'
+  | 'vintage'
+  | 'country'
+  | 'region'
+  | 'style'
+  | 'grape_varieties'
+
+function normalizeFieldForCompare(value: unknown): string {
+  if (value == null) return ''
+  if (typeof value === 'number') return String(value)
+  if (typeof value === 'boolean') return value ? 'true' : 'false'
+  return String(value).trim().toLowerCase().replace(/\s+/g, ' ')
+}
+
+function normalizePriceForCompare(value: string | number | null | undefined): string {
+  if (value == null || value === '') return ''
+  const n = typeof value === 'number' ? value : parseFloat(String(value).replace(/,/g, ''))
+  return Number.isFinite(n) ? String(n) : normalizeFieldForCompare(value)
+}
+
+function importFieldDiffers(
+  importRow: StoreListingImportRecord,
+  storeListing: StoreListingRecord,
+  field: ImportCompareField,
+): boolean {
+  if (field === 'grape_varieties') {
+    return (
+      normalizeFieldForCompare(formatGrapeVarieties(importRow.grape_varieties)) !==
+      normalizeFieldForCompare(formatGrapeVarieties(storeListing.grape_varieties))
+    )
+  }
+  if (field === 'current_price_ksh') {
+    return (
+      normalizePriceForCompare(importRow.current_price_ksh) !==
+      normalizePriceForCompare(storeListing.current_price_ksh)
+    )
+  }
+  return (
+    normalizeFieldForCompare(importRow[field]) !== normalizeFieldForCompare(storeListing[field])
+  )
+}
+
+function getImportFieldDiffs(
+  importRow: StoreListingImportRecord,
+  storeListing: StoreListingRecord | null,
+): Set<ImportCompareField> {
+  const diffs = new Set<ImportCompareField>()
+  if (!storeListing) return diffs
+
+  const fields: ImportCompareField[] = [
+    'producer',
+    'raw_title',
+    'current_price_ksh',
+    'store_product_url',
+    'vintage',
+    'country',
+    'region',
+    'style',
+    'grape_varieties',
+  ]
+
+  for (const field of fields) {
+    if (importFieldDiffers(importRow, storeListing, field)) diffs.add(field)
+  }
+  return diffs
+}
+
+const fieldDiffStyle: CSSProperties = {
+  backgroundColor: '#fff3cd',
+  boxShadow: 'inset 0 0 0 1px #e6c200',
+  borderRadius: 2,
+  padding: '0 2px',
 }
 
 const panelStyle = {
@@ -581,6 +667,7 @@ export function AdminMatcher({
   const [imports, setImports] = useState(initialImports)
   const [listings, setListings] = useState(initialListings)
   const [wines, setWines] = useState(initialWines)
+  const [selectedImportId, setSelectedImportId] = useState<string | null>(null)
   const [selectedListingId, setSelectedListingId] = useState<string | null>(null)
   const [selectedWineId, setSelectedWineId] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
@@ -662,6 +749,11 @@ export function AdminMatcher({
     })
   }
 
+  const selectedImport = useMemo(
+    () => imports.find((row) => row.id === selectedImportId) ?? null,
+    [imports, selectedImportId],
+  )
+
   const selectedListing = useMemo(
     () => listings.find((listing) => listing.id === selectedListingId) ?? null,
     [listings, selectedListingId],
@@ -671,6 +763,12 @@ export function AdminMatcher({
     () => wines.find((wine) => wine.id === selectedWineId) ?? null,
     [wines, selectedWineId],
   )
+
+  const listingsById = useMemo(() => {
+    const map = new Map<string, StoreListingRecord>()
+    for (const listing of listings) map.set(listing.id, listing)
+    return map
+  }, [listings])
 
   const wineRowRefs = useRef(new Map<string, HTMLDivElement>())
   const canonicalScrollRef = useRef<HTMLDivElement>(null)
@@ -698,6 +796,23 @@ export function AdminMatcher({
   function setWineRowRef(wineId: string, element: HTMLDivElement | null) {
     if (element) wineRowRefs.current.set(wineId, element)
     else wineRowRefs.current.delete(wineId)
+  }
+
+  function selectImport(importRow: StoreListingImportRecord) {
+    setSelectedImportId(importRow.id)
+    setMatchError(null)
+    if (importRow.matched_store_listing_id) {
+      setSelectedListingId(importRow.matched_store_listing_id)
+    }
+  }
+
+  function toggleImportSelection(importRow: StoreListingImportRecord) {
+    if (selectedImportId === importRow.id) {
+      setSelectedImportId(null)
+      setMatchError(null)
+      return
+    }
+    selectImport(importRow)
   }
 
   function selectListing(listing: StoreListingRecord) {
@@ -732,6 +847,28 @@ export function AdminMatcher({
       return
     }
     selectWine(wine)
+  }
+
+  async function handleMatchImportToListing(importRow: StoreListingImportRecord) {
+    if (!selectedListingId || busy) return
+
+    setBusy(true)
+    setMatchError(null)
+
+    const result = await adminMatchImportToStoreListing({
+      importId: importRow.id,
+      storeListingId: selectedListingId,
+    })
+
+    setBusy(false)
+
+    if (result.error || !result.importRow) {
+      setMatchError(result.error ?? 'Failed to match import to store listing.')
+      return
+    }
+
+    setImports((current) => updateImportInState(current, result.importRow!))
+    setSelectedImportId(result.importRow.id)
   }
 
   async function handleMatch() {
@@ -957,6 +1094,12 @@ export function AdminMatcher({
       ? 'Listing already matched — use Clear to unlink first'
       : 'Create a canonical wine from the selected listing'
 
+  const matchImportHint = !selectedImport
+    ? 'Select an import listing first'
+    : !selectedListing
+      ? 'Select a store listing to match this import to'
+      : 'Match selected import to selected store listing'
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 1, minHeight: 0, width: '100%' }}>
       <div
@@ -1023,9 +1166,11 @@ export function AdminMatcher({
           {canonicalPanelCollapsed ? 'Show canonical wines' : 'Hide canonical wines'}
         </button>
         <span style={{ color: '#555' }}>
-          {selectedListing && selectedWine
-            ? `${selectedListing.raw_title ?? 'listing'} → ${formatWineLabel(selectedWine)}`
-            : 'Add to wines: select unmatched listing. Match: select listing + wine.'}
+          {selectedImport && selectedListing && !selectedWine
+            ? `Import → ${selectedListing.raw_title ?? 'store listing'}`
+            : selectedListing && selectedWine
+              ? `${selectedListing.raw_title ?? 'listing'} → ${formatWineLabel(selectedWine)}`
+              : 'Import match: select import + store listing. Listing match: select listing + wine.'}
         </span>
         {matchError && <span style={{ color: '#c33' }}>{matchError}</span>}
       </div>
@@ -1137,28 +1282,83 @@ export function AdminMatcher({
                       {!isCollapsed && (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                           {group.listings.map((listing) => {
+                            const isSelected = listing.id === selectedImportId
                             const isMatched = Boolean(listing.matched_store_listing_id)
+                            const matchedStoreListing = listing.matched_store_listing_id
+                              ? (listingsById.get(listing.matched_store_listing_id) ?? null)
+                              : null
+                            const fieldDiffs = getImportFieldDiffs(listing, matchedStoreListing)
                             const statusLabel = listing.status?.trim() || '—'
+                            const matchedLabel =
+                              matchedStoreListing?.raw_title?.trim() ||
+                              listing.matched_store_listing_id ||
+                              null
+                            const showImportMatchButton = isSelected
+                            const canMatchThisImport = Boolean(
+                              isSelected && selectedListingId && !busy,
+                            )
 
                             return (
                               <div
                                 key={listing.id}
+                                role="button"
+                                tabIndex={0}
+                                onClick={() => selectImport(listing)}
+                                onKeyDown={(event) =>
+                                  handleRowKeyDown(event, () => selectImport(listing))
+                                }
                                 style={{
                                   ...rowStyle,
-                                  ...(isMatched ? matchedRowStyle : {}),
+                                  ...(isSelected ? selectedRowStyle : {}),
+                                  ...(!isSelected && isMatched ? matchedRowStyle : {}),
                                 }}
                               >
+                                <span
+                                  onClick={(event) => {
+                                    event.stopPropagation()
+                                    toggleImportSelection(listing)
+                                  }}
+                                  onKeyDown={(event) => event.stopPropagation()}
+                                  style={{ display: 'inline-flex', flexShrink: 0, marginTop: 2 }}
+                                >
+                                  <input
+                                    type="radio"
+                                    checked={isSelected}
+                                    readOnly
+                                    tabIndex={-1}
+                                    aria-label={`Select import ${listing.raw_title ?? 'listing'}`}
+                                    style={{ margin: 0, pointerEvents: 'none' }}
+                                  />
+                                </span>
                                 <div style={inlineLineStyle}>
                                   <LabeledField label="Producer">
-                                    <span>{listing.producer?.trim() || '—'}</span>
+                                    <span
+                                      style={
+                                        fieldDiffs.has('producer') ? fieldDiffStyle : undefined
+                                      }
+                                    >
+                                      {listing.producer?.trim() || '—'}
+                                    </span>
                                   </LabeledField>
                                   <Pipe />
                                   <LabeledField label="Raw title">
-                                    <span>{listing.raw_title?.trim() || '—'}</span>
+                                    <span
+                                      style={
+                                        fieldDiffs.has('raw_title') ? fieldDiffStyle : undefined
+                                      }
+                                    >
+                                      {listing.raw_title?.trim() || '—'}
+                                    </span>
                                   </LabeledField>
                                   <Pipe />
                                   <LabeledField label="Price">
-                                    <span>
+                                    <span
+                                      style={
+                                        fieldDiffs.has('current_price_ksh')
+                                          ? fieldDiffStyle
+                                          : undefined
+                                      }
+                                    >
                                       {listing.current_price_ksh != null
                                         ? `KES ${listing.current_price_ksh}`
                                         : '—'}
@@ -1166,24 +1366,36 @@ export function AdminMatcher({
                                   </LabeledField>
                                   <Pipe />
                                   <LabeledField label="URL">
-                                    {listing.store_product_url ? (
-                                      <a
-                                        href={listing.store_product_url}
-                                        target="_blank"
-                                        rel="noreferrer"
-                                        onClick={(event) => event.stopPropagation()}
-                                        style={{ color: '#0a7', textDecoration: 'none' }}
-                                      >
-                                        {formatStoreUrlDirectory(listing.store_product_url) ||
-                                          'link'}
-                                      </a>
-                                    ) : (
-                                      <span>—</span>
-                                    )}
+                                    <span
+                                      style={
+                                        fieldDiffs.has('store_product_url')
+                                          ? fieldDiffStyle
+                                          : undefined
+                                      }
+                                    >
+                                      {listing.store_product_url ? (
+                                        <a
+                                          href={listing.store_product_url}
+                                          target="_blank"
+                                          rel="noreferrer"
+                                          onClick={(event) => event.stopPropagation()}
+                                          style={{ color: '#0a7', textDecoration: 'none' }}
+                                        >
+                                          {formatStoreUrlDirectory(listing.store_product_url) ||
+                                            'link'}
+                                        </a>
+                                      ) : (
+                                        '—'
+                                      )}
+                                    </span>
                                   </LabeledField>
                                   <Pipe />
                                   <LabeledField label="Vintage">
-                                    <span>
+                                    <span
+                                      style={
+                                        fieldDiffs.has('vintage') ? fieldDiffStyle : undefined
+                                      }
+                                    >
                                       {listing.vintage != null && String(listing.vintage).trim()
                                         ? String(listing.vintage)
                                         : '—'}
@@ -1191,19 +1403,41 @@ export function AdminMatcher({
                                   </LabeledField>
                                   <Pipe />
                                   <LabeledField label="Country">
-                                    <span>{listing.country?.trim() || '—'}</span>
+                                    <span
+                                      style={
+                                        fieldDiffs.has('country') ? fieldDiffStyle : undefined
+                                      }
+                                    >
+                                      {listing.country?.trim() || '—'}
+                                    </span>
                                   </LabeledField>
                                   <Pipe />
                                   <LabeledField label="Region">
-                                    <span>{listing.region?.trim() || '—'}</span>
+                                    <span
+                                      style={
+                                        fieldDiffs.has('region') ? fieldDiffStyle : undefined
+                                      }
+                                    >
+                                      {listing.region?.trim() || '—'}
+                                    </span>
                                   </LabeledField>
                                   <Pipe />
                                   <LabeledField label="Style">
-                                    <span>{listing.style?.trim() || '—'}</span>
+                                    <span
+                                      style={fieldDiffs.has('style') ? fieldDiffStyle : undefined}
+                                    >
+                                      {listing.style?.trim() || '—'}
+                                    </span>
                                   </LabeledField>
                                   <Pipe />
                                   <LabeledField label="Grapes">
-                                    <span>
+                                    <span
+                                      style={
+                                        fieldDiffs.has('grape_varieties')
+                                          ? fieldDiffStyle
+                                          : undefined
+                                      }
+                                    >
                                       {formatGrapeVarieties(listing.grape_varieties) || '—'}
                                     </span>
                                   </LabeledField>
@@ -1226,10 +1460,31 @@ export function AdminMatcher({
                                         fontWeight: isMatched ? 500 : 400,
                                       }}
                                     >
-                                      {listing.matched_store_listing_id ?? '—'}
+                                      {matchedLabel ?? '—'}
                                     </span>
                                   </LabeledField>
                                 </div>
+                                {showImportMatchButton ? (
+                                  <span style={rowActionsColumnStyle}>
+                                    <button
+                                      type="button"
+                                      disabled={!canMatchThisImport}
+                                      title={matchImportHint}
+                                      onClick={(event) => {
+                                        event.stopPropagation()
+                                        void handleMatchImportToListing(listing)
+                                      }}
+                                      style={{
+                                        ...actionButtonStyle('default', canMatchThisImport),
+                                        padding: '3px 6px',
+                                        fontSize: 11,
+                                        minWidth: 22,
+                                      }}
+                                    >
+                                      Match
+                                    </button>
+                                  </span>
+                                ) : null}
                                 <ListingThumbnail
                                   imageUrl={listing.image_url}
                                   alt={listing.raw_title ?? 'Imported listing'}
@@ -1355,6 +1610,8 @@ export function AdminMatcher({
                       const isMatched = Boolean(listing.wine_id)
                       const isLinkedToSelectedWine =
                         selectedWineId != null && listing.wine_id === selectedWineId
+                      const isLinkedToSelectedImport =
+                        selectedImport?.matched_store_listing_id === listing.id
                       const matchedLabel = listing.wines
                         ? formatWineLabel(listing.wines)
                         : null
@@ -1371,8 +1628,13 @@ export function AdminMatcher({
                           style={{
                             ...rowStyle,
                             ...(isSelected ? selectedRowStyle : {}),
-                            ...(!isSelected && isLinkedToSelectedWine ? linkedToSelectedWineStyle : {}),
-                            ...(!isSelected && !isLinkedToSelectedWine && isMatched
+                            ...(!isSelected && (isLinkedToSelectedWine || isLinkedToSelectedImport)
+                              ? linkedToSelectedWineStyle
+                              : {}),
+                            ...(!isSelected &&
+                            !isLinkedToSelectedWine &&
+                            !isLinkedToSelectedImport &&
+                            isMatched
                               ? matchedRowStyle
                               : {}),
                           }}
