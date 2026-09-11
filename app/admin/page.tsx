@@ -40,6 +40,7 @@ export default async function AdminPage() {
       .from('store_listings_imports')
       .select(`
           id,
+          store_id,
           raw_title,
           store_product_url,
           image_url,

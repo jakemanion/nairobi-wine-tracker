@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { requireAdminAccess } from '@/lib/auth/admin'
 import { buildWineFromListing } from '@/lib/build-wine-from-listing'
+import { normalizeGrapeVarieties } from '@/lib/grape-varieties'
 import { createAdminClient } from '@/lib/supabase-admin'
 import {
   normalizeStoreListing,
@@ -56,6 +57,7 @@ const listingSelect = `
 
 const importSelect = `
   id,
+  store_id,
   raw_title,
   store_product_url,
   image_url,
@@ -289,6 +291,72 @@ export async function adminUpdateImportStatus({
 
   revalidatePath('/admin')
   return { importRow: normalizeStoreListingImport(data) }
+}
+
+export async function adminCreateStoreListingFromImport(
+  importRow: StoreListingImportRecord,
+): Promise<
+  | { listing: StoreListingRecord; importRow: StoreListingImportRecord; error?: undefined }
+  | { listing?: undefined; importRow?: undefined; error: string }
+> {
+  const access = await requireAdminAccess()
+  if (!access.ok) return { error: access.error }
+
+  const { client, configError } = getAdminClient()
+  if (!client) return { error: configError! }
+
+  const storeId = importRow.store_id ?? importRow.stores?.id ?? null
+  if (!storeId) return { error: 'Import has no store id.' }
+
+  const { data: listingData, error: listingError } = await client
+    .from('store_listings')
+    .insert({
+      store_id: storeId,
+      raw_title: importRow.raw_title,
+      store_product_url: importRow.store_product_url,
+      image_url: importRow.image_url,
+      current_price_ksh: importRow.current_price_ksh,
+      in_stock: importRow.in_stock,
+      producer: importRow.producer,
+      vintage: importRow.vintage,
+      country: importRow.country,
+      region: importRow.region,
+      style: importRow.style,
+      grape_varieties: normalizeGrapeVarieties(importRow.grape_varieties),
+      wine_id: null,
+    })
+    .select(listingSelect)
+    .maybeSingle()
+
+  if (listingError) return { error: listingError.message }
+  if (!listingData) return { error: 'Failed to create store listing.' }
+
+  const listing = normalizeStoreListing(listingData)
+
+  const { data: matchedImport, error: matchError } = await client
+    .from('store_listings_imports')
+    .update({
+      matched_store_listing_id: listing.id,
+      status: 'matched',
+    })
+    .eq('id', importRow.id)
+    .select(importSelect)
+    .maybeSingle()
+
+  if (matchError) {
+    return {
+      error: `Store listing created but import link failed: ${matchError.message}`,
+    }
+  }
+  if (!matchedImport) {
+    return { error: 'Store listing created but import link returned no row.' }
+  }
+
+  revalidateWinePages()
+  return {
+    listing,
+    importRow: normalizeStoreListingImport(matchedImport),
+  }
 }
 
 export async function adminDeleteStoreListing(

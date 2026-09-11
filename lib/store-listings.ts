@@ -23,6 +23,7 @@ export type StoreListingRecord = {
 /** Pending import rows — same shape as store_listings plus match/status fields. */
 export type StoreListingImportRecord = {
   id: string
+  store_id?: string | null
   raw_title: string | null
   store_product_url: string | null
   image_url: string | null

@@ -13,6 +13,7 @@ import { EditableTextCell } from '@/components/editable-text-cell'
 import { firstListingImageUrl, ListingThumbnail } from '@/components/listing-thumbnail'
 import {
   adminClearStoreListingMatch,
+  adminCreateStoreListingFromImport,
   adminCreateWine,
   adminDeleteStoreListing,
   adminDeleteWine,
@@ -27,6 +28,7 @@ import {
   formatGrapeVarieties,
   parseGrapeVarietiesInput,
 } from '@/lib/grape-varieties'
+import { suggestStoreListingMatches } from '@/lib/store-listing-match-suggestions'
 import { type StoreListingField, type StoreListingImportRecord, type StoreListingRecord } from '@/lib/store-listings'
 import { formatStoreUrlDirectory, formatVivinoProductName } from '@/lib/url-display'
 import { suggestWineMatches } from '@/lib/wine-match-suggestions'
@@ -466,6 +468,30 @@ function AddToWinesButton({
   )
 }
 
+function AddToStoreListingsButton({
+  enabled,
+  busy,
+  onClick,
+  title,
+}: {
+  enabled: boolean
+  busy: boolean
+  onClick: () => void
+  title?: string
+}) {
+  return (
+    <button
+      type="button"
+      disabled={!enabled}
+      title={title}
+      onClick={onClick}
+      style={actionButtonStyle('primary', enabled)}
+    >
+      {busy ? 'Saving…' : 'Add to store listings'}
+    </button>
+  )
+}
+
 function iconActionButtonStyle(
   variant: 'primary' | 'danger' | 'default',
   enabled: boolean,
@@ -829,6 +855,9 @@ export function AdminMatcher({
   const canonicalScrollRef = useRef<HTMLDivElement>(null)
 
   const showMatchSuggestions = Boolean(selectedListing && !selectedListing.wine_id)
+  const showImportMatchSuggestions = Boolean(
+    selectedImport && !selectedImport.matched_store_listing_id,
+  )
 
   const suggestedWines = useMemo(
     () =>
@@ -836,6 +865,14 @@ export function AdminMatcher({
         ? suggestWineMatches(selectedListing, wines, SUGGESTION_LIMIT)
         : [],
     [selectedListing, showMatchSuggestions, wines],
+  )
+
+  const suggestedStoreListings = useMemo(
+    () =>
+      selectedImport && showImportMatchSuggestions
+        ? suggestStoreListingMatches(selectedImport, listings, SUGGESTION_LIMIT)
+        : [],
+    [listings, selectedImport, showImportMatchSuggestions],
   )
 
   useEffect(() => {
@@ -924,6 +961,27 @@ export function AdminMatcher({
 
     setImports((current) => updateImportInState(current, result.importRow!))
     setSelectedImportId(result.importRow.id)
+  }
+
+  async function handleAddImportToStoreListings() {
+    if (!selectedImport || busy) return
+
+    setBusy(true)
+    setMatchError(null)
+
+    const result = await adminCreateStoreListingFromImport(selectedImport)
+
+    setBusy(false)
+
+    if (result.error || !result.listing || !result.importRow) {
+      setMatchError(result.error ?? 'Failed to create store listing from import.')
+      return
+    }
+
+    setListings((current) => [result.listing!, ...current])
+    setImports((current) => updateImportInState(current, result.importRow!))
+    setSelectedImportId(result.importRow.id)
+    setSelectedListingId(result.listing.id)
   }
 
   async function handleMarkImportDone(importRow: StoreListingImportRecord) {
@@ -1197,12 +1255,23 @@ export function AdminMatcher({
   const canMatch = Boolean(selectedListingId && selectedWineId && !busy)
   const canClearMatch = Boolean(selectedListing?.wine_id && !busy)
   const canAddListingToWines = Boolean(selectedListing && !selectedListing.wine_id && !busy)
+  const canAddImportToStoreListings = Boolean(
+    selectedImport &&
+      (selectedImport.store_id || selectedImport.stores?.id) &&
+      !busy,
+  )
 
   const addToWinesHint = !selectedListing
     ? 'Select an unmatched store listing first'
     : selectedListing.wine_id
       ? 'Listing already matched — use Clear to unlink first'
       : 'Create a canonical wine from the selected listing'
+
+  const addImportToStoreListingsHint = !selectedImport
+    ? 'Select an import listing first'
+    : !(selectedImport.store_id || selectedImport.stores?.id)
+      ? 'Import has no store id'
+      : 'Create a store listing from the selected import (same store)'
 
   const matchImportHint = !selectedImport
     ? 'Select an import listing first'
@@ -1357,6 +1426,12 @@ export function AdminMatcher({
                   </button>
                 ) : null}
               </div>
+              <AddToStoreListingsButton
+                enabled={canAddImportToStoreListings}
+                busy={busy}
+                title={addImportToStoreListingsHint}
+                onClick={() => void handleAddImportToStoreListings()}
+              />
             </header>
             <div style={scrollStyle}>
               {groupedImports.length === 0 ? (
@@ -1629,23 +1704,36 @@ export function AdminMatcher({
                                 <span style={rowActionsColumnStyle}>
                                   <span style={rowActionsStyle}>
                                     {showImportMatchButton ? (
-                                      <button
-                                        type="button"
-                                        disabled={!canMatchThisImport}
-                                        title={matchImportHint}
-                                        onClick={(event) => {
-                                          event.stopPropagation()
-                                          void handleMatchImportToListing(listing)
-                                        }}
-                                        style={{
-                                          ...actionButtonStyle('default', canMatchThisImport),
-                                          padding: '3px 6px',
-                                          fontSize: 11,
-                                          minWidth: 22,
-                                        }}
-                                      >
-                                        Match
-                                      </button>
+                                      <>
+                                        <span
+                                          onClick={(event) => event.stopPropagation()}
+                                          onKeyDown={(event) => event.stopPropagation()}
+                                        >
+                                          <AddToStoreListingsButton
+                                            enabled={canAddImportToStoreListings}
+                                            busy={busy}
+                                            title={addImportToStoreListingsHint}
+                                            onClick={() => void handleAddImportToStoreListings()}
+                                          />
+                                        </span>
+                                        <button
+                                          type="button"
+                                          disabled={!canMatchThisImport}
+                                          title={matchImportHint}
+                                          onClick={(event) => {
+                                            event.stopPropagation()
+                                            void handleMatchImportToListing(listing)
+                                          }}
+                                          style={{
+                                            ...actionButtonStyle('default', canMatchThisImport),
+                                            padding: '3px 6px',
+                                            fontSize: 11,
+                                            minWidth: 22,
+                                          }}
+                                        >
+                                          Match
+                                        </button>
+                                      </>
                                     ) : null}
                                     <button
                                       type="button"
@@ -1749,6 +1837,119 @@ export function AdminMatcher({
               onClick={() => void handleAddListingToWines()}
             />
           </header>
+          {showImportMatchSuggestions && (
+            <div
+              style={{
+                padding: '8px 10px',
+                borderBottom: '1px solid #b8cfe8',
+                background: '#e8f0fc',
+                flexShrink: 0,
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 11,
+                  fontWeight: 600,
+                  color: '#4a6080',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.03em',
+                  marginBottom: 6,
+                }}
+              >
+                Suggested matches
+              </div>
+              {suggestedStoreListings.length === 0 ? (
+                <p style={{ margin: 0, fontSize: 12, color: '#5a6d88' }}>
+                  No close matches on wine name or price
+                  {selectedImport?.stores?.name
+                    ? ` at ${selectedImport.stores.name}`
+                    : ''}
+                  .
+                </p>
+              ) : (
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 4,
+                    maxHeight: SUGGESTION_PANEL_MAX_HEIGHT,
+                    overflowY: 'auto',
+                    overflowX: 'hidden',
+                    padding: '4px 6px',
+                    borderRadius: 6,
+                    background: '#dce8f8',
+                  }}
+                >
+                  {suggestedStoreListings.map((listing) => {
+                    const isSelected = listing.id === selectedListingId
+                    return (
+                      <div key={listing.id} style={suggestionRowContainerStyle}>
+                        <div
+                          role="button"
+                          tabIndex={0}
+                          onClick={() => selectListing(listing)}
+                          onKeyDown={(event) =>
+                            handleRowKeyDown(event, () => selectListing(listing))
+                          }
+                          style={{
+                            ...rowStyle,
+                            ...(isSelected ? selectedRowStyle : {}),
+                          }}
+                        >
+                          <span
+                            onClick={(event) => {
+                              event.stopPropagation()
+                              toggleListingSelection(listing)
+                            }}
+                            onKeyDown={(event) => event.stopPropagation()}
+                            style={{ display: 'inline-flex', flexShrink: 0, marginTop: 2 }}
+                          >
+                            <input
+                              type="radio"
+                              checked={isSelected}
+                              readOnly
+                              tabIndex={-1}
+                              aria-label={`Select suggested ${listing.raw_title ?? 'listing'}`}
+                              style={{ margin: 0, pointerEvents: 'none' }}
+                            />
+                          </span>
+                          <div style={inlineLineStyle}>
+                            <LabeledField label="Producer">
+                              <span>{listing.producer?.trim() || '—'}</span>
+                            </LabeledField>
+                            <Pipe />
+                            <LabeledField label="Raw title">
+                              <span>{listing.raw_title?.trim() || '—'}</span>
+                            </LabeledField>
+                            <Pipe />
+                            <LabeledField label="Price">
+                              <span>
+                                {listing.current_price_ksh != null
+                                  ? `KES ${listing.current_price_ksh}`
+                                  : '—'}
+                              </span>
+                            </LabeledField>
+                            <Pipe />
+                            <LabeledField label="Vintage">
+                              <span>
+                                {listing.vintage != null && String(listing.vintage).trim()
+                                  ? String(listing.vintage)
+                                  : '—'}
+                              </span>
+                            </LabeledField>
+                          </div>
+                          <ListingThumbnail
+                            imageUrl={listing.image_url}
+                            alt={listing.raw_title ?? 'Store listing'}
+                          />
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          )}
           <div style={scrollStyle}>
             {groupedListings.length === 0 ? (
               <p style={{ color: '#888', fontSize: 12, margin: 0 }}>
