@@ -28,7 +28,7 @@ import {
   formatGrapeVarieties,
   parseGrapeVarietiesInput,
 } from '@/lib/grape-varieties'
-import { suggestStoreListingMatches } from '@/lib/store-listing-match-suggestions'
+import { getStoreListingMatchHighlights, suggestStoreListingMatches } from '@/lib/store-listing-match-suggestions'
 import { type StoreListingField, type StoreListingImportRecord, type StoreListingRecord } from '@/lib/store-listings'
 import { formatStoreUrlDirectory, formatVivinoProductName } from '@/lib/url-display'
 import { suggestWineMatches } from '@/lib/wine-match-suggestions'
@@ -229,6 +229,13 @@ function getImportFieldDiffs(
 const fieldDiffStyle: CSSProperties = {
   backgroundColor: '#fff3cd',
   boxShadow: 'inset 0 0 0 1px #e6c200',
+  borderRadius: 2,
+  padding: '0 2px',
+}
+
+const fieldMatchStyle: CSSProperties = {
+  backgroundColor: '#e6f4ea',
+  boxShadow: 'inset 0 0 0 1px #81c995',
   borderRadius: 2,
   padding: '0 2px',
 }
@@ -1883,6 +1890,9 @@ export function AdminMatcher({
                 >
                   {suggestedStoreListings.map((listing) => {
                     const isSelected = listing.id === selectedListingId
+                    const matchHighlights = selectedImport
+                      ? getStoreListingMatchHighlights(selectedImport, listing)
+                      : new Set()
                     return (
                       <div key={listing.id} style={suggestionRowContainerStyle}>
                         <div
@@ -1916,15 +1926,33 @@ export function AdminMatcher({
                           </span>
                           <div style={inlineLineStyle}>
                             <LabeledField label="Producer">
-                              <span>{listing.producer?.trim() || '—'}</span>
+                              <span
+                                style={
+                                  matchHighlights.has('producer') ? fieldMatchStyle : undefined
+                                }
+                              >
+                                {listing.producer?.trim() || '—'}
+                              </span>
                             </LabeledField>
                             <Pipe />
                             <LabeledField label="Raw title">
-                              <span>{listing.raw_title?.trim() || '—'}</span>
+                              <span
+                                style={
+                                  matchHighlights.has('raw_title') ? fieldMatchStyle : undefined
+                                }
+                              >
+                                {listing.raw_title?.trim() || '—'}
+                              </span>
                             </LabeledField>
                             <Pipe />
                             <LabeledField label="Price">
-                              <span>
+                              <span
+                                style={
+                                  matchHighlights.has('current_price_ksh')
+                                    ? fieldMatchStyle
+                                    : undefined
+                                }
+                              >
                                 {listing.current_price_ksh != null
                                   ? `KES ${listing.current_price_ksh}`
                                   : '—'}
@@ -1932,7 +1960,11 @@ export function AdminMatcher({
                             </LabeledField>
                             <Pipe />
                             <LabeledField label="Vintage">
-                              <span>
+                              <span
+                                style={
+                                  matchHighlights.has('vintage') ? fieldMatchStyle : undefined
+                                }
+                              >
                                 {listing.vintage != null && String(listing.vintage).trim()
                                   ? String(listing.vintage)
                                   : '—'}

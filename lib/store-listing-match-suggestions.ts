@@ -72,6 +72,73 @@ function listingStoreId(listing: StoreListingRecord): string | null {
   return listing.store_id ?? listing.stores?.id ?? null
 }
 
+export type StoreListingMatchHighlightField =
+  | 'producer'
+  | 'raw_title'
+  | 'current_price_ksh'
+  | 'vintage'
+
+function isGoodTextMatch(a: string, b: string): boolean {
+  if (!a || !b) return false
+  return a === b || a.includes(b) || b.includes(a)
+}
+
+function isGoodPriceMatch(
+  a: string | number | null | undefined,
+  b: string | number | null | undefined,
+): boolean {
+  const priceA = parsePriceNumber(a)
+  const priceB = parsePriceNumber(b)
+  if (priceA == null || priceB == null) return false
+  if (priceA === priceB) return true
+  const diff = Math.abs(priceA - priceB)
+  const avg = (priceA + priceB) / 2
+  const pct = avg === 0 ? 1 : diff / avg
+  return pct <= 0.05
+}
+
+function isGoodVintageMatch(
+  a: string | number | null | undefined,
+  b: string | number | null | undefined,
+): boolean {
+  const vintageA = normalizeMatchText(a == null ? null : String(a))
+  const vintageB = normalizeMatchText(b == null ? null : String(b))
+  return Boolean(vintageA && vintageB && vintageA === vintageB)
+}
+
+/** Fields that are a strong match between an import and a candidate store listing. */
+export function getStoreListingMatchHighlights(
+  importRow: Pick<
+    StoreListingImportRecord,
+    'producer' | 'raw_title' | 'current_price_ksh' | 'vintage'
+  >,
+  listing: Pick<StoreListingRecord, 'producer' | 'raw_title' | 'current_price_ksh' | 'vintage'>,
+): Set<StoreListingMatchHighlightField> {
+  const highlights = new Set<StoreListingMatchHighlightField>()
+
+  if (
+    isGoodTextMatch(normalizeMatchText(importRow.raw_title), normalizeMatchText(listing.raw_title))
+  ) {
+    highlights.add('raw_title')
+  }
+
+  if (
+    isGoodTextMatch(normalizeMatchText(importRow.producer), normalizeMatchText(listing.producer))
+  ) {
+    highlights.add('producer')
+  }
+
+  if (isGoodPriceMatch(importRow.current_price_ksh, listing.current_price_ksh)) {
+    highlights.add('current_price_ksh')
+  }
+
+  if (isGoodVintageMatch(importRow.vintage, listing.vintage)) {
+    highlights.add('vintage')
+  }
+
+  return highlights
+}
+
 export function suggestStoreListingMatches(
   importRow: StoreListingImportRecord,
   listings: StoreListingRecord[],
