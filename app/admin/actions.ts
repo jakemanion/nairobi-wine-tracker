@@ -294,6 +294,33 @@ export async function adminUpdateImportStatus({
   return { importRow: normalizeStoreListingImport(data) }
 }
 
+export async function adminMarkImportsDone(
+  importIds: string[],
+): Promise<
+  | { importRows: StoreListingImportRecord[]; updatedCount: number; error?: undefined }
+  | { importRows?: undefined; updatedCount: number; error: string }
+> {
+  const access = await requireAdminAccess()
+  if (!access.ok) return { error: access.error, updatedCount: 0 }
+
+  if (importIds.length === 0) return { importRows: [], updatedCount: 0 }
+
+  const { client, configError } = getAdminClient()
+  if (!client) return { error: configError!, updatedCount: 0 }
+
+  const { data, error } = await client
+    .from('store_listings_imports')
+    .update({ status: 'done' })
+    .in('id', importIds)
+    .select(importSelect)
+
+  if (error) return { error: error.message, updatedCount: 0 }
+
+  const importRows = (data ?? []).map(normalizeStoreListingImport)
+  revalidatePath('/admin')
+  return { importRows, updatedCount: importRows.length }
+}
+
 export async function adminCreateStoreListingFromImport(
   importRow: StoreListingImportRecord,
 ): Promise<

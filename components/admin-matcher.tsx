@@ -19,6 +19,7 @@ import {
   adminDeleteWine,
   adminMatchImportToStoreListing,
   adminMatchStoreListingToWine,
+  adminMarkImportsDone,
   adminPromoteListingToCanonicalWine,
   adminUpdateImportStatus,
   adminUpdateStoreListingField,
@@ -28,7 +29,12 @@ import {
   formatGrapeVarieties,
   parseGrapeVarietiesInput,
 } from '@/lib/grape-varieties'
-import { getStoreListingMatchHighlights, suggestStoreListingMatches } from '@/lib/store-listing-match-suggestions'
+import {
+  getStoreListingMatchHighlights,
+  hasPerfectSuggestedStoreListingMatch,
+  isUnmatchedImportStatus,
+  suggestStoreListingMatches,
+} from '@/lib/store-listing-match-suggestions'
 import { type StoreListingField, type StoreListingImportRecord, type StoreListingRecord } from '@/lib/store-listings'
 import { formatStoreUrlDirectory, formatVivinoProductName } from '@/lib/url-display'
 import { suggestWineMatches } from '@/lib/wine-match-suggestions'
@@ -1013,6 +1019,47 @@ export function AdminMatcher({
     setImports((current) => updateImportInState(current, result.importRow!))
   }
 
+  async function handleAutoDonePerfectMatches() {
+    if (busy) return
+
+    const candidates = imports.filter(
+      (row) =>
+        isUnmatchedImportStatus(row.status) &&
+        hasPerfectSuggestedStoreListingMatch(row, listings, IMPORT_SUGGESTION_LIMIT),
+    )
+
+    if (candidates.length === 0) {
+      setMatchError(null)
+      window.alert(
+        'No unmatched imports with an exact title + price + URL suggested match.',
+      )
+      return
+    }
+
+    const confirmed = window.confirm(
+      `Mark ${candidates.length} unmatched import${candidates.length === 1 ? '' : 's'} as done?` +
+        `\n\nOnly imports with status "unmatched" and an exact suggested match on raw title, price, and URL.`,
+    )
+    if (!confirmed) return
+
+    setBusy(true)
+    setMatchError(null)
+
+    const result = await adminMarkImportsDone(candidates.map((row) => row.id))
+
+    setBusy(false)
+
+    if (result.error) {
+      setMatchError(result.error)
+      return
+    }
+
+    const updatedById = new Map(result.importRows.map((row) => [row.id, row]))
+    setImports((current) =>
+      current.map((row) => updatedById.get(row.id) ?? row),
+    )
+  }
+
   async function handleApplyImportFieldToListing(
     importRow: StoreListingImportRecord,
     field: ImportCompareField,
@@ -1363,6 +1410,15 @@ export function AdminMatcher({
           }
         >
           {hideCompletedImports ? 'Show completed imports' : 'Hide completed imports'}
+        </button>
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => void handleAutoDonePerfectMatches()}
+          style={actionButtonStyle('default', !busy)}
+          title='Mark unmatched imports as done when a suggested match has the same raw title, price, and URL'
+        >
+          {busy ? 'Working…' : 'Auto-done perfect matches'}
         </button>
         <span style={{ color: '#555' }}>
           {selectedImport && selectedListing && !selectedWine

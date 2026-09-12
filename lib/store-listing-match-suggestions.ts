@@ -169,6 +169,52 @@ export function getStoreListingMatchHighlights(
   return highlights
 }
 
+function isExactTitleMatch(
+  a: string | null | undefined,
+  b: string | null | undefined,
+): boolean {
+  const titleA = normalizeMatchText(a)
+  const titleB = normalizeMatchText(b)
+  return Boolean(titleA && titleB && titleA === titleB)
+}
+
+function isExactPriceMatch(
+  a: string | number | null | undefined,
+  b: string | number | null | undefined,
+): boolean {
+  const priceA = parsePriceNumber(a)
+  const priceB = parsePriceNumber(b)
+  return priceA != null && priceB != null && priceA === priceB
+}
+
+function isExactUrlMatch(
+  a: string | null | undefined,
+  b: string | null | undefined,
+): boolean {
+  const urlA = normalizeUrlForMatch(a)
+  const urlB = normalizeUrlForMatch(b)
+  return Boolean(urlA && urlB && urlA === urlB)
+}
+
+export function isUnmatchedImportStatus(status: string | null | undefined): boolean {
+  return status?.trim().toLowerCase() === 'unmatched'
+}
+
+/** True when a suggested same-store listing matches title, price, and URL exactly. */
+export function hasPerfectSuggestedStoreListingMatch(
+  importRow: StoreListingImportRecord,
+  listings: StoreListingRecord[],
+  limit = 4,
+): boolean {
+  const suggestions = suggestStoreListingMatches(importRow, listings, limit)
+  return suggestions.some(
+    (listing) =>
+      isExactTitleMatch(importRow.raw_title, listing.raw_title) &&
+      isExactPriceMatch(importRow.current_price_ksh, listing.current_price_ksh) &&
+      isExactUrlMatch(importRow.store_product_url, listing.store_product_url),
+  )
+}
+
 export function suggestStoreListingMatches(
   importRow: StoreListingImportRecord,
   listings: StoreListingRecord[],
