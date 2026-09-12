@@ -321,6 +321,37 @@ export async function adminMarkImportsDone(
   return { importRows, updatedCount: importRows.length }
 }
 
+function storeListingInsertFromImport(
+  importRow: StoreListingImportRecord,
+  storeId: string,
+) {
+  return {
+    store_id: storeId,
+    raw_title: importRow.raw_title,
+    store_product_url: importRow.store_product_url,
+    image_url: importRow.image_url,
+    current_price_ksh: importRow.current_price_ksh,
+    in_stock: importRow.in_stock,
+    producer: importRow.producer,
+    vintage: importRow.vintage,
+    country: importRow.country,
+    region: importRow.region,
+    style: importRow.style,
+    grape_varieties: normalizeGrapeVarieties(importRow.grape_varieties),
+    wine_id: null,
+  }
+}
+
+function importRowStoreId(importRow: StoreListingImportRecord): string | null {
+  return importRow.store_id ?? importRow.stores?.id ?? null
+}
+
+function isBulkAddImportCandidate(importRow: StoreListingImportRecord): boolean {
+  if (importRow.matched_store_listing_id) return false
+  if (importRow.status?.trim().toLowerCase() === 'done') return false
+  return Boolean(importRowStoreId(importRow))
+}
+
 export async function adminCreateStoreListingFromImport(
   importRow: StoreListingImportRecord,
 ): Promise<
@@ -333,26 +364,12 @@ export async function adminCreateStoreListingFromImport(
   const { client, configError } = getAdminClient()
   if (!client) return { error: configError! }
 
-  const storeId = importRow.store_id ?? importRow.stores?.id ?? null
+  const storeId = importRowStoreId(importRow)
   if (!storeId) return { error: 'Import has no store id.' }
 
   const { data: listingData, error: listingError } = await client
     .from('store_listings')
-    .insert({
-      store_id: storeId,
-      raw_title: importRow.raw_title,
-      store_product_url: importRow.store_product_url,
-      image_url: importRow.image_url,
-      current_price_ksh: importRow.current_price_ksh,
-      in_stock: importRow.in_stock,
-      producer: importRow.producer,
-      vintage: importRow.vintage,
-      country: importRow.country,
-      region: importRow.region,
-      style: importRow.style,
-      grape_varieties: normalizeGrapeVarieties(importRow.grape_varieties),
-      wine_id: null,
-    })
+    .insert(storeListingInsertFromImport(importRow, storeId))
     .select(listingSelect)
     .maybeSingle()
 
@@ -384,6 +401,111 @@ export async function adminCreateStoreListingFromImport(
   return {
     listing,
     importRow: normalizeStoreListingImport(matchedImport),
+  }
+}
+
+export async function adminBulkCreateStoreListingsFromImports(
+  importIds: string[],
+): Promise<
+  | {
+      listings: StoreListingRecord[]
+      importRows: StoreListingImportRecord[]
+      createdCount: number
+      error?: undefined
+    }
+  | {
+      listings: StoreListingRecord[]
+      importRows: StoreListingImportRecord[]
+      createdCount: number
+      error: string
+    }
+> {
+  const access = await requireAdminAccess()
+  if (!access.ok) {
+    return { listings: [], importRows: [], createdCount: 0, error: access.error }
+  }
+
+  if (importIds.length === 0) {
+    return { listings: [], importRows: [], createdCount: 0 }
+  }
+
+  const { client, configError } = getAdminClient()
+  if (!client) {
+    return { listings: [], importRows: [], createdCount: 0, error: configError! }
+  }
+
+  const { data: importData, error: importFetchError } = await client
+    .from('store_listings_imports')
+    .select(importSelect)
+    .in('id', importIds)
+
+  if (importFetchError) {
+    return {
+      listings: [],
+      importRows: [],
+      createdCount: 0,
+      error: importFetchError.message,
+    }
+  }
+
+  const candidates = (importData ?? [])
+    .map(normalizeStoreListingImport)
+    .filter(isBulkAddImportCandidate)
+
+  const createdListings: StoreListingRecord[] = []
+  const updatedImports: StoreListingImportRecord[] = []
+
+  for (const importRow of candidates) {
+    const storeId = importRowStoreId(importRow)
+    if (!storeId) continue
+
+    const { data: listingData, error: listingError } = await client
+      .from('store_listings')
+      .insert(storeListingInsertFromImport(importRow, storeId))
+      .select(listingSelect)
+      .maybeSingle()
+
+    if (listingError || !listingData) {
+      revalidateWinePages()
+      return {
+        listings: createdListings,
+        importRows: updatedImports,
+        createdCount: createdListings.length,
+        error: `Stopped after ${createdListings.length} created. Failed on "${importRow.raw_title ?? importRow.id}": ${listingError?.message ?? 'no row returned'}`,
+      }
+    }
+
+    const listing = normalizeStoreListing(listingData)
+
+    const { data: matchedImport, error: matchError } = await client
+      .from('store_listings_imports')
+      .update({
+        matched_store_listing_id: listing.id,
+        status: 'done',
+      })
+      .eq('id', importRow.id)
+      .select(importSelect)
+      .maybeSingle()
+
+    if (matchError || !matchedImport) {
+      revalidateWinePages()
+      return {
+        listings: [...createdListings, listing],
+        importRows: updatedImports,
+        createdCount: createdListings.length + 1,
+        error: `Created listing for "${importRow.raw_title ?? importRow.id}" but failed to mark import done: ${matchError?.message ?? 'no row returned'}`,
+      }
+    }
+
+    createdListings.push(listing)
+    updatedImports.push(normalizeStoreListingImport(matchedImport))
+  }
+
+  revalidateWinePages()
+  return {
+    listings: createdListings,
+    importRows: updatedImports,
+    createdCount: createdListings.length,
   }
 }
 

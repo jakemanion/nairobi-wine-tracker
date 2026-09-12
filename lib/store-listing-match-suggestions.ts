@@ -200,6 +200,13 @@ export function isUnmatchedImportStatus(status: string | null | undefined): bool
   return status?.trim().toLowerCase() === 'unmatched'
 }
 
+/** Imports that still need to be added as store listings (initial bulk import). */
+export function isBulkAddImportCandidate(importRow: StoreListingImportRecord): boolean {
+  if (importRow.matched_store_listing_id) return false
+  if (importRow.status?.trim().toLowerCase() === 'done') return false
+  return Boolean(importRow.store_id ?? importRow.stores?.id)
+}
+
 /** True when a suggested same-store listing matches title, price, and URL exactly. */
 export function hasPerfectSuggestedStoreListingMatch(
   importRow: StoreListingImportRecord,

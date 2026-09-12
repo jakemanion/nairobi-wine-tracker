@@ -14,6 +14,7 @@ import { firstListingImageUrl, ListingThumbnail } from '@/components/listing-thu
 import {
   adminClearStoreListingMatch,
   adminCreateStoreListingFromImport,
+  adminBulkCreateStoreListingsFromImports,
   adminCreateWine,
   adminDeleteStoreListing,
   adminDeleteWine,
@@ -32,6 +33,7 @@ import {
 import {
   getStoreListingMatchHighlights,
   hasPerfectSuggestedStoreListingMatch,
+  isBulkAddImportCandidate,
   isUnmatchedImportStatus,
   suggestStoreListingMatches,
 } from '@/lib/store-listing-match-suggestions'
@@ -1060,6 +1062,52 @@ export function AdminMatcher({
     )
   }
 
+  async function handleBulkAddUnmatchedImports() {
+    if (busy) return
+
+    const candidates = imports.filter(isBulkAddImportCandidate)
+
+    if (candidates.length === 0) {
+      setMatchError(null)
+      window.alert(
+        'No unmatched / not-done imports with a store id to add as store listings.',
+      )
+      return
+    }
+
+    const confirmed = window.confirm(
+      `Add ${candidates.length} import${candidates.length === 1 ? '' : 's'} as new store listings?` +
+        `\n\nCreates a store listing for each unmatched, not-done import (same store id), then marks them done.`,
+    )
+    if (!confirmed) return
+
+    setBusy(true)
+    setMatchError(null)
+
+    const result = await adminBulkCreateStoreListingsFromImports(
+      candidates.map((row) => row.id),
+    )
+
+    setBusy(false)
+
+    if (result.listings.length > 0) {
+      setListings((current) => [...result.listings, ...current])
+    }
+    if (result.importRows.length > 0) {
+      const updatedById = new Map(result.importRows.map((row) => [row.id, row]))
+      setImports((current) => current.map((row) => updatedById.get(row.id) ?? row))
+    }
+
+    if (result.error) {
+      setMatchError(result.error)
+      return
+    }
+
+    window.alert(
+      `Created ${result.createdCount} store listing${result.createdCount === 1 ? '' : 's'} from imports.`,
+    )
+  }
+
   async function handleApplyImportFieldToListing(
     importRow: StoreListingImportRecord,
     field: ImportCompareField,
@@ -1419,6 +1467,15 @@ export function AdminMatcher({
           title='Mark unmatched imports as done when a suggested match has the same raw title, price, and URL'
         >
           {busy ? 'Working…' : 'Auto-done perfect matches'}
+        </button>
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => void handleBulkAddUnmatchedImports()}
+          style={actionButtonStyle('default', !busy)}
+          title="Create store listings for all unmatched, not-done imports (initial bulk import)"
+        >
+          {busy ? 'Working…' : 'Bulk add unmatched imports'}
         </button>
         <span style={{ color: '#555' }}>
           {selectedImport && selectedListing && !selectedWine
