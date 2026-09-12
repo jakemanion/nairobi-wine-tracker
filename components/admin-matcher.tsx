@@ -1049,8 +1049,8 @@ export function AdminMatcher({
 
     setBusy(false)
 
-    if (result.error) {
-      setMatchError(result.error)
+    if (result.error || !result.importRows) {
+      setMatchError(result.error ?? 'Failed to mark perfect matches as done.')
       return
     }
 
