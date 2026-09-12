@@ -365,7 +365,7 @@ export async function adminCreateStoreListingFromImport(
     .from('store_listings_imports')
     .update({
       matched_store_listing_id: listing.id,
-      status: 'matched',
+      status: 'done',
     })
     .eq('id', importRow.id)
     .select(importSelect)
