@@ -1182,13 +1182,14 @@ export function AdminMatcher({
     setSelectedWineId(null)
   }
 
-  async function handleAddListingToWines() {
-    if (!selectedListing || busy) return
+  async function handleAddListingToWines(listing?: StoreListingRecord) {
+    const target = listing ?? selectedListing
+    if (!target || target.wine_id || busy) return
 
     setBusy(true)
     setMatchError(null)
 
-    const result = await adminPromoteListingToCanonicalWine(selectedListing)
+    const result = await adminPromoteListingToCanonicalWine(target)
 
     setBusy(false)
 
@@ -1199,6 +1200,7 @@ export function AdminMatcher({
 
     setWines((current) => [...current, result.wine!])
     setListings((current) => updateListingInState(current, result.listing!))
+    setSelectedListingId(result.listing.id)
     setSelectedWineId(result.wine.id)
   }
 
@@ -2280,24 +2282,26 @@ export function AdminMatcher({
                               </span>
                             </LabeledField>
                           </div>
-                          {isSelected ? (
+                          {!isMatched || isSelected ? (
                             <span style={rowActionsColumnStyle}>
                               <span style={rowActionsStyle}>
                                 {!isMatched ? (
                                   <AddToWinesIconButton
                                     enabled={!busy}
                                     busy={busy}
-                                    title={addToWinesHint}
-                                    onClick={() => void handleAddListingToWines()}
+                                    title="Create a canonical wine from this listing"
+                                    onClick={() => void handleAddListingToWines(listing)}
                                   />
                                 ) : null}
-                                <DeleteIconButton
-                                  enabled={!busy}
-                                  title="Delete store listing"
-                                  onClick={() => void handleDeleteListing(listing)}
-                                />
+                                {isSelected ? (
+                                  <DeleteIconButton
+                                    enabled={!busy}
+                                    title="Delete store listing"
+                                    onClick={() => void handleDeleteListing(listing)}
+                                  />
+                                ) : null}
                               </span>
-                              {selectedWineId && !isMatched ? (
+                              {isSelected && selectedWineId && !isMatched ? (
                                 <button
                                   type="button"
                                   disabled={!canMatch}
