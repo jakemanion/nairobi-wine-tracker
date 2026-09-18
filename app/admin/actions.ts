@@ -581,3 +581,100 @@ export async function adminPromoteListingToCanonicalWine(
     listing: matchResult.listing,
   }
 }
+
+export async function adminBulkPromoteListingsToCanonicalWines(
+  listingIds: string[],
+): Promise<
+  | {
+      wines: WineRecord[]
+      listings: StoreListingRecord[]
+      createdCount: number
+      error?: undefined
+    }
+  | {
+      wines: WineRecord[]
+      listings: StoreListingRecord[]
+      createdCount: number
+      error: string
+    }
+> {
+  const access = await requireAdminAccess()
+  if (!access.ok) {
+    return { wines: [], listings: [], createdCount: 0, error: access.error }
+  }
+
+  if (listingIds.length === 0) {
+    return { wines: [], listings: [], createdCount: 0 }
+  }
+
+  const { client, configError } = getAdminClient()
+  if (!client) {
+    return { wines: [], listings: [], createdCount: 0, error: configError! }
+  }
+
+  const { data: listingData, error: listingFetchError } = await client
+    .from('store_listings')
+    .select(listingSelect)
+    .in('id', listingIds)
+    .is('wine_id', null)
+
+  if (listingFetchError) {
+    return {
+      wines: [],
+      listings: [],
+      createdCount: 0,
+      error: listingFetchError.message,
+    }
+  }
+
+  const candidates = (listingData ?? []).map(normalizeStoreListing)
+  const createdWines: WineRecord[] = []
+  const updatedListings: StoreListingRecord[] = []
+
+  for (const listing of candidates) {
+    const { data: wineData, error: wineError } = await client
+      .from('wines')
+      .insert(buildWineFromListing(listing))
+      .select(wineSelect)
+      .single()
+
+    if (wineError || !wineData) {
+      revalidateWinePages()
+      return {
+        wines: createdWines,
+        listings: updatedListings,
+        createdCount: createdWines.length,
+        error: `Stopped after ${createdWines.length} created. Failed on "${listing.raw_title ?? listing.id}": ${wineError?.message ?? 'no wine returned'}`,
+      }
+    }
+
+    const wine = wineData as WineRecord
+
+    const { data: matchedListing, error: matchError } = await client
+      .from('store_listings')
+      .update({ wine_id: wine.id })
+      .eq('id', listing.id)
+      .select(listingSelect)
+      .maybeSingle()
+
+    if (matchError || !matchedListing) {
+      revalidateWinePages()
+      return {
+        wines: [...createdWines, wine],
+        listings: updatedListings,
+        createdCount: createdWines.length + 1,
+        error: `Created wine for "${listing.raw_title ?? listing.id}" but linking failed: ${matchError?.message ?? 'no listing returned'}`,
+      }
+    }
+
+    createdWines.push(wine)
+    updatedListings.push(normalizeStoreListing(matchedListing))
+  }
+
+  revalidateWinePages()
+  return {
+    wines: createdWines,
+    listings: updatedListings,
+    createdCount: createdWines.length,
+  }
+}

@@ -15,6 +15,7 @@ import {
   adminClearStoreListingMatch,
   adminCreateStoreListingFromImport,
   adminBulkCreateStoreListingsFromImports,
+  adminBulkPromoteListingsToCanonicalWines,
   adminCreateWine,
   adminDeleteStoreListing,
   adminDeleteWine,
@@ -1108,6 +1109,50 @@ export function AdminMatcher({
     )
   }
 
+  async function handleBulkAddUnmatchedListingsToWines() {
+    if (busy) return
+
+    const candidates = listings.filter((listing) => !listing.wine_id)
+
+    if (candidates.length === 0) {
+      setMatchError(null)
+      window.alert('No unmatched store listings to add as canonical wines.')
+      return
+    }
+
+    const confirmed = window.confirm(
+      `Add ${candidates.length} unmatched listing${candidates.length === 1 ? '' : 's'} as canonical wines?` +
+        `\n\nCreates a wine for each unmatched store listing and links it (same as the + button).`,
+    )
+    if (!confirmed) return
+
+    setBusy(true)
+    setMatchError(null)
+
+    const result = await adminBulkPromoteListingsToCanonicalWines(
+      candidates.map((listing) => listing.id),
+    )
+
+    setBusy(false)
+
+    if (result.wines.length > 0) {
+      setWines((current) => [...current, ...result.wines])
+    }
+    if (result.listings.length > 0) {
+      const updatedById = new Map(result.listings.map((listing) => [listing.id, listing]))
+      setListings((current) => current.map((listing) => updatedById.get(listing.id) ?? listing))
+    }
+
+    if (result.error) {
+      setMatchError(result.error)
+      return
+    }
+
+    window.alert(
+      `Created ${result.createdCount} canonical wine${result.createdCount === 1 ? '' : 's'} from store listings.`,
+    )
+  }
+
   async function handleApplyImportFieldToListing(
     importRow: StoreListingImportRecord,
     field: ImportCompareField,
@@ -1478,6 +1523,15 @@ export function AdminMatcher({
           title="Create store listings for all unmatched, not-done imports (initial bulk import)"
         >
           {busy ? 'Working…' : 'Bulk add unmatched imports'}
+        </button>
+        <button
+          type="button"
+          disabled={busy || unmatchedCount === 0}
+          onClick={() => void handleBulkAddUnmatchedListingsToWines()}
+          style={actionButtonStyle('default', !busy && unmatchedCount > 0)}
+          title="Create canonical wines for all unmatched store listings (same as the + button)"
+        >
+          {busy ? 'Working…' : `Bulk add unmatched listings (${unmatchedCount})`}
         </button>
         <span style={{ color: '#555' }}>
           {selectedImport && selectedListing && !selectedWine
