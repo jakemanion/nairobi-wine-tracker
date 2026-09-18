@@ -768,6 +768,7 @@ export function AdminMatcher({
   const [matchError, setMatchError] = useState<string | null>(null)
   const [unmatchedOnly, setUnmatchedOnly] = useState(false)
   const [unmatchedImportsOnly, setUnmatchedImportsOnly] = useState(false)
+  const [unverifiedOnly, setUnverifiedOnly] = useState(false)
   const [hideCompletedImports, setHideCompletedImports] = useState(false)
   const [importsPanelCollapsed, setImportsPanelCollapsed] = useState(false)
   const [storePanelCollapsed, setStorePanelCollapsed] = useState(false)
@@ -828,6 +829,11 @@ export function AdminMatcher({
     }
     return { verified, unverified: wines.length - verified }
   }, [wines])
+
+  const visibleWines = useMemo(
+    () => (unverifiedOnly ? wines.filter((wine) => !isPerfectMatch(wine)) : wines),
+    [unverifiedOnly, wines],
+  )
 
   function toggleStoreCollapsed(storeName: string) {
     setCollapsedStores((current) => {
@@ -2407,7 +2413,31 @@ export function AdminMatcher({
           >
             <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-                <span style={{ fontWeight: 600 }}>Canonical wines ({wines.length})</span>
+                <span style={{ fontWeight: 600 }}>
+                  Canonical wines (
+                  {unverifiedOnly
+                    ? `${visibleWines.length} unverified`
+                    : wines.length}
+                  )
+                </span>
+                <label
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 5,
+                    fontSize: 12,
+                    color: '#555',
+                    cursor: 'pointer',
+                    userSelect: 'none',
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={unverifiedOnly}
+                    onChange={(event) => setUnverifiedOnly(event.target.checked)}
+                  />
+                  Unverified only ({vivinoVerificationCounts.unverified})
+                </label>
                 {importsPanelCollapsed ? (
                   <button
                     type="button"
@@ -2504,11 +2534,13 @@ export function AdminMatcher({
             </div>
           )}
           <div ref={canonicalScrollRef} style={scrollStyle}>
-            {wines.length === 0 ? (
-              <p style={{ color: '#888', fontSize: 12, margin: 0 }}>No wines yet.</p>
+            {visibleWines.length === 0 ? (
+              <p style={{ color: '#888', fontSize: 12, margin: 0 }}>
+                {unverifiedOnly ? 'No unverified wines.' : 'No wines yet.'}
+              </p>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                {wines.map((wine) => (
+                {visibleWines.map((wine) => (
                   <CanonicalWineRow
                     key={wine.id}
                     wine={wine}
