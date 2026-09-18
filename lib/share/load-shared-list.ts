@@ -169,7 +169,12 @@ export async function loadSharedListPageData(args: {
   const needsBuiltin = meta.collectionKeys.some((key) => isBuiltinCollectionKey(key))
 
   const [winesResult, ownerReviewsResult, customWineIdsByCollection] = await Promise.all([
-    supabase.from('wines').select(WINES_SELECT).order('producer').order('wine_name'),
+    supabase
+      .from('wines')
+      .select(WINES_SELECT)
+      .eq('vivino_match_confidence', 100)
+      .order('producer')
+      .order('wine_name'),
     needsBuiltin
       ? supabase
           .from('reviews')

@@ -84,6 +84,7 @@ export default async function ClassicPage() {
           )
         )
       `)
+      .eq('vivino_match_confidence', 100)
       .order('producer')
       .order('wine_name'),
     supabase

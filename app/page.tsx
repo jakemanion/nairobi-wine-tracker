@@ -75,6 +75,7 @@ export default async function Home() {
         )
       )
     `)
+    .eq('vivino_match_confidence', 100)
     .order('producer')
     .order('wine_name')
 
