@@ -130,7 +130,7 @@ export function PreviewWineList({
               <input
                 type="search"
                 value={searchQuery}
-                placeholder="Search wines…"
+                placeholder="Search wine names and producers"
                 aria-label="Search producer or wine name"
                 className="w-full text-sm pl-8 pr-3 py-1.5 focus:outline-none"
                 style={{
