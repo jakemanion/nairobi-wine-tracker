@@ -163,18 +163,21 @@ function StarRatingMeter({
   starRating,
   label,
   emptyLabel = 'No rating',
+  showTitle = true,
 }: {
   starRating: number | null
   label: string
   emptyLabel?: string
+  showTitle?: boolean
 }) {
   const ratingLabel = starRating != null ? formatStarRating(starRating) : '–'
   const circle = ratingCircleStyle(starRating)
+  const titleText = starRating != null ? `${label}: ${ratingLabel} stars` : emptyLabel
 
   return (
     <div
       className="flex flex-col items-center"
-      title={starRating != null ? `${label}: ${ratingLabel} stars` : emptyLabel}
+      title={showTitle ? titleText : undefined}
       role="img"
       aria-label={
         starRating != null ? `${label} ${ratingLabel} out of 5 stars` : `${label}: ${emptyLabel}`
@@ -267,16 +270,22 @@ function WineStarRating({
   )
 
   return (
-    <div className="flex flex-col items-center gap-1.5 flex-shrink-0 pt-0.5">
-      <StarRatingMeter
-        starRating={valueStars}
-        label="Value"
-        emptyLabel="No value score"
-      />
+    <div className="flex flex-col items-center flex-shrink-0 pt-0.5">
+      <InstantTooltip label="This wine's value based on its quality and price">
+        <div style={{ marginBottom: 5 }}>
+          <StarRatingMeter
+            starRating={valueStars}
+            label="Value"
+            emptyLabel="No value score"
+            showTitle={false}
+          />
+        </div>
+      </InstantTooltip>
       <StarRatingMeter
         starRating={qualityStars}
         label="Quality"
         emptyLabel="No rating"
+        showTitle={false}
       />
 
       {vivinoUrl ? (
@@ -284,14 +293,14 @@ function WineStarRating({
           href={vivinoUrl}
           target="_blank"
           rel="noreferrer"
-          className="no-underline text-inherit hover:underline"
+          className="no-underline text-inherit hover:underline mt-1.5"
           title="View on Vivino"
           aria-label={hasVivino ? `${vivinoRating!.toFixed(1)} on Vivino` : 'View on Vivino'}
         >
           {vivinoLine}
         </a>
       ) : hasVivino ? (
-        vivinoLine
+        <div className="mt-1.5">{vivinoLine}</div>
       ) : null}
     </div>
   )
