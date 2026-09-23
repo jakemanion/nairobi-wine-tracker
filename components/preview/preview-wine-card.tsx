@@ -272,7 +272,7 @@ function WineStarRating({
   return (
     <div className="flex flex-col items-center flex-shrink-0 pt-0.5">
       <InstantTooltip label="This wine's value based on its quality and price">
-        <div style={{ marginBottom: 5 }}>
+        <div style={{ marginBottom: 10 }}>
           <StarRatingMeter
             starRating={valueStars}
             label="Value"
