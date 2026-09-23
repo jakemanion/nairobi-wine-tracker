@@ -162,12 +162,10 @@ function FractionalStar({
 function StarRatingMeter({
   starRating,
   label,
-  mutedColor,
   emptyLabel = 'No rating',
 }: {
   starRating: number | null
   label: string
-  mutedColor: string
   emptyLabel?: string
 }) {
   const ratingLabel = starRating != null ? formatStarRating(starRating) : '–'
@@ -175,55 +173,54 @@ function StarRatingMeter({
 
   return (
     <div
-      className="flex items-center gap-1.5"
+      className="flex flex-col items-center"
       title={starRating != null ? `${label}: ${ratingLabel} stars` : emptyLabel}
       role="img"
       aria-label={
         starRating != null ? `${label} ${ratingLabel} out of 5 stars` : `${label}: ${emptyLabel}`
       }
     >
-      <div className="flex flex-col items-center">
-        <div
-          className="relative z-10 flex items-center justify-center rounded-full flex-shrink-0"
+      <div
+        className="relative z-10 flex items-center justify-center rounded-full flex-shrink-0"
+        style={{
+          width: RATING_CIRCLE_SIZE,
+          height: RATING_CIRCLE_SIZE,
+          background: circle.background,
+          border: circle.border,
+          boxShadow: circle.boxShadow,
+          marginBottom: -8,
+        }}
+        aria-hidden={starRating == null}
+      >
+        <Star
+          size={22}
+          strokeWidth={0}
+          className="absolute"
+          style={{ color: '#FFFFFF', fill: '#FFFFFF', opacity: 0.33 }}
+          aria-hidden
+        />
+        <span
+          className="relative tabular-nums font-bold leading-none"
           style={{
-            width: RATING_CIRCLE_SIZE,
-            height: RATING_CIRCLE_SIZE,
-            background: circle.background,
-            border: circle.border,
-            boxShadow: circle.boxShadow,
-            marginBottom: -8,
-          }}
-          aria-hidden={starRating == null}
-        >
-          <Star
-            size={22}
-            strokeWidth={0}
-            className="absolute"
-            style={{ color: '#FFFFFF', fill: '#FFFFFF', opacity: 0.33 }}
-            aria-hidden
-          />
-          <span
-            className="relative tabular-nums font-bold leading-none"
-            style={{
-              color: circle.textColor,
-              fontFamily: 'var(--font-dm-sans), sans-serif',
-              fontSize: ratingLabel.length > 3 ? 9 : ratingLabel.length > 2 ? 10 : 12,
-              letterSpacing: '-0.03em',
-            }}
-          >
-            {ratingLabel}
-          </span>
-        </div>
-        <div
-          className="flex items-center gap-px px-1.5"
-          style={{
-            height: 16,
-            background: '#FFFFFF',
-            border: '1px solid #E8E8F0',
-            borderRadius: 5,
-            boxShadow: '0 1px 2px rgba(26, 24, 20, 0.06)',
+            color: circle.textColor,
+            fontFamily: 'var(--font-dm-sans), sans-serif',
+            fontSize: ratingLabel.length > 3 ? 9 : ratingLabel.length > 2 ? 10 : 12,
+            letterSpacing: '-0.03em',
           }}
         >
+          {ratingLabel}
+        </span>
+      </div>
+      <div
+        className="flex flex-col items-center gap-0.5 px-1.5 pt-0.5 pb-1"
+        style={{
+          background: '#FFFFFF',
+          border: '1px solid #E8E8F0',
+          borderRadius: 5,
+          boxShadow: '0 1px 2px rgba(26, 24, 20, 0.06)',
+        }}
+      >
+        <div className="flex items-center gap-px" style={{ height: 16 }}>
           {[0, 1, 2, 3, 4].map((index) => (
             <FractionalStar
               key={index}
@@ -232,13 +229,13 @@ function StarRatingMeter({
             />
           ))}
         </div>
+        <span
+          className="text-[8px] font-semibold uppercase tracking-[0.06em] leading-none"
+          style={{ color: circle.textColor, fontFamily: 'var(--font-dm-sans), sans-serif' }}
+        >
+          {label}
+        </span>
       </div>
-      <span
-        className="text-[9px] font-semibold uppercase tracking-[0.06em] leading-none"
-        style={{ color: mutedColor, fontFamily: 'var(--font-dm-sans), sans-serif' }}
-      >
-        {label}
-      </span>
     </div>
   )
 }
@@ -270,17 +267,15 @@ function WineStarRating({
   )
 
   return (
-    <div className="flex flex-col items-start gap-1.5 flex-shrink-0 pt-0.5">
+    <div className="flex flex-col items-center gap-1.5 flex-shrink-0 pt-0.5">
       <StarRatingMeter
         starRating={valueStars}
         label="Value"
-        mutedColor={mutedColor}
         emptyLabel="No value score"
       />
       <StarRatingMeter
         starRating={qualityStars}
         label="Quality"
-        mutedColor={mutedColor}
         emptyLabel="No rating"
       />
 
@@ -289,14 +284,14 @@ function WineStarRating({
           href={vivinoUrl}
           target="_blank"
           rel="noreferrer"
-          className="no-underline text-inherit hover:underline pl-0.5"
+          className="no-underline text-inherit hover:underline"
           title="View on Vivino"
           aria-label={hasVivino ? `${vivinoRating!.toFixed(1)} on Vivino` : 'View on Vivino'}
         >
           {vivinoLine}
         </a>
       ) : hasVivino ? (
-        <div className="pl-0.5">{vivinoLine}</div>
+        vivinoLine
       ) : null}
     </div>
   )
