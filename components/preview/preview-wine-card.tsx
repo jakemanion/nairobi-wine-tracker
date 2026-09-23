@@ -31,6 +31,7 @@ import {
   type PreviewVisualStyle,
 } from '@/lib/preview/preview-colors'
 import { formatStarRating, vivinoToStarRating } from '@/lib/ratings/vivino-star-rating'
+import { valueScoreToStarRating } from '@/lib/ratings/value-star-rating'
 import { saveReviewField } from '@/lib/reviews'
 import type { WishlistValue, TriedStatusValue } from '@/lib/reviews'
 
@@ -158,39 +159,30 @@ function FractionalStar({
   )
 }
 
-function WineStarRating({
-  vivinoRating,
-  vivinoUrl,
+function StarRatingMeter({
+  starRating,
+  label,
   mutedColor,
+  emptyLabel = 'No rating',
 }: {
-  vivinoRating: number | null
-  vivinoUrl: string | null
+  starRating: number | null
+  label: string
   mutedColor: string
+  emptyLabel?: string
 }) {
-  const starRating = vivinoToStarRating(vivinoRating)
-  const hasVivino = vivinoRating != null
-  const vivinoLabel = hasVivino ? `${vivinoRating.toFixed(1)} on Vivino` : 'Vivino'
   const ratingLabel = starRating != null ? formatStarRating(starRating) : '–'
   const circle = ratingCircleStyle(starRating)
 
-  const vivinoLine = (
-    <span
-      className="inline-flex items-center gap-0.5 text-[9px] font-medium leading-none underline-offset-2"
-      style={{ color: mutedColor, fontFamily: 'var(--font-dm-sans), sans-serif' }}
-    >
-      {vivinoLabel}
-      {vivinoUrl ? <ExternalLink className="w-2.5 h-2.5 flex-shrink-0" aria-hidden /> : null}
-    </span>
-  )
-
   return (
-    <div className="flex flex-col items-center gap-1 flex-shrink-0 pt-0.5">
-      <div
-        className="flex flex-col items-center"
-        title={starRating != null ? `${ratingLabel} stars` : 'No rating'}
-        role="img"
-        aria-label={starRating != null ? `Rated ${ratingLabel} out of 5 stars` : 'No rating'}
-      >
+    <div
+      className="flex items-center gap-1.5"
+      title={starRating != null ? `${label}: ${ratingLabel} stars` : emptyLabel}
+      role="img"
+      aria-label={
+        starRating != null ? `${label} ${ratingLabel} out of 5 stars` : `${label}: ${emptyLabel}`
+      }
+    >
+      <div className="flex flex-col items-center">
         <div
           className="relative z-10 flex items-center justify-center rounded-full flex-shrink-0"
           style={{
@@ -241,20 +233,70 @@ function WineStarRating({
           ))}
         </div>
       </div>
+      <span
+        className="text-[9px] font-semibold uppercase tracking-[0.06em] leading-none"
+        style={{ color: mutedColor, fontFamily: 'var(--font-dm-sans), sans-serif' }}
+      >
+        {label}
+      </span>
+    </div>
+  )
+}
+
+function WineStarRating({
+  vivinoRating,
+  vivinoUrl,
+  valueScore,
+  mutedColor,
+}: {
+  vivinoRating: number | null
+  vivinoUrl: string | null
+  valueScore: number | null
+  mutedColor: string
+}) {
+  const qualityStars = vivinoToStarRating(vivinoRating)
+  const valueStars = valueScoreToStarRating(valueScore)
+  const hasVivino = vivinoRating != null
+  const vivinoLabel = hasVivino ? `${vivinoRating.toFixed(1)} on Vivino` : 'Vivino'
+
+  const vivinoLine = (
+    <span
+      className="inline-flex items-center gap-0.5 text-[9px] font-medium leading-none underline-offset-2"
+      style={{ color: mutedColor, fontFamily: 'var(--font-dm-sans), sans-serif' }}
+    >
+      {vivinoLabel}
+      {vivinoUrl ? <ExternalLink className="w-2.5 h-2.5 flex-shrink-0" aria-hidden /> : null}
+    </span>
+  )
+
+  return (
+    <div className="flex flex-col items-start gap-1.5 flex-shrink-0 pt-0.5">
+      <StarRatingMeter
+        starRating={valueStars}
+        label="Value"
+        mutedColor={mutedColor}
+        emptyLabel="No value score"
+      />
+      <StarRatingMeter
+        starRating={qualityStars}
+        label="Quality"
+        mutedColor={mutedColor}
+        emptyLabel="No rating"
+      />
 
       {vivinoUrl ? (
         <a
           href={vivinoUrl}
           target="_blank"
           rel="noreferrer"
-          className="no-underline text-inherit hover:underline"
+          className="no-underline text-inherit hover:underline pl-0.5"
           title="View on Vivino"
           aria-label={hasVivino ? `${vivinoRating!.toFixed(1)} on Vivino` : 'View on Vivino'}
         >
           {vivinoLine}
         </a>
       ) : hasVivino ? (
-        vivinoLine
+        <div className="pl-0.5">{vivinoLine}</div>
       ) : null}
     </div>
   )
@@ -571,6 +613,7 @@ export function PreviewWineCard({
           <WineStarRating
             vivinoRating={wine.vivinoRating}
             vivinoUrl={wine.vivinoUrl}
+            valueScore={wine.valueScore}
             mutedColor={infoMuted}
           />
           <div className="flex-1 min-w-0 flex flex-col gap-1.5 pt-0.5">

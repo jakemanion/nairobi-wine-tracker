@@ -1,6 +1,6 @@
 import { firstListingImageUrl } from '@/components/listing-thumbnail'
 import type { WineRow } from '@/components/wine-table'
-import { minWinePriceKES } from '@/lib/calculate-value-score'
+import { calculateValueScore, minWinePriceKES } from '@/lib/calculate-value-score'
 import { formatGrapeVarieties } from '@/lib/grape-varieties'
 
 export type StyleRibbonVariant = 'red' | 'white' | 'rose' | 'sparkling' | 'default'
@@ -23,6 +23,7 @@ export type PreviewWineCardData = {
   grapes: string[]
   vivinoRating: number | null
   vivinoUrl: string | null
+  valueScore: number | null
   prices: Array<{ shop: string; price: number; url: string | null }>
   image: string | null
 }
@@ -99,6 +100,10 @@ export function toPreviewWineCard(wine: WineRow): PreviewWineCardData {
     .filter((row): row is { shop: string; price: number; url: string | null } => row != null)
 
   const style = wine.style?.trim() || null
+  const vivinoRating = ratingNum(wine.vivino_rating)
+  const priceKES = minWinePriceKES(
+    prices.map((p) => ({ current_price_ksh: p.price })),
+  )
 
   return {
     id: String(wine.id),
@@ -109,8 +114,9 @@ export function toPreviewWineCard(wine: WineRow): PreviewWineCardData {
     region: wine.region?.trim() || '—',
     style,
     grapes: parseGrapes(wine.grape_varieties),
-    vivinoRating: ratingNum(wine.vivino_rating),
+    vivinoRating,
     vivinoUrl: wine.vivino_url?.trim() || null,
+    valueScore: calculateValueScore(vivinoRating, priceKES),
     prices,
     image: firstListingImageUrl(wine.store_listings ?? []) || null,
   }
