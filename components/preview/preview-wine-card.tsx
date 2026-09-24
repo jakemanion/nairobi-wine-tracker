@@ -281,12 +281,16 @@ function WineStarRating({
           />
         </div>
       </InstantTooltip>
-      <StarRatingMeter
-        starRating={qualityStars}
-        label="Quality"
-        emptyLabel="No rating"
-        showTitle={false}
-      />
+      <InstantTooltip label="Quality ratings are derived from trusted external data and reviews">
+        <div>
+          <StarRatingMeter
+            starRating={qualityStars}
+            label="Quality"
+            emptyLabel="No rating"
+            showTitle={false}
+          />
+        </div>
+      </InstantTooltip>
 
       {vivinoUrl ? (
         <a
