@@ -25,6 +25,8 @@ export type WineFilters = {
   includeBookmarked: boolean
   /** When false, wines marked buy-again are excluded. Default on. */
   includeBuyAgain: boolean
+  /** When false, wines marked don't-buy-again are excluded. Default on. */
+  includeDontBuyAgain: boolean
   /** When false, wines marked hidden/unwanted are excluded. Default on. */
   includeHidden: boolean
   /** When false, unmarked wines (no bookmark/hide/thumbs) are excluded. Default on. */
@@ -47,6 +49,7 @@ export const EMPTY_WINE_FILTERS: WineFilters = {
   regions: [],
   includeBookmarked: true,
   includeBuyAgain: true,
+  includeDontBuyAgain: true,
   includeHidden: true,
   includeUnmarked: true,
 }
@@ -357,6 +360,7 @@ export function countActiveFilters(filters: WineFilters): number {
   if (filters.regions.length > 0) count += 1
   if (!filters.includeBookmarked) count += 1
   if (!filters.includeBuyAgain) count += 1
+  if (!filters.includeDontBuyAgain) count += 1
   if (!filters.includeHidden) count += 1
   if (!filters.includeUnmarked) count += 1
   if (filters.disabledStores.length > 0) count += 1
@@ -380,13 +384,11 @@ export function filterWines<T extends WineRow>(wines: T[], filters: WineFilters)
     if (!filters.includeBuyAgain && normalizeTriedStatus(wine.review?.tried_status) === 1) {
       return false
     }
+    if (!filters.includeDontBuyAgain && normalizeTriedStatus(wine.review?.tried_status) === 2) {
+      return false
+    }
     if (!filters.includeHidden) {
-      if (
-        wine.review?.wishlist === 0 ||
-        wine.review?.tried_status === 2 ||
-        wine.review?.tried_status === 3 ||
-        wine.review?.hide === true
-      ) {
+      if (wine.review?.wishlist === 0 || wine.review?.hide === true) {
         return false
       }
     }

@@ -132,6 +132,9 @@ export function buildListStateSummary({
   if (!filters.includeBuyAgain) {
     parts.push('Hide buy again')
   }
+  if (!filters.includeDontBuyAgain) {
+    parts.push("Hide don't buy")
+  }
   if (!filters.includeHidden) {
     parts.push('Hide hidden')
   }

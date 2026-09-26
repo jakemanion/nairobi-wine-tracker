@@ -4,7 +4,6 @@ export type UsageTipId =
   | 'notes-textfield'
   | 'shortlist-button'
   | 'highest-price-filter'
-  | 'lowest-rating-filter'
   | 'type-filter'
   | 'grapes-filter'
   | 'countries-filter'
@@ -57,35 +56,30 @@ export const USAGE_TIPS: Record<UsageTipId, UsageTipContent> = {
     heading: 'Highest price',
     body: "Set the highest price you're looking at paying.",
   },
-  'lowest-rating-filter': {
-    id: 'lowest-rating-filter',
-    heading: 'Lowest rating',
-    body: 'Set the lowest star rating you want to see.',
-  },
   'type-filter': {
     id: 'type-filter',
-    heading: 'Type',
-    body: 'Filter by wine style, such as red, white, or sparkling.',
+    heading: 'Colour',
+    body: 'Filter by wine colour, such as red, white, or sparkling.',
   },
   'grapes-filter': {
     id: 'grapes-filter',
-    heading: 'Grapes',
+    heading: 'Grape',
     body: 'Select specific grapes you like.',
   },
   'countries-filter': {
     id: 'countries-filter',
-    heading: 'Countries',
+    heading: 'Country',
     body: 'Filter to wines from specific countries.',
   },
   'my-wines-filters': {
     id: 'my-wines-filters',
     heading: 'Your wine list',
-    body: 'Toggle whether unmarked, bookmarked, buy-again, and hidden wines appear in your list. All start on.',
+    body: "Toggle whether unmarked, bookmarked, buy-again, don't-buy-again, and hidden wines appear in your list. All start on.",
     estimatedHeight: 148,
   },
   'shops-filter': {
     id: 'shops-filter',
-    heading: 'Show shops',
+    heading: 'Shop',
     body: 'Show wines available in specific shops.',
   },
   'hide-wine': {

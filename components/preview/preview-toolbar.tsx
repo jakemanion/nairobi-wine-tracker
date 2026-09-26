@@ -1,7 +1,5 @@
 'use client'
 
-import { useState } from 'react'
-import { ChevronDown, ChevronUp } from 'lucide-react'
 import { PreviewToolbarQuickFilters } from '@/components/preview/preview-toolbar-quick-filters'
 import type { SortCriterion } from '@/components/wine-filter-panel'
 import { usePreviewTheme } from '@/components/preview/preview-theme-context'
@@ -51,8 +49,6 @@ export function PreviewToolbar({
   isLoggedIn = false,
 }: PreviewToolbarProps) {
   const { colors, visualStyle } = usePreviewTheme()
-  const [advancedVisible, setAdvancedVisible] = useState(false)
-  const [toggleHovered, setToggleHovered] = useState(false)
   const toolsActive = activeFilterCount > 0
   const summaryText = buildListStateSummary({
     filters,
@@ -93,47 +89,7 @@ export function PreviewToolbar({
           onPrimarySortChange={onPrimarySortChange}
           onSecondarySortChange={onSecondarySortChange}
           isLoggedIn={isLoggedIn}
-          showAdvanced={advancedVisible}
         />
-        <div
-          className="flex"
-          style={{
-            borderTop: `1px solid ${colors.toolbarBorder}`,
-            background: toggleHovered
-              ? visualStyle === 'trial'
-                ? 'rgba(0, 0, 0, 0.04)'
-                : 'rgba(255, 255, 255, 0.06)'
-              : 'transparent',
-            transition: 'background 120ms ease',
-          }}
-          onMouseEnter={() => setToggleHovered(true)}
-          onMouseLeave={() => setToggleHovered(false)}
-        >
-          <button
-            type="button"
-            aria-expanded={advancedVisible}
-            className="inline-flex w-full items-center justify-center gap-1.5"
-            style={{
-              minHeight: 28,
-              padding: '6px 12px',
-              border: 0,
-              background: 'transparent',
-              color: colors.summaryText,
-              cursor: 'pointer',
-              fontFamily: 'var(--font-dm-sans), sans-serif',
-              fontSize: 10,
-              lineHeight: 1.2,
-            }}
-            onClick={() => setAdvancedVisible((visible) => !visible)}
-          >
-            {advancedVisible ? (
-              <ChevronUp size={12} aria-hidden />
-            ) : (
-              <ChevronDown size={12} aria-hidden />
-            )}
-            {advancedVisible ? 'Hide more filters' : 'Show more filters'}
-          </button>
-        </div>
       </div>
       <p
         className="m-0 px-1 pt-1 truncate"
