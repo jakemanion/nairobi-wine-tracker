@@ -453,7 +453,7 @@ export function PreviewToolbarQuickFilters({
   ]
 
   return (
-    <div className="flex w-full flex-wrap items-start justify-between gap-x-4 gap-y-2 p-2">
+    <div className="flex w-full flex-wrap items-stretch justify-between gap-x-4 gap-y-2 p-2">
       <div className="flex flex-col items-start gap-1.5">
         <UsageTipTarget tipId="type-filter" className="flex-none self-start">
           <ColourStyleToggles
@@ -505,6 +505,12 @@ export function PreviewToolbarQuickFilters({
           </InstantTooltip>
         </UsageTipTarget>
       </div>
+
+      <div
+        aria-hidden
+        className="hidden w-px self-stretch sm:block"
+        style={{ background: colors.buttonBorder, minHeight: 44 }}
+      />
 
       <div className="flex min-w-0 flex-1 flex-col items-stretch gap-1.5 sm:items-end">
         <div
