@@ -216,7 +216,7 @@ function StarRatingMeter({
         style={{
           width: RATING_CIRCLE_SIZE,
           height: RATING_CIRCLE_SIZE,
-          left: -5,
+          left: 0,
           bottom: -3,
           background: circle.background,
           border: circle.border,
