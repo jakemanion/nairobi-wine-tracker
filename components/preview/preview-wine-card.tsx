@@ -364,7 +364,7 @@ function HideButton({
 }) {
   const trial = visualStyle === 'trial'
   const trialStyle = trial ? getTrialReviewControlStyle(panelTint, 'hide', active) : null
-  const unmarkedEyeIcon = '#C8AAAA'
+  const unmarkedEyeIcon = '#E4E4EE'
   const borderColor = trialStyle ? trialStyle.border : active ? '#5A3030' : colors.controlIdleBorder
   const bgColor = trialStyle ? trialStyle.bg : active ? '#2A1C1C' : colors.controlIdleBg
   const iconColor =
