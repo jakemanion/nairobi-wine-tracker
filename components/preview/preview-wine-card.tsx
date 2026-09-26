@@ -178,7 +178,7 @@ function StarRatingMeter({
 
   return (
     <div
-      className="flex flex-row items-center"
+      className="relative"
       title={showTitle ? titleText : undefined}
       role="img"
       aria-label={
@@ -186,14 +186,41 @@ function StarRatingMeter({
       }
     >
       <div
-        className="relative z-10 flex items-center justify-center rounded-full flex-shrink-0"
+        className="flex flex-col items-center gap-0.5 px-1.5 pt-0.5 pb-1"
+        style={{
+          background: '#FFFFFF',
+          border: '1px solid #E8E8F0',
+          borderRadius: 5,
+          boxShadow: '0 1px 2px rgba(26, 24, 20, 0.06)',
+          paddingLeft: 14,
+        }}
+      >
+        <div className="flex items-center gap-px" style={{ height: 16 }}>
+          {[0, 1, 2, 3, 4].map((index) => (
+            <FractionalStar
+              key={index}
+              fill={starRating != null ? starFillAmount(starRating, index) : 0}
+              filledColor={circle.fillColor}
+            />
+          ))}
+        </div>
+        <span
+          className="text-[8px] font-semibold uppercase tracking-[0.06em] leading-none"
+          style={{ color: circle.textColor, fontFamily: 'var(--font-dm-sans), sans-serif' }}
+        >
+          {label}
+        </span>
+      </div>
+      <div
+        className="absolute z-10 flex items-center justify-center rounded-full"
         style={{
           width: RATING_CIRCLE_SIZE,
           height: RATING_CIRCLE_SIZE,
+          left: -5,
+          bottom: -3,
           background: circle.background,
           border: circle.border,
           boxShadow: circle.boxShadow,
-          marginRight: -6,
         }}
         aria-hidden={starRating == null}
       >
@@ -214,31 +241,6 @@ function StarRatingMeter({
           }}
         >
           {ratingLabel}
-        </span>
-      </div>
-      <div
-        className="flex flex-col items-center gap-0.5 px-1.5 pt-0.5 pb-1"
-        style={{
-          background: '#FFFFFF',
-          border: '1px solid #E8E8F0',
-          borderRadius: 5,
-          boxShadow: '0 1px 2px rgba(26, 24, 20, 0.06)',
-        }}
-      >
-        <div className="flex items-center gap-px" style={{ height: 16 }}>
-          {[0, 1, 2, 3, 4].map((index) => (
-            <FractionalStar
-              key={index}
-              fill={starRating != null ? starFillAmount(starRating, index) : 0}
-              filledColor={circle.fillColor}
-            />
-          ))}
-        </div>
-        <span
-          className="text-[8px] font-semibold uppercase tracking-[0.06em] leading-none"
-          style={{ color: circle.textColor, fontFamily: 'var(--font-dm-sans), sans-serif' }}
-        >
-          {label}
         </span>
       </div>
     </div>
