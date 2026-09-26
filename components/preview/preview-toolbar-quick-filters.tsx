@@ -24,7 +24,6 @@ import { UsageTipTarget } from '@/components/preview/usage-tip-target'
 import { usePreviewTheme } from '@/components/preview/preview-theme-context'
 import type { PreviewColors } from '@/lib/preview/preview-colors'
 import type { SortCriterion, SortFieldKey } from '@/components/wine-filter-panel'
-import { styleRibbonStyle } from '@/lib/preview/wine-card-model'
 
 type PriceBounds = {
   min: number
@@ -272,7 +271,6 @@ function colourToggleStyle(
     allMode: boolean
     selected: boolean
   },
-  ribbon: { background: string; color: string } | null,
 ): CSSProperties {
   const filled = allMode || selected
   return {
@@ -283,11 +281,9 @@ function colourToggleStyle(
     borderRadius: colors.panelRadius,
     cursor: 'pointer',
     fontFamily: 'var(--font-dm-sans), sans-serif',
-    background: filled ? (ribbon?.background ?? colors.buttonBg) : colors.buttonBg,
-    border: `1px solid ${
-      filled ? (ribbon?.background ?? colors.buttonBorder) : colors.buttonBorder
-    }`,
-    color: filled ? (ribbon?.color ?? colors.buttonText) : colors.buttonText,
+    background: filled ? '#ffffff' : colors.buttonBg,
+    border: `1px solid ${filled ? colors.accent : colors.buttonBorder}`,
+    color: filled ? colors.summaryStrong : colors.buttonText,
     opacity: allMode ? 0.42 : 1,
     whiteSpace: 'nowrap',
   }
@@ -341,14 +337,13 @@ function ColourStyleToggles({
         All
       </button>
       {styles.map((style) => {
-        const ribbon = styleRibbonStyle(style)
         const selected = selectedSet.has(style)
         return (
           <button
             key={style}
             type="button"
             aria-pressed={allMode || selected}
-            style={colourToggleStyle(colors, { allMode, selected }, ribbon)}
+            style={colourToggleStyle(colors, { allMode, selected })}
             onClick={() => toggleColour(style)}
           >
             {style}
