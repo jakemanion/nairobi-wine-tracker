@@ -83,7 +83,9 @@ function formatPrice(value: number): string {
 
 const STAR_SLOT_SIZE = 9
 const EMPTY_STAR_COLOR = '#D2D2DC'
-const RATING_CIRCLE_SIZE = 30
+const RATING_CIRCLE_SIZE = 21
+const RATING_CIRCLE_STAR_SIZE = 15
+const RATING_CIRCLE_BORDER = '1.5px solid #FFFFFF'
 
 type RatingCircleStyle = {
   background: string
@@ -108,8 +110,8 @@ function ratingCircleStyle(stars: number | null): RatingCircleStyle {
 
   return {
     background: fillColor,
-    border: '2px solid #FFFFFF',
-    boxShadow: '0 1px 3px rgba(26, 24, 20, 0.18)',
+    border: RATING_CIRCLE_BORDER,
+    boxShadow: '0 1px 2px rgba(26, 24, 20, 0.16)',
     textColor,
     fillColor,
   }
@@ -176,7 +178,7 @@ function StarRatingMeter({
 
   return (
     <div
-      className="flex flex-col items-center"
+      className="flex flex-row items-center"
       title={showTitle ? titleText : undefined}
       role="img"
       aria-label={
@@ -191,12 +193,12 @@ function StarRatingMeter({
           background: circle.background,
           border: circle.border,
           boxShadow: circle.boxShadow,
-          marginBottom: -8,
+          marginRight: -6,
         }}
         aria-hidden={starRating == null}
       >
         <Star
-          size={22}
+          size={RATING_CIRCLE_STAR_SIZE}
           strokeWidth={0}
           className="absolute"
           style={{ color: '#FFFFFF', fill: '#FFFFFF', opacity: 0.33 }}
@@ -207,7 +209,7 @@ function StarRatingMeter({
           style={{
             color: circle.textColor,
             fontFamily: 'var(--font-dm-sans), sans-serif',
-            fontSize: ratingLabel.length > 3 ? 9 : ratingLabel.length > 2 ? 10 : 12,
+            fontSize: ratingLabel.length > 3 ? 6 : ratingLabel.length > 2 ? 7 : 8,
             letterSpacing: '-0.03em',
           }}
         >
@@ -272,7 +274,7 @@ function WineStarRating({
   return (
     <div className="flex flex-col items-center flex-shrink-0 pt-0.5">
       <InstantTooltip label="This wine's value based on its quality and price">
-        <div style={{ marginBottom: 10 }}>
+        <div style={{ marginBottom: 6 }}>
           <StarRatingMeter
             starRating={valueStars}
             label="Value"
