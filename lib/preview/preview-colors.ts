@@ -228,7 +228,7 @@ const trial: PreviewColors = {
   priceShop: '#BCBCCE',
   notesBg: '#ffffff',
   notesBorder: '#E4E4EE',
-  notesText: '#888890',
+  notesText: '#6C6C73',
   labelMuted: '#7878A0',
   ratingValue: '#007B33',
   emptyText: '#7878A0',
@@ -242,8 +242,8 @@ const trial: PreviewColors = {
   accent: '#007B33',
   errorText: '#A03038',
   controlIdleBg: '#F0F0F8',
-  controlIdleBorder: '#E4E4EE',
-  controlIdleIcon: '#E4E4EE',
+  controlIdleBorder: '#B6B6BE',
+  controlIdleIcon: '#B6B6BE',
   controlShadow: 'none',
   cardRadius: '8px',
   buttonRadius: '9px',
@@ -310,7 +310,7 @@ export function getReviewPanelTextColors(
       muted: '#7878A0',
       notesBg: '#ffffff',
       notesBorder: '#E4E4EE',
-      notesText: '#888890',
+      notesText: '#6C6C73',
     }
   }
 

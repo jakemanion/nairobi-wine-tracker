@@ -67,10 +67,10 @@ export function getTrialReviewControlStyle(
   }
 
   if ((role === 'thumbDown' || role === 'hide') && active) {
-    return { bg: '#ffffff', border: '#E4E4EE', icon: '#E4E4EE', filled: true }
+    return { bg: '#ffffff', border: '#B6B6BE', icon: '#B6B6BE', filled: true }
   }
 
-  return { bg: '#F0F0F8', border: '#E4E4EE', icon: '#E4E4EE', filled: false }
+  return { bg: '#F0F0F8', border: '#B6B6BE', icon: '#B6B6BE', filled: false }
 }
 
 function buildOptimisticReview(
