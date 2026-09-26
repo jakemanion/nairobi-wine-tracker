@@ -59,7 +59,7 @@ export const USAGE_TIPS: Record<UsageTipId, UsageTipContent> = {
   'type-filter': {
     id: 'type-filter',
     heading: 'Colour',
-    body: 'Filter by wine colour, such as red, white, or sparkling.',
+    body: 'Choose wine colours to include. All starts on; pick a colour to narrow the list.',
   },
   'grapes-filter': {
     id: 'grapes-filter',

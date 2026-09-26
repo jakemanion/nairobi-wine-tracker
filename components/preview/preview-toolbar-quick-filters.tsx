@@ -24,6 +24,7 @@ import { UsageTipTarget } from '@/components/preview/usage-tip-target'
 import { usePreviewTheme } from '@/components/preview/preview-theme-context'
 import type { PreviewColors } from '@/lib/preview/preview-colors'
 import type { SortCriterion, SortFieldKey } from '@/components/wine-filter-panel'
+import { styleRibbonStyle } from '@/lib/preview/wine-card-model'
 
 type PriceBounds = {
   min: number
@@ -262,6 +263,102 @@ function filterTabStyle(colors: PreviewColors, active: boolean): CSSProperties {
   }
 }
 
+function colourToggleStyle(
+  colors: PreviewColors,
+  {
+    allMode,
+    selected,
+  }: {
+    allMode: boolean
+    selected: boolean
+  },
+  ribbon: { background: string; color: string } | null,
+): CSSProperties {
+  const filled = allMode || selected
+  return {
+    height: CONTROL_HEIGHT,
+    padding: '0 8px',
+    fontSize: CONTROL_FONT_SIZE,
+    lineHeight: 1.2,
+    borderRadius: colors.panelRadius,
+    cursor: 'pointer',
+    fontFamily: 'var(--font-dm-sans), sans-serif',
+    background: filled ? (ribbon?.background ?? colors.buttonBg) : colors.buttonBg,
+    border: `1px solid ${
+      filled ? (ribbon?.background ?? colors.buttonBorder) : colors.buttonBorder
+    }`,
+    color: filled ? (ribbon?.color ?? colors.buttonText) : colors.buttonText,
+    opacity: allMode ? 0.42 : 1,
+    whiteSpace: 'nowrap',
+  }
+}
+
+function ColourStyleToggles({
+  colors,
+  styles,
+  filters,
+  onChange,
+}: {
+  colors: PreviewColors
+  styles: string[]
+  filters: WineFilters
+  onChange: (styles: string[]) => void
+}) {
+  const allMode = filters.styles.length === 0
+  const selectedSet = new Set(
+    allMode || filters.styles.includes(STYLE_FILTER_NONE) ? [] : filters.styles,
+  )
+
+  function selectAll() {
+    onChange([])
+  }
+
+  function toggleColour(style: string) {
+    if (allMode) {
+      onChange([style])
+      return
+    }
+
+    const current = filters.styles.includes(STYLE_FILTER_NONE) ? [] : [...filters.styles]
+    if (current.includes(style)) {
+      const next = current.filter((item) => item !== style)
+      onChange(next.length === 0 ? [STYLE_FILTER_NONE] : next)
+      return
+    }
+
+    const next = [...current, style]
+    onChange(next.length === styles.length ? [] : next)
+  }
+
+  return (
+    <div className="flex flex-wrap items-center gap-1" role="group" aria-label="Wine colour">
+      <button
+        type="button"
+        aria-pressed={allMode}
+        style={chipStyle(colors, allMode)}
+        onClick={selectAll}
+      >
+        All
+      </button>
+      {styles.map((style) => {
+        const ribbon = styleRibbonStyle(style)
+        const selected = selectedSet.has(style)
+        return (
+          <button
+            key={style}
+            type="button"
+            aria-pressed={allMode || selected}
+            style={colourToggleStyle(colors, { allMode, selected }, ribbon)}
+            onClick={() => toggleColour(style)}
+          >
+            {style}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
 export function PreviewToolbarQuickFilters({
   colors,
   filters,
@@ -286,12 +383,6 @@ export function PreviewToolbarQuickFilters({
   const selectedShops = allShopsEnabled
     ? stores
     : stores.filter((store) => !filters.disabledStores.includes(store))
-  const selectedTypes =
-    filters.styles.length === 0
-      ? styles
-      : filters.styles.includes(STYLE_FILTER_NONE)
-        ? []
-        : filters.styles
   const selectedGrapes =
     filters.grapes.length === 0
       ? grapes
@@ -331,18 +422,6 @@ export function PreviewToolbarQuickFilters({
     })
   }
 
-  function applyTypeSelection(next: string[]) {
-    if (next.length === styles.length) {
-      updateFilters({ styles: [] })
-      return
-    }
-    if (next.length === 0) {
-      updateFilters({ styles: [STYLE_FILTER_NONE] })
-      return
-    }
-    updateFilters({ styles: next })
-  }
-
   function applyGrapeSelection(next: string[]) {
     if (next.length === grapes.length) {
       updateFilters({ grapes: [] })
@@ -377,15 +456,11 @@ export function PreviewToolbarQuickFilters({
     <div className="flex w-full flex-wrap items-start justify-between gap-x-4 gap-y-2 p-2">
       <div className="flex flex-col items-start gap-1.5">
         <UsageTipTarget tipId="type-filter" className="flex-none self-start">
-          <PreviewFilterMultiSelect
+          <ColourStyleToggles
             colors={colors}
-            label="Colour"
-            emptyMessage="No wine types in list"
-            options={styles}
-            selected={selectedTypes}
-            onChange={applyTypeSelection}
-            selectAllLabel="All"
-            allSelectedLabel="All colours"
+            styles={styles}
+            filters={filters}
+            onChange={(next) => updateFilters({ styles: next })}
           />
         </UsageTipTarget>
 

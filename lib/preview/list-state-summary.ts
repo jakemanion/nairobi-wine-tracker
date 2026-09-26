@@ -77,7 +77,11 @@ export function buildListStateSummary({
   }
 
   if (filters.styles.length > 0) {
-    parts.push(`Type ${joinList(filters.styles)}`)
+    if (filters.styles.includes('__none__')) {
+      parts.push('No colours')
+    } else {
+      parts.push(`Colour ${joinList(filters.styles)}`)
+    }
   }
 
   if (filters.grapes.length > 0) {
