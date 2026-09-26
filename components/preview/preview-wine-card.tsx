@@ -477,14 +477,16 @@ export function PreviewWineCard({
     color: mutedStatusTabColor,
   })
   const statusLabels = [
-    ...(triedStatus === 1 && buyAgainBorder
-      ? [{ key: 'buy-again', text: 'Buy again', background: buyAgainBorder, color: '#3A2808' }]
-      : wishlist === 1 && bookmarkBorder
-        ? [{ key: 'bookmarked', text: 'Bookmarked', background: bookmarkBorder, color: '#FFFFFF' }]
-        : []),
-    ...(triedStatus === 2 ? [mutedStatusTab('dont-buy', "DON'T BUY")] : []),
-    ...(isHidden ? [mutedStatusTab('hidden', 'HIDDEN')] : []),
-  ]
+    triedStatus === 2
+      ? mutedStatusTab('dont-buy', "DON'T BUY")
+      : isHidden
+        ? mutedStatusTab('hidden', 'HIDDEN')
+        : triedStatus === 1 && buyAgainBorder
+          ? { key: 'buy-again', text: 'Buy again', background: buyAgainBorder, color: '#3A2808' }
+          : wishlist === 1 && bookmarkBorder
+            ? { key: 'bookmarked', text: 'Bookmarked', background: bookmarkBorder, color: '#FFFFFF' }
+            : null,
+  ].filter((label): label is NonNullable<typeof label> => label != null)
   const infoGrapeBg = infoOnDark ? 'rgba(255,255,255,0.08)' : colors.grapeBg
   const infoGrapeBorder = infoOnDark ? 'rgba(255,255,255,0.12)' : colors.grapeBorder
   const infoGrapeText = infoOnDark ? '#E8E4DC' : colors.grapeText
