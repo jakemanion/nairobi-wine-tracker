@@ -469,23 +469,21 @@ export function PreviewWineCard({
   const buyAgainBorder = getCardBorderColor('thumbsUp', mode, visualStyle)
   const unmarkedReviewBg =
     (getReviewPanelStyle('none', mode, visualStyle).background as string | undefined) ?? '#F7F7FC'
-  const hiddenTabColor = getReviewPanelTextColors(mode, 'none', visualStyle).label
+  const mutedStatusTabColor = getReviewPanelTextColors(mode, 'none', visualStyle).label
+  const mutedStatusTab = (key: string, text: string) => ({
+    key,
+    text,
+    background: unmarkedReviewBg,
+    color: mutedStatusTabColor,
+  })
   const statusLabels = [
     ...(triedStatus === 1 && buyAgainBorder
       ? [{ key: 'buy-again', text: 'Buy again', background: buyAgainBorder, color: '#3A2808' }]
       : wishlist === 1 && bookmarkBorder
         ? [{ key: 'bookmarked', text: 'Bookmarked', background: bookmarkBorder, color: '#FFFFFF' }]
         : []),
-    ...(isHidden
-      ? [
-          {
-            key: 'hidden',
-            text: 'HIDDEN',
-            background: unmarkedReviewBg,
-            color: hiddenTabColor,
-          },
-        ]
-      : []),
+    ...(triedStatus === 2 ? [mutedStatusTab('dont-buy', "DON'T BUY")] : []),
+    ...(isHidden ? [mutedStatusTab('hidden', 'HIDDEN')] : []),
   ]
   const infoGrapeBg = infoOnDark ? 'rgba(255,255,255,0.08)' : colors.grapeBg
   const infoGrapeBorder = infoOnDark ? 'rgba(255,255,255,0.12)' : colors.grapeBorder
