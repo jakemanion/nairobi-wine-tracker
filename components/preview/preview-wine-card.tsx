@@ -83,9 +83,9 @@ function formatPrice(value: number): string {
 
 const STAR_SLOT_SIZE = 9
 const EMPTY_STAR_COLOR = '#D2D2DC'
-const RATING_CIRCLE_SIZE = 21
-const RATING_CIRCLE_STAR_SIZE = 15
-const RATING_CIRCLE_BORDER = '1.5px solid #FFFFFF'
+const RATING_CIRCLE_SIZE = 32
+const RATING_CIRCLE_STAR_SIZE = 23
+const RATING_CIRCLE_BORDER = '2px solid #FFFFFF'
 
 type RatingCircleStyle = {
   background: string
@@ -209,7 +209,7 @@ function StarRatingMeter({
           style={{
             color: circle.textColor,
             fontFamily: 'var(--font-dm-sans), sans-serif',
-            fontSize: ratingLabel.length > 3 ? 6 : ratingLabel.length > 2 ? 7 : 8,
+            fontSize: ratingLabel.length > 3 ? 9 : ratingLabel.length > 2 ? 11 : 12,
             letterSpacing: '-0.03em',
           }}
         >
