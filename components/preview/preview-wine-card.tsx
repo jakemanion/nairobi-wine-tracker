@@ -814,7 +814,7 @@ export function PreviewWineCard({
                   type="text"
                   value={notesDraft}
                   disabled={savingNotes}
-                  placeholder="Your notes..."
+                  placeholder="Your notes about this wine"
                   className="w-full text-[11px] focus:outline-none transition-colors px-2 disabled:opacity-60"
                   style={{
                     height: 28,

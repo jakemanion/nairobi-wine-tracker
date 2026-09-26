@@ -258,7 +258,7 @@ export function getReviewPanelStyle(
     const stroke = { borderLeft: '1px solid #E4E4EE' }
     if (tint === 'thumbsUp') return { background: TRIAL_THUMBS_UP_BG, ...stroke }
     if (tint === 'wishlist') return { background: TRIAL_BOOKMARK_BG, ...stroke }
-    return { background: '#F0F0F8', ...stroke }
+    return { background: '#F7F7FC', ...stroke }
   }
 
   if (mode === 'light') {
