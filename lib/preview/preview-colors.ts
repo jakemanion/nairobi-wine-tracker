@@ -3,6 +3,11 @@ export type PreviewVisualStyle = 'classic' | 'trial'
 
 export const VISUAL_STYLE_STORAGE_KEY = 'wine-diviner-visual-style'
 
+/** Right-hand review column on a wine card. The filter panel's right side uses the same fraction. */
+export const REVIEW_PANEL_WIDTH = '35.2%'
+
+export const BRAND_GREEN = '#007B33'
+
 export type PreviewColors = {
   pageBg: string
   headerBg: string

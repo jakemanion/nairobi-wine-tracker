@@ -22,7 +22,7 @@ import { PreviewFilterMultiSelect } from '@/components/preview/preview-filter-mu
 import { ReviewOnTick } from '@/components/preview/review-on-tick'
 import { UsageTipTarget } from '@/components/preview/usage-tip-target'
 import { usePreviewTheme } from '@/components/preview/preview-theme-context'
-import type { PreviewColors } from '@/lib/preview/preview-colors'
+import { BRAND_GREEN, REVIEW_PANEL_WIDTH, type PreviewColors } from '@/lib/preview/preview-colors'
 import type { SortCriterion, SortFieldKey } from '@/components/wine-filter-panel'
 
 type PriceBounds = {
@@ -246,19 +246,29 @@ function buildPriceOptions(maxBound: number): number[] {
   return options
 }
 
-function filterTabStyle(colors: PreviewColors, active: boolean): CSSProperties {
+function filterTabStyle(
+  colors: PreviewColors,
+  active: boolean,
+  showDivider: boolean,
+): CSSProperties {
   return {
-    height: CONTROL_HEIGHT,
-    padding: '0 9px',
+    flex: '1 1 0',
+    minWidth: 0,
+    height: 26,
+    padding: '0 6px',
     fontSize: CONTROL_FONT_SIZE,
-    lineHeight: 1.2,
-    borderRadius: colors.panelRadius,
+    fontWeight: active ? 600 : 500,
+    lineHeight: 1,
+    borderRadius: 0,
     cursor: 'pointer',
     fontFamily: 'var(--font-dm-sans), sans-serif',
-    background: active ? '#ffffff' : 'transparent',
-    border: `1px solid ${active ? colors.accent : 'transparent'}`,
+    background: active ? '#ffffff' : colors.buttonBg,
     color: active ? colors.summaryStrong : colors.buttonText,
+    border: 'none',
+    borderRight: showDivider ? `1px solid ${colors.buttonBorder}` : 'none',
+    borderBottom: active ? `2px solid ${BRAND_GREEN}` : '2px solid transparent',
     whiteSpace: 'nowrap',
+    textAlign: 'center',
   }
 }
 
@@ -448,8 +458,8 @@ export function PreviewToolbarQuickFilters({
   ]
 
   return (
-    <div className="flex w-full flex-wrap items-stretch justify-between gap-x-4 gap-y-2 p-2">
-      <div className="flex flex-col items-start gap-1.5">
+    <div className="flex w-full flex-wrap items-stretch">
+      <div className="flex min-w-0 flex-1 flex-col items-start gap-1.5 p-2">
         <UsageTipTarget tipId="type-filter" className="flex-none self-start">
           <ColourStyleToggles
             colors={colors}
@@ -459,73 +469,96 @@ export function PreviewToolbarQuickFilters({
           />
         </UsageTipTarget>
 
-        <UsageTipTarget tipId="sort-panel" className="flex items-center gap-1.5">
-          <FilterSelect
-            colors={colors}
-            active
-            aria-label="Sort by"
-            value={primarySort.key}
-            onChange={(event) => {
-              const key = event.target.value as SortFieldKey
-              const match = QUICK_SORT_OPTIONS.find((o) => o.key === key)
-              onPrimarySortChange({ key, dir: match?.dir ?? 'asc' })
-              onSecondarySortChange({ key: 'none', dir: 'asc' })
-            }}
-          >
-            {QUICK_SORT_OPTIONS.map((option) => (
-              <option key={option.key} value={option.key}>
-                Sort by {option.label}
-              </option>
-            ))}
-          </FilterSelect>
-          <InstantTooltip label="Reverse sort direction">
-            <button
-              type="button"
-              aria-label="Reverse sort direction"
-              style={{
-                ...chipStyle(colors, false),
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: CONTROL_HEIGHT,
-                padding: 0,
-              }}
-              onClick={() => {
-                const reversed = primarySort.dir === 'asc' ? 'desc' : 'asc'
-                onPrimarySortChange({ ...primarySort, dir: reversed })
+        <div className="flex flex-wrap items-center gap-1.5">
+          <UsageTipTarget tipId="sort-panel" className="flex items-center gap-1.5">
+            <FilterSelect
+              colors={colors}
+              active
+              aria-label="Sort by"
+              value={primarySort.key}
+              onChange={(event) => {
+                const key = event.target.value as SortFieldKey
+                const match = QUICK_SORT_OPTIONS.find((o) => o.key === key)
+                onPrimarySortChange({ key, dir: match?.dir ?? 'asc' })
+                onSecondarySortChange({ key: 'none', dir: 'asc' })
               }}
             >
-              <ArrowUpDown size={11} strokeWidth={2} />
-            </button>
-          </InstantTooltip>
-        </UsageTipTarget>
+              {QUICK_SORT_OPTIONS.map((option) => (
+                <option key={option.key} value={option.key}>
+                  Sort by {option.label}
+                </option>
+              ))}
+            </FilterSelect>
+            <InstantTooltip label="Reverse sort direction">
+              <button
+                type="button"
+                aria-label="Reverse sort direction"
+                style={{
+                  ...chipStyle(colors, false),
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: CONTROL_HEIGHT,
+                  padding: 0,
+                }}
+                onClick={() => {
+                  const reversed = primarySort.dir === 'asc' ? 'desc' : 'asc'
+                  onPrimarySortChange({ ...primarySort, dir: reversed })
+                }}
+              >
+                <ArrowUpDown size={11} strokeWidth={2} />
+              </button>
+            </InstantTooltip>
+          </UsageTipTarget>
+
+          <UsageTipTarget tipId="best-under-panel" className="flex-none self-center">
+            <FilterSelect
+              colors={colors}
+              active={!!bestUnderValue}
+              aria-label="Best bottles under"
+              value={bestUnderValue}
+              onChange={(event) => {
+                const value = event.target.value
+                applyBestUnder(value ? Number(value) : null)
+              }}
+            >
+              <option value="">Best bottles under...</option>
+              {BEST_UNDER_PRICE_PRESETS.map((price) => (
+                <option key={price} value={String(price)}>
+                  Best bottles under {price.toLocaleString()} KSh
+                </option>
+              ))}
+            </FilterSelect>
+          </UsageTipTarget>
+        </div>
       </div>
 
       <div
-        aria-hidden
-        className="hidden w-px self-stretch sm:block"
-        style={{ background: colors.buttonBorder, minHeight: 44 }}
-      />
-
-      <div className="flex min-w-0 flex-1 flex-col items-stretch gap-1.5 sm:items-end">
+        className="filter-panel-aside flex max-w-full flex-col items-stretch gap-1.5 p-2 sm:flex-none sm:border-l"
+        style={{
+          width: REVIEW_PANEL_WIDTH,
+          flexBasis: REVIEW_PANEL_WIDTH,
+          borderLeftColor: colors.buttonBorder,
+        }}
+      >
         <div
-          className="inline-flex items-center gap-0.5 self-start sm:self-end"
+          className="flex w-full items-stretch"
           role="tablist"
           aria-label="Filter groups"
           style={{
-            padding: 2,
-            borderRadius: colors.panelRadius,
-            background: colors.buttonBg,
             border: `1px solid ${colors.buttonBorder}`,
+            borderRadius: 4,
+            overflow: 'hidden',
+            background: colors.buttonBg,
           }}
         >
-          {tabs.map((tab) => (
+          {tabs.map((tab, index) => (
             <button
               key={tab.id}
               type="button"
               role="tab"
               aria-selected={visibleTab === tab.id}
-              style={filterTabStyle(colors, visibleTab === tab.id)}
+              style={filterTabStyle(colors, visibleTab === tab.id, index < tabs.length - 1)}
               onClick={() => setActiveTab(tab.id)}
             >
               {tab.label}
@@ -533,32 +566,9 @@ export function PreviewToolbarQuickFilters({
           ))}
         </div>
 
-        <div
-          className="flex flex-wrap items-center gap-1.5 self-start sm:justify-end sm:self-end"
-          role="tabpanel"
-        >
+        <div className="flex flex-wrap items-center gap-1.5" role="tabpanel">
           {visibleTab === 'buy' ? (
             <>
-              <UsageTipTarget tipId="best-under-panel" className="flex-none self-center">
-                <FilterSelect
-                  colors={colors}
-                  active={!!bestUnderValue}
-                  aria-label="Best bottles under"
-                  value={bestUnderValue}
-                  onChange={(event) => {
-                    const value = event.target.value
-                    applyBestUnder(value ? Number(value) : null)
-                  }}
-                >
-                  <option value="">Best bottles under...</option>
-                  {BEST_UNDER_PRICE_PRESETS.map((price) => (
-                    <option key={price} value={String(price)}>
-                      Best bottles under {price.toLocaleString()} KSh
-                    </option>
-                  ))}
-                </FilterSelect>
-              </UsageTipTarget>
-
               {stores.length > 0 ? (
                 <UsageTipTarget tipId="shops-filter" className="flex-none self-center">
                   <PreviewFilterMultiSelect

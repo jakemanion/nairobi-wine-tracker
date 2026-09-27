@@ -26,6 +26,7 @@ import {
 } from '@/lib/preview/wine-card-model'
 import {
   getReviewPanelTextColors,
+  REVIEW_PANEL_WIDTH,
   type PanelTint,
   type PreviewColors,
   type PreviewVisualStyle,
@@ -755,7 +756,7 @@ export function PreviewWineCard({
       <div
         className="relative flex-shrink-0 px-2.5 pt-1.5 pb-2.5 flex flex-col gap-1.5 transition-colors duration-300 min-w-0 group/review-panel"
         style={{
-          width: '35.2%',
+          width: REVIEW_PANEL_WIDTH,
           ...getReviewPanelStyle(panelTint, mode, visualStyle),
         }}
       >
