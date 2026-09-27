@@ -23,6 +23,7 @@ import { ReviewOnTick } from '@/components/preview/review-on-tick'
 import { UsageTipTarget } from '@/components/preview/usage-tip-target'
 import { usePreviewTheme } from '@/components/preview/preview-theme-context'
 import { BRAND_GREEN, REVIEW_PANEL_WIDTH, type PreviewColors } from '@/lib/preview/preview-colors'
+import { styleRibbonStyle } from '@/lib/preview/wine-card-model'
 import type { SortCriterion, SortFieldKey } from '@/components/wine-filter-panel'
 
 type PriceBounds = {
@@ -93,10 +94,25 @@ const QUICK_SORT_OPTIONS: Array<{ key: SortFieldKey; label: string; dir: 'asc' |
   { key: 'vivino_rating', label: 'Rating', dir: 'desc' },
 ]
 
-/** Sentinel so an empty Type selection can mean "match nothing" (unlike [] = all types). */
-const STYLE_FILTER_NONE = '__none__'
+/** Sentinel so an empty Grape/Country selection can mean "match nothing" (unlike [] = all). */
 const GRAPE_FILTER_NONE = '__none__'
 const COUNTRY_FILTER_NONE = '__none__'
+
+const STYLE_DISPLAY_ORDER = ['Red', 'White', 'Rosé', 'Sparkling', 'Sweet Red', 'Desert Wine'] as const
+
+function sortStylesForDisplay(styles: string[]): string[] {
+  const orderIndex = new Map(
+    STYLE_DISPLAY_ORDER.map((style, index) => [style.toLowerCase(), index]),
+  )
+  return [...styles].sort((a, b) => {
+    const aIndex = orderIndex.get(a.toLowerCase())
+    const bIndex = orderIndex.get(b.toLowerCase())
+    if (aIndex != null && bIndex != null) return aIndex - bIndex
+    if (aIndex != null) return -1
+    if (bIndex != null) return 1
+    return a.localeCompare(b, undefined, { sensitivity: 'base' })
+  })
+}
 
 const REVIEW_FILTER_COLORS = {
   wishlist: { bg: '#162010', border: '#2A5030', color: '#50A060' },
@@ -272,18 +288,11 @@ function filterTabStyle(
   }
 }
 
-function colourToggleStyle(
-  colors: PreviewColors,
-  {
-    allMode,
-    selected,
-  }: {
-    allMode: boolean
-    selected: boolean
-  },
-): CSSProperties {
-  const filled = allMode || selected
+function colourToggleStyle(colors: PreviewColors, selected: boolean): CSSProperties {
   return {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: 5,
     height: CONTROL_HEIGHT,
     padding: '0 8px',
     fontSize: CONTROL_FONT_SIZE,
@@ -291,10 +300,9 @@ function colourToggleStyle(
     borderRadius: colors.panelRadius,
     cursor: 'pointer',
     fontFamily: 'var(--font-dm-sans), sans-serif',
-    background: filled ? '#ffffff' : colors.buttonBg,
-    border: `1px solid ${filled ? colors.accent : colors.buttonBorder}`,
-    color: filled ? colors.summaryStrong : colors.buttonText,
-    opacity: allMode ? 0.42 : 1,
+    background: selected ? '#ffffff' : colors.buttonBg,
+    border: `1px solid ${selected ? colors.accent : colors.buttonBorder}`,
+    color: selected ? colors.summaryStrong : colors.buttonText,
     whiteSpace: 'nowrap',
   }
 }
@@ -310,52 +318,55 @@ function ColourStyleToggles({
   filters: WineFilters
   onChange: (styles: string[]) => void
 }) {
-  const allMode = filters.styles.length === 0
-  const selectedSet = new Set(
-    allMode || filters.styles.includes(STYLE_FILTER_NONE) ? [] : filters.styles,
-  )
-
-  function selectAll() {
-    onChange([])
-  }
+  const orderedStyles = sortStylesForDisplay(styles)
+  const selectedSet = new Set(filters.styles)
 
   function toggleColour(style: string) {
-    if (allMode) {
-      onChange([style])
+    if (selectedSet.has(style)) {
+      onChange(filters.styles.filter((item) => item !== style))
       return
     }
 
-    const current = filters.styles.includes(STYLE_FILTER_NONE) ? [] : [...filters.styles]
-    if (current.includes(style)) {
-      const next = current.filter((item) => item !== style)
-      onChange(next.length === 0 ? [STYLE_FILTER_NONE] : next)
-      return
-    }
-
-    const next = [...current, style]
+    const next = [...filters.styles, style]
     onChange(next.length === styles.length ? [] : next)
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-1" role="group" aria-label="Wine colour">
-      <button
-        type="button"
-        aria-pressed={allMode}
-        style={chipStyle(colors, allMode)}
-        onClick={selectAll}
+    <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Wine type">
+      <span
+        className="flex-none"
+        style={{
+          fontSize: CONTROL_FONT_SIZE,
+          lineHeight: 1.2,
+          color: colors.buttonText,
+          fontFamily: 'var(--font-dm-sans), sans-serif',
+          fontWeight: 600,
+        }}
       >
-        All
-      </button>
-      {styles.map((style) => {
+        Type:
+      </span>
+      {orderedStyles.map((style) => {
         const selected = selectedSet.has(style)
+        const ribbon = styleRibbonStyle(style)
         return (
           <button
             key={style}
             type="button"
-            aria-pressed={allMode || selected}
-            style={colourToggleStyle(colors, { allMode, selected })}
+            aria-pressed={selected}
+            style={colourToggleStyle(colors, selected)}
             onClick={() => toggleColour(style)}
           >
+            <span
+              aria-hidden
+              style={{
+                width: 7,
+                height: 7,
+                borderRadius: '50%',
+                background: ribbon?.background ?? '#8F1A2B',
+                border: '1px solid rgba(0,0,0,0.12)',
+                flexShrink: 0,
+              }}
+            />
             {style}
           </button>
         )

@@ -78,9 +78,9 @@ export function buildListStateSummary({
 
   if (filters.styles.length > 0) {
     if (filters.styles.includes('__none__')) {
-      parts.push('No colours')
+      parts.push('No types')
     } else {
-      parts.push(`Colour ${joinList(filters.styles)}`)
+      parts.push(`Type ${joinList(filters.styles)}`)
     }
   }
 
