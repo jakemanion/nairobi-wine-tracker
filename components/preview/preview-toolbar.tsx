@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import {
   PreviewSortBar,
   PreviewToolbarQuickFilters,
@@ -52,6 +53,7 @@ export function PreviewToolbar({
   isLoggedIn = false,
 }: PreviewToolbarProps) {
   const { colors, visualStyle } = usePreviewTheme()
+  const [filtersVisible, setFiltersVisible] = useState(true)
   const toolsActive = activeFilterCount > 0
   const summaryText = buildListStateSummary({
     filters,
@@ -65,7 +67,9 @@ export function PreviewToolbar({
   return (
     <div>
       <div
+        id="preview-filter-panel"
         className="overflow-hidden"
+        hidden={!filtersVisible}
         style={{
           border: `1px solid ${
             visualStyle === 'trial'
@@ -94,7 +98,9 @@ export function PreviewToolbar({
           isLoggedIn={isLoggedIn}
         />
       </div>
-      <div className="flex min-w-0 items-center gap-2 px-1 pt-1.5">
+      <div
+        className={`flex min-w-0 items-center gap-2 px-1 ${filtersVisible ? 'pt-1.5' : ''}`}
+      >
         <p
           className="m-0 min-w-0 flex-1 truncate text-left"
           title={summaryText}
@@ -107,6 +113,28 @@ export function PreviewToolbar({
         >
           {summaryText}
         </p>
+        <button
+          type="button"
+          aria-expanded={filtersVisible}
+          aria-controls="preview-filter-panel"
+          onClick={() => setFiltersVisible((visible) => !visible)}
+          style={{
+            height: 22,
+            padding: '0 8px',
+            fontSize: 10,
+            lineHeight: 1.2,
+            borderRadius: colors.panelRadius,
+            cursor: 'pointer',
+            fontFamily: 'var(--font-dm-sans), sans-serif',
+            background: filtersVisible ? '#ffffff' : colors.buttonBg,
+            border: `1px solid ${filtersVisible ? colors.accent : colors.buttonBorder}`,
+            color: filtersVisible ? colors.summaryStrong : colors.buttonText,
+            whiteSpace: 'nowrap',
+            flexShrink: 0,
+          }}
+        >
+          {filtersVisible ? 'Hide filters' : 'Show filters'}
+        </button>
         <PreviewSortBar
           colors={colors}
           primarySort={primarySort}
