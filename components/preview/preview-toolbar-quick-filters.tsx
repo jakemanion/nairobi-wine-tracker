@@ -51,7 +51,7 @@ type PreviewToolbarQuickFiltersProps = {
   isLoggedIn?: boolean
 }
 
-type FilterTabId = 'buy' | 'wine' | 'my-wines'
+type FilterTabId = 'shop' | 'wine' | 'my-wines'
 
 const CONTROL_HEIGHT = 22
 const CONTROL_FONT_SIZE = 10
@@ -425,7 +425,7 @@ function BestUnderToggles({
 }
 
 const TAB_ICONS: Record<FilterTabId, LucideIcon> = {
-  buy: Banknote,
+  shop: Banknote,
   wine: Grape,
   'my-wines': User,
 }
@@ -502,7 +502,7 @@ export function PreviewToolbarQuickFilters({
   const { visualStyle } = usePreviewTheme()
   const trial = visualStyle === 'trial'
   const priceMaxBound = priceBounds?.max ?? 10000
-  const [activeTab, setActiveTab] = useState<FilterTabId>('buy')
+  const [activeTab, setActiveTab] = useState<FilterTabId>('shop')
 
   const selectedCountries = selectedCountriesFromRegionFilters(filters.regions)
   const allShopsEnabled = filters.disabledStores.length === 0
@@ -521,7 +521,7 @@ export function PreviewToolbarQuickFilters({
       ? countries
       : selectedCountries
   const bestUnderValue = activeBestUnderPrice(filters, primarySort)
-  const visibleTab = !isLoggedIn && activeTab === 'my-wines' ? 'buy' : activeTab
+  const visibleTab = !isLoggedIn && activeTab === 'my-wines' ? 'shop' : activeTab
 
   function updateFilters(patch: Partial<WineFilters>) {
     onFiltersChange({ ...filters, ...patch })
@@ -573,7 +573,7 @@ export function PreviewToolbarQuickFilters({
   }
 
   const tabs: Array<{ id: FilterTabId; label: string }> = [
-    { id: 'buy', label: 'Buy' },
+    { id: 'shop', label: 'Shop' },
     { id: 'wine', label: 'Wine' },
     ...(isLoggedIn ? [{ id: 'my-wines' as const, label: 'My wines' }] : []),
   ]
@@ -655,7 +655,7 @@ export function PreviewToolbarQuickFilters({
               background: '#ffffff',
             }}
           >
-          {visibleTab === 'buy' ? (
+          {visibleTab === 'shop' ? (
             <>
               {stores.length > 0 ? (
                 <UsageTipTarget tipId="shops-filter" className="flex-none self-center">

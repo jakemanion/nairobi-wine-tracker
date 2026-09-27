@@ -94,15 +94,9 @@ export function PreviewToolbar({
           isLoggedIn={isLoggedIn}
         />
       </div>
-      <div className="flex flex-col items-center gap-1 px-1 pt-1.5">
-        <PreviewSortBar
-          colors={colors}
-          primarySort={primarySort}
-          onPrimarySortChange={onPrimarySortChange}
-          onSecondarySortChange={onSecondarySortChange}
-        />
+      <div className="flex min-w-0 items-center gap-2 px-1 pt-1.5">
         <p
-          className="m-0 w-full truncate text-center"
+          className="m-0 min-w-0 flex-1 truncate text-left"
           title={summaryText}
           style={{
             color: colors.summaryText,
@@ -113,6 +107,12 @@ export function PreviewToolbar({
         >
           {summaryText}
         </p>
+        <PreviewSortBar
+          colors={colors}
+          primarySort={primarySort}
+          onPrimarySortChange={onPrimarySortChange}
+          onSecondarySortChange={onSecondarySortChange}
+        />
       </div>
     </div>
   )
