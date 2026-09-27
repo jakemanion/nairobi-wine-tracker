@@ -180,7 +180,7 @@ export function PreviewWineList({
           </div>
         </header>
 
-        <div className="mx-auto pl-10 pr-6 py-4" style={{ maxWidth: PREVIEW_CONTENT_MAX_WIDTH }}>
+        <div className="mx-auto pl-10 pr-6 pt-2 pb-4" style={{ maxWidth: PREVIEW_CONTENT_MAX_WIDTH }}>
           <PreviewToolbar
             activeFilterCount={activeFilterCount}
             filters={filters}

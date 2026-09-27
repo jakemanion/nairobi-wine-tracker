@@ -54,7 +54,7 @@ export const EMPTY_WINE_FILTERS: WineFilters = {
   includeUnmarked: true,
 }
 
-export const BEST_UNDER_PRICE_PRESETS = [1500, 2000, 3000, 4000, 5000] as const
+export const BEST_UNDER_PRICE_PRESETS = [1500, 2000, 2500, 3000, 4000, 5000] as const
 
 export const WISHLIST_FILTER_LABELS: Record<WishlistFilterValue, string> = {
   unset: 'Not set',

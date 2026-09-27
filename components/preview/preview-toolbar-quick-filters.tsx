@@ -393,7 +393,7 @@ function BestUnderToggles({
   onSelect: (price: number | null) => void
 }) {
   return (
-    <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Best bottle under">
+    <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Best bottles under">
       <span
         className="flex-none"
         style={{
@@ -404,7 +404,7 @@ function BestUnderToggles({
           fontWeight: 600,
         }}
       >
-        Best bottle under:
+        Best bottles under...:
       </span>
       {BEST_UNDER_PRICE_PRESETS.map((price) => {
         const selected = selectedPrice === String(price)
@@ -600,7 +600,7 @@ export function PreviewToolbarQuickFilters({
       </div>
 
       <div
-        className="filter-panel-aside flex max-w-full flex-col items-stretch gap-1.5 p-2 sm:flex-none sm:border-l"
+        className="filter-panel-aside flex max-w-full flex-col items-stretch p-2 sm:flex-none sm:border-l"
         style={{
           width: REVIEW_PANEL_WIDTH,
           flexBasis: REVIEW_PANEL_WIDTH,
@@ -608,50 +608,53 @@ export function PreviewToolbarQuickFilters({
         }}
       >
         <div
-          className="flex w-full items-stretch"
-          role="tablist"
-          aria-label="Filter groups"
-          style={{
-            border: `1px solid ${colors.buttonBorder}`,
-            borderRadius: 4,
-            overflow: 'hidden',
-            background: colors.buttonBg,
-          }}
-        >
-          {tabs.map((tab, index) => {
-            const Icon = TAB_ICONS[tab.id]
-            return (
-              <button
-                key={tab.id}
-                type="button"
-                role="tab"
-                aria-selected={visibleTab === tab.id}
-                style={filterTabStyle(colors, visibleTab === tab.id, index < tabs.length - 1)}
-                onClick={() => setActiveTab(tab.id)}
-              >
-                <Icon
-                  aria-hidden
-                  size={11}
-                  strokeWidth={2}
-                  style={{ color: colors.buttonText, flexShrink: 0 }}
-                />
-                {tab.label}
-              </button>
-            )
-          })}
-        </div>
-
-        <div
-          className="flex flex-wrap items-center gap-1.5"
-          role="tabpanel"
+          className="flex w-full flex-col overflow-hidden"
           style={{
             border: `1px solid ${BRAND_GREEN}`,
             borderRadius: 4,
-            padding: '6px 8px',
-            minHeight: CONTROL_HEIGHT + 14,
-            boxSizing: 'border-box',
           }}
         >
+          <div
+            className="flex w-full items-stretch"
+            role="tablist"
+            aria-label="Filter groups"
+            style={{
+              background: colors.buttonBg,
+            }}
+          >
+            {tabs.map((tab, index) => {
+              const Icon = TAB_ICONS[tab.id]
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={visibleTab === tab.id}
+                  style={filterTabStyle(colors, visibleTab === tab.id, index < tabs.length - 1)}
+                  onClick={() => setActiveTab(tab.id)}
+                >
+                  <Icon
+                    aria-hidden
+                    size={11}
+                    strokeWidth={2}
+                    style={{ color: colors.buttonText, flexShrink: 0 }}
+                  />
+                  {tab.label}
+                </button>
+              )
+            })}
+          </div>
+
+          <div
+            className="flex flex-wrap items-center justify-center gap-1.5"
+            role="tabpanel"
+            style={{
+              padding: '6px 8px',
+              minHeight: CONTROL_HEIGHT + 14,
+              boxSizing: 'border-box',
+              background: '#ffffff',
+            }}
+          >
           {visibleTab === 'buy' ? (
             <>
               {stores.length > 0 ? (
@@ -844,6 +847,7 @@ export function PreviewToolbarQuickFilters({
               </InstantTooltip>
             </UsageTipTarget>
           ) : null}
+        </div>
         </div>
       </div>
     </div>

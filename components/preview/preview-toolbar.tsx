@@ -94,7 +94,7 @@ export function PreviewToolbar({
           isLoggedIn={isLoggedIn}
         />
       </div>
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 px-1 pt-1.5">
+      <div className="flex flex-col items-center gap-1 px-1 pt-1.5">
         <PreviewSortBar
           colors={colors}
           primarySort={primarySort}
@@ -102,7 +102,7 @@ export function PreviewToolbar({
           onSecondarySortChange={onSecondarySortChange}
         />
         <p
-          className="m-0 min-w-0 flex-1 truncate"
+          className="m-0 w-full truncate text-center"
           title={summaryText}
           style={{
             color: colors.summaryText,
