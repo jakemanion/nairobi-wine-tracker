@@ -3,12 +3,16 @@
 import { useState, type CSSProperties, type ReactNode, type SelectHTMLAttributes } from 'react'
 import {
   ArrowUpDown,
+  Banknote,
   Bookmark,
   ChevronDown,
   EyeOff,
+  Grape,
   HelpCircle,
   ThumbsDown,
   ThumbsUp,
+  User,
+  type LucideIcon,
 } from 'lucide-react'
 import {
   BEST_UNDER_PRICE_PRESETS,
@@ -272,6 +276,10 @@ function filterTabStyle(
     minWidth: 0,
     height: 26,
     padding: '0 6px',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
     fontSize: CONTROL_FONT_SIZE,
     fontWeight: active ? 600 : 500,
     lineHeight: 1,
@@ -372,6 +380,108 @@ function ColourStyleToggles({
         )
       })}
     </div>
+  )
+}
+
+function BestUnderToggles({
+  colors,
+  selectedPrice,
+  onSelect,
+}: {
+  colors: PreviewColors
+  selectedPrice: string
+  onSelect: (price: number | null) => void
+}) {
+  return (
+    <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Best bottle under">
+      <span
+        className="flex-none"
+        style={{
+          fontSize: CONTROL_FONT_SIZE,
+          lineHeight: 1.2,
+          color: colors.buttonText,
+          fontFamily: 'var(--font-dm-sans), sans-serif',
+          fontWeight: 600,
+        }}
+      >
+        Best bottle under:
+      </span>
+      {BEST_UNDER_PRICE_PRESETS.map((price) => {
+        const selected = selectedPrice === String(price)
+        return (
+          <button
+            key={price}
+            type="button"
+            aria-pressed={selected}
+            style={colourToggleStyle(colors, selected)}
+            onClick={() => onSelect(selected ? null : price)}
+          >
+            {price.toLocaleString()} KSH
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+const TAB_ICONS: Record<FilterTabId, LucideIcon> = {
+  buy: Banknote,
+  wine: Grape,
+  'my-wines': User,
+}
+
+export function PreviewSortBar({
+  colors,
+  primarySort,
+  onPrimarySortChange,
+  onSecondarySortChange,
+}: {
+  colors: PreviewColors
+  primarySort: SortCriterion
+  onPrimarySortChange: (next: SortCriterion) => void
+  onSecondarySortChange: (next: SortCriterion) => void
+}) {
+  return (
+    <UsageTipTarget tipId="sort-panel" className="flex items-center gap-1.5">
+      <FilterSelect
+        colors={colors}
+        active
+        aria-label="Sort by"
+        value={primarySort.key}
+        onChange={(event) => {
+          const key = event.target.value as SortFieldKey
+          const match = QUICK_SORT_OPTIONS.find((o) => o.key === key)
+          onPrimarySortChange({ key, dir: match?.dir ?? 'asc' })
+          onSecondarySortChange({ key: 'none', dir: 'asc' })
+        }}
+      >
+        {QUICK_SORT_OPTIONS.map((option) => (
+          <option key={option.key} value={option.key}>
+            Sort by {option.label}
+          </option>
+        ))}
+      </FilterSelect>
+      <InstantTooltip label="Reverse sort direction">
+        <button
+          type="button"
+          aria-label="Reverse sort direction"
+          style={{
+            ...chipStyle(colors, false),
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: CONTROL_HEIGHT,
+            padding: 0,
+          }}
+          onClick={() => {
+            const reversed = primarySort.dir === 'asc' ? 'desc' : 'asc'
+            onPrimarySortChange({ ...primarySort, dir: reversed })
+          }}
+        >
+          <ArrowUpDown size={11} strokeWidth={2} />
+        </button>
+      </InstantTooltip>
+    </UsageTipTarget>
   )
 }
 
@@ -480,68 +590,13 @@ export function PreviewToolbarQuickFilters({
           />
         </UsageTipTarget>
 
-        <div className="flex flex-wrap items-center gap-1.5">
-          <UsageTipTarget tipId="sort-panel" className="flex items-center gap-1.5">
-            <FilterSelect
-              colors={colors}
-              active
-              aria-label="Sort by"
-              value={primarySort.key}
-              onChange={(event) => {
-                const key = event.target.value as SortFieldKey
-                const match = QUICK_SORT_OPTIONS.find((o) => o.key === key)
-                onPrimarySortChange({ key, dir: match?.dir ?? 'asc' })
-                onSecondarySortChange({ key: 'none', dir: 'asc' })
-              }}
-            >
-              {QUICK_SORT_OPTIONS.map((option) => (
-                <option key={option.key} value={option.key}>
-                  Sort by {option.label}
-                </option>
-              ))}
-            </FilterSelect>
-            <InstantTooltip label="Reverse sort direction">
-              <button
-                type="button"
-                aria-label="Reverse sort direction"
-                style={{
-                  ...chipStyle(colors, false),
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: CONTROL_HEIGHT,
-                  padding: 0,
-                }}
-                onClick={() => {
-                  const reversed = primarySort.dir === 'asc' ? 'desc' : 'asc'
-                  onPrimarySortChange({ ...primarySort, dir: reversed })
-                }}
-              >
-                <ArrowUpDown size={11} strokeWidth={2} />
-              </button>
-            </InstantTooltip>
-          </UsageTipTarget>
-
-          <UsageTipTarget tipId="best-under-panel" className="flex-none self-center">
-            <FilterSelect
-              colors={colors}
-              active={!!bestUnderValue}
-              aria-label="Best bottles under"
-              value={bestUnderValue}
-              onChange={(event) => {
-                const value = event.target.value
-                applyBestUnder(value ? Number(value) : null)
-              }}
-            >
-              <option value="">Best bottles under...</option>
-              {BEST_UNDER_PRICE_PRESETS.map((price) => (
-                <option key={price} value={String(price)}>
-                  Best bottles under {price.toLocaleString()} KSh
-                </option>
-              ))}
-            </FilterSelect>
-          </UsageTipTarget>
-        </div>
+        <UsageTipTarget tipId="best-under-panel" className="flex-none self-start">
+          <BestUnderToggles
+            colors={colors}
+            selectedPrice={bestUnderValue}
+            onSelect={applyBestUnder}
+          />
+        </UsageTipTarget>
       </div>
 
       <div
@@ -563,21 +618,40 @@ export function PreviewToolbarQuickFilters({
             background: colors.buttonBg,
           }}
         >
-          {tabs.map((tab, index) => (
-            <button
-              key={tab.id}
-              type="button"
-              role="tab"
-              aria-selected={visibleTab === tab.id}
-              style={filterTabStyle(colors, visibleTab === tab.id, index < tabs.length - 1)}
-              onClick={() => setActiveTab(tab.id)}
-            >
-              {tab.label}
-            </button>
-          ))}
+          {tabs.map((tab, index) => {
+            const Icon = TAB_ICONS[tab.id]
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                role="tab"
+                aria-selected={visibleTab === tab.id}
+                style={filterTabStyle(colors, visibleTab === tab.id, index < tabs.length - 1)}
+                onClick={() => setActiveTab(tab.id)}
+              >
+                <Icon
+                  aria-hidden
+                  size={11}
+                  strokeWidth={2}
+                  style={{ color: colors.buttonText, flexShrink: 0 }}
+                />
+                {tab.label}
+              </button>
+            )
+          })}
         </div>
 
-        <div className="flex flex-wrap items-center gap-1.5" role="tabpanel">
+        <div
+          className="flex flex-wrap items-center gap-1.5"
+          role="tabpanel"
+          style={{
+            border: `1px solid ${BRAND_GREEN}`,
+            borderRadius: 4,
+            padding: '6px 8px',
+            minHeight: CONTROL_HEIGHT + 14,
+            boxSizing: 'border-box',
+          }}
+        >
           {visibleTab === 'buy' ? (
             <>
               {stores.length > 0 ? (

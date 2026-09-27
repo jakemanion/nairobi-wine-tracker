@@ -100,8 +100,8 @@ export const USAGE_TIPS: Record<UsageTipId, UsageTipContent> = {
   },
   'best-under-panel': {
     id: 'best-under-panel',
-    heading: 'Best bottles under...',
-    body: 'Find the best-rated wines within your budget.',
+    heading: 'Best bottle under',
+    body: 'Pick a budget to see the best-rated wines under that price. Tap again to clear.',
   },
   'shortlist-panel': {
     id: 'shortlist-panel',

@@ -1,6 +1,9 @@
 'use client'
 
-import { PreviewToolbarQuickFilters } from '@/components/preview/preview-toolbar-quick-filters'
+import {
+  PreviewSortBar,
+  PreviewToolbarQuickFilters,
+} from '@/components/preview/preview-toolbar-quick-filters'
 import type { SortCriterion } from '@/components/wine-filter-panel'
 import { usePreviewTheme } from '@/components/preview/preview-theme-context'
 import {
@@ -91,18 +94,26 @@ export function PreviewToolbar({
           isLoggedIn={isLoggedIn}
         />
       </div>
-      <p
-        className="m-0 px-1 pt-1 truncate"
-        title={summaryText}
-        style={{
-          color: colors.summaryText,
-          fontFamily: 'var(--font-dm-sans), sans-serif',
-          fontSize: 8,
-          lineHeight: 1.2,
-        }}
-      >
-        {summaryText}
-      </p>
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 px-1 pt-1.5">
+        <PreviewSortBar
+          colors={colors}
+          primarySort={primarySort}
+          onPrimarySortChange={onPrimarySortChange}
+          onSecondarySortChange={onSecondarySortChange}
+        />
+        <p
+          className="m-0 min-w-0 flex-1 truncate"
+          title={summaryText}
+          style={{
+            color: colors.summaryText,
+            fontFamily: 'var(--font-dm-sans), sans-serif',
+            fontSize: 8,
+            lineHeight: 1.2,
+          }}
+        >
+          {summaryText}
+        </p>
+      </div>
     </div>
   )
 }
