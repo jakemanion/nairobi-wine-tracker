@@ -102,22 +102,31 @@ export function PreviewToolbar({
         className={`flex min-w-0 items-center gap-2 px-1 ${filtersVisible ? 'pt-1.5' : ''}`}
       >
         <p
-          className="m-0 min-w-0 flex-1 truncate text-left"
+          className="m-0 min-w-0 flex-1 truncate text-left self-center"
           title={summaryText}
           style={{
             color: colors.summaryText,
             fontFamily: 'var(--font-dm-sans), sans-serif',
-            fontSize: 8,
+            fontSize: 10,
             lineHeight: 1.2,
           }}
         >
           {summaryText}
         </p>
+        <div className="flex-none self-center">
+          <PreviewSortBar
+            colors={colors}
+            primarySort={primarySort}
+            onPrimarySortChange={onPrimarySortChange}
+            onSecondarySortChange={onSecondarySortChange}
+          />
+        </div>
         <button
           type="button"
           aria-expanded={filtersVisible}
           aria-controls="preview-filter-panel"
           onClick={() => setFiltersVisible((visible) => !visible)}
+          className="flex-none self-center"
           style={{
             height: 22,
             padding: '0 8px',
@@ -126,21 +135,14 @@ export function PreviewToolbar({
             borderRadius: colors.panelRadius,
             cursor: 'pointer',
             fontFamily: 'var(--font-dm-sans), sans-serif',
-            background: filtersVisible ? '#ffffff' : colors.buttonBg,
-            border: `1px solid ${filtersVisible ? colors.accent : colors.buttonBorder}`,
-            color: filtersVisible ? colors.summaryStrong : colors.buttonText,
+            background: '#ffffff',
+            border: `1px solid ${colors.accent}`,
+            color: colors.summaryStrong,
             whiteSpace: 'nowrap',
-            flexShrink: 0,
           }}
         >
           {filtersVisible ? 'Hide filters' : 'Show filters'}
         </button>
-        <PreviewSortBar
-          colors={colors}
-          primarySort={primarySort}
-          onPrimarySortChange={onPrimarySortChange}
-          onSecondarySortChange={onSecondarySortChange}
-        />
       </div>
     </div>
   )
