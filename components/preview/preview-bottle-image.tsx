@@ -18,6 +18,10 @@ const previewImageStyle: CSSProperties = {
   objectFit: 'contain',
 }
 
+/** Matches the wine-card image column footprint for layout/decode hints. */
+const BOTTLE_IMAGE_WIDTH = 96
+const BOTTLE_IMAGE_HEIGHT = 112
+
 type PreviewBottleImageProps = {
   src: string | null | undefined
   alt: string
@@ -101,6 +105,8 @@ export function PreviewBottleImage({ src, alt, priority = false }: PreviewBottle
           ref={imgRef}
           src={imageSrc}
           alt=""
+          width={BOTTLE_IMAGE_WIDTH}
+          height={BOTTLE_IMAGE_HEIGHT}
           loading={priority ? 'eager' : 'lazy'}
           decoding="async"
           fetchPriority={priority ? 'high' : 'auto'}

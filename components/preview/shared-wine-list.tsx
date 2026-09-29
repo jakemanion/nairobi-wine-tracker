@@ -6,7 +6,7 @@ import { Search } from 'lucide-react'
 import { LoginNavLink } from '@/components/auth/login-nav-link'
 import { RegisterNavLink } from '@/components/auth/register-nav-link'
 import { PreviewUserMenu } from '@/components/preview/preview-user-menu'
-import { PreviewWineCard } from '@/components/preview/preview-wine-card'
+import { PreviewVirtualWineList } from '@/components/preview/preview-virtual-wine-list'
 import { UsageTipsProvider } from '@/components/preview/usage-tips-context'
 import { UsageTipsToggle } from '@/components/preview/usage-tips-toggle'
 import { usePreviewTheme } from '@/components/preview/preview-theme-context'
@@ -16,7 +16,6 @@ import { toPreviewWineCard } from '@/lib/preview/wine-card-model'
 import { createWineSearchIndex, hasActiveWineSearch, searchWinesFromIndex } from '@/lib/wine-search'
 
 const PREVIEW_CONTENT_MAX_WIDTH = '54.625rem'
-const EAGER_IMAGE_COUNT = 30
 
 type DisplayWineRow = WineRow
 
@@ -62,6 +61,16 @@ export function SharedWineList({
   }, [wines, searchIndex, searchQuery])
 
   const previewWines = useMemo(() => searched.map(toPreviewWineCard), [searched])
+
+  const winesById = useMemo(() => {
+    const map = new Map<string, WineRow>()
+    for (const wine of wines) {
+      map.set(String(wine.id), wine)
+    }
+    return map
+  }, [wines])
+
+  const listGapPx = visualStyle === 'trial' ? 20 : 10
 
   return (
     <UsageTipsProvider>
@@ -139,7 +148,7 @@ export function SharedWineList({
         </div>
 
         <main
-          className={`mx-auto pl-10 pr-6 py-5 flex-1 w-full ${visualStyle === 'trial' ? 'space-y-5' : 'space-y-2.5'}`}
+          className="mx-auto pl-10 pr-6 py-5 flex-1 w-full"
           style={{ maxWidth: PREVIEW_CONTENT_MAX_WIDTH }}
         >
           <div
@@ -148,6 +157,7 @@ export function SharedWineList({
               background: colors.toolbarBg,
               border: `1px solid ${colors.toolbarBorder}`,
               borderRadius: colors.panelRadius,
+              marginBottom: listGapPx,
             }}
           >
             <h2
@@ -190,22 +200,17 @@ export function SharedWineList({
               No wines in this shared list right now.
             </p>
           ) : (
-            previewWines.map((wine, index) => {
-              const source = wines.find((row) => String(row.id) === wine.id)
-              return (
-                <PreviewWineCard
-                  key={wine.id}
-                  wine={wine}
-                  isLoggedIn={isLoggedIn}
-                  userId={userId}
-                  review={isLoggedIn ? source?.review : undefined}
-                  imagePriority={index < EAGER_IMAGE_COUNT}
-                  onReviewChange={(review) =>
-                    setWines((current) => updateWineReview(current, wine.id, review))
-                  }
-                />
-              )
-            })
+            <PreviewVirtualWineList
+              previewWines={previewWines}
+              winesById={winesById}
+              isLoggedIn={isLoggedIn}
+              userId={userId}
+              gapPx={listGapPx}
+              resetKey={searchQuery}
+              onReviewChange={(wineId, review) =>
+                setWines((current) => updateWineReview(current, wineId, review))
+              }
+            />
           )}
         </main>
         <SiteFooter colors={colors} />

@@ -6,7 +6,7 @@ import { LoginNavLink } from '@/components/auth/login-nav-link'
 import { RegisterNavLink } from '@/components/auth/register-nav-link'
 import { PreviewToolbar } from '@/components/preview/preview-toolbar'
 import { PreviewUserMenu } from '@/components/preview/preview-user-menu'
-import { PreviewWineCard } from '@/components/preview/preview-wine-card'
+import { PreviewVirtualWineList } from '@/components/preview/preview-virtual-wine-list'
 import { ShareListsModal } from '@/components/preview/share-lists-modal'
 import { UsageTipsProvider } from '@/components/preview/usage-tips-context'
 import { UsageTipsToggle } from '@/components/preview/usage-tips-toggle'
@@ -39,8 +39,6 @@ type PreviewWineListProps = {
   userName: string
   userEmail: string
 }
-
-const EAGER_IMAGE_COUNT = 30
 
 function updateWineReview(
   wines: DisplayWineRow[],
@@ -88,6 +86,24 @@ export function PreviewWineList({
   }, [searched, primarySort, secondarySort, searchQuery])
 
   const previewWines = useMemo(() => sorted.map(toPreviewWineCard), [sorted])
+
+  const winesById = useMemo(() => {
+    const map = new Map<string, WineRow>()
+    for (const wine of wines) {
+      map.set(String(wine.id), wine)
+    }
+    return map
+  }, [wines])
+
+  const listGapPx = visualStyle === 'trial' ? 20 : 10
+  const listResetKey = [
+    searchQuery,
+    JSON.stringify(filters),
+    primarySort.key,
+    primarySort.dir,
+    secondarySort.key,
+    secondarySort.dir,
+  ].join('|')
 
   return (
     <UsageTipsProvider>
@@ -200,8 +216,8 @@ export function PreviewWineList({
       </div>
 
       <main
-        className={`mx-auto pl-10 pr-6 py-5 flex-1 w-full ${visualStyle === 'trial' ? 'space-y-5' : 'space-y-2.5'}`}
-        style={{ maxWidth: PREVIEW_CONTENT_MAX_WIDTH }}
+        className="mx-auto pl-10 pr-6 py-5 flex-1 w-full flex flex-col"
+        style={{ maxWidth: PREVIEW_CONTENT_MAX_WIDTH, gap: listGapPx }}
       >
         <WelcomePanel />
         {previewWines.length === 0 ? (
@@ -209,22 +225,17 @@ export function PreviewWineList({
             No wines match your search or filters.
           </p>
         ) : (
-          previewWines.map((wine, index) => {
-            const source = wines.find((row) => String(row.id) === wine.id)
-            return (
-              <PreviewWineCard
-                key={wine.id}
-                wine={wine}
-                isLoggedIn={isLoggedIn}
-                userId={userId}
-                review={isLoggedIn ? source?.review : undefined}
-                imagePriority={index < EAGER_IMAGE_COUNT}
-                onReviewChange={(review) =>
-                  setWines((current) => updateWineReview(current, wine.id, review))
-                }
-              />
-            )
-          })
+          <PreviewVirtualWineList
+            previewWines={previewWines}
+            winesById={winesById}
+            isLoggedIn={isLoggedIn}
+            userId={userId}
+            gapPx={listGapPx}
+            resetKey={listResetKey}
+            onReviewChange={(wineId, review) =>
+              setWines((current) => updateWineReview(current, wineId, review))
+            }
+          />
         )}
       </main>
       <SiteFooter colors={colors} />

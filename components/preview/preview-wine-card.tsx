@@ -431,6 +431,31 @@ function wineNameHref(wine: PreviewWineCardData): string | null {
   return wine.prices.find((listing) => listing.url)?.url ?? null
 }
 
+function useNearViewport(enabledImmediately: boolean) {
+  const ref = useRef<HTMLDivElement | null>(null)
+  const [near, setNear] = useState(enabledImmediately)
+
+  useEffect(() => {
+    if (near) return
+    const node = ref.current
+    if (!node) return
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting) {
+          setNear(true)
+          observer.disconnect()
+        }
+      },
+      { rootMargin: '120px 0px' },
+    )
+    observer.observe(node)
+    return () => observer.disconnect()
+  }, [near])
+
+  return { ref, near }
+}
+
 export function PreviewWineCard({
   wine,
   isLoggedIn,
@@ -440,6 +465,7 @@ export function PreviewWineCard({
   imagePriority = false,
 }: PreviewWineCardProps) {
   const { colors, mode, visualStyle } = usePreviewTheme()
+  const { ref: cardRef, near: interactiveReady } = useNearViewport(imagePriority)
   const wishlist = normalizeWishlist(review?.wishlist)
   const triedStatus = normalizeTriedStatus(review?.tried_status)
   const shortlisted = review?.shortlist === 1
@@ -569,7 +595,15 @@ export function PreviewWineCard({
   }
 
   return (
-    <div className="relative transition-opacity duration-300" style={{ opacity: isDimmed ? 0.4 : 1 }}>
+    <div
+      ref={cardRef}
+      className="relative transition-opacity duration-300"
+      style={{
+        opacity: isDimmed ? 0.4 : 1,
+        contentVisibility: 'auto',
+        containIntrinsicSize: 'auto 148px',
+      }}
+    >
       {statusLabels.length > 0 ? (
         <div
           className="absolute top-1/2 z-20 flex flex-col gap-1 pointer-events-none"
@@ -760,121 +794,127 @@ export function PreviewWineCard({
           ...getReviewPanelStyle(panelTint, mode, visualStyle),
         }}
       >
-        {!isLoggedIn ? <LoggedOutLoginPromptOverlay /> : null}
+        {!interactiveReady ? (
+          <div aria-hidden style={{ minHeight: 108 }} />
+        ) : (
+          <>
+            {!isLoggedIn ? <LoggedOutLoginPromptOverlay /> : null}
 
-        <div
-          className="flex flex-col gap-1.5 min-h-0"
-          style={{
-            pointerEvents: isLoggedIn ? 'auto' : 'none',
-            opacity: isLoggedIn ? 1 : 0.42,
-          }}
-        >
-          <div className="flex items-start justify-between min-w-0 m-0 p-0">
-            <div className="flex items-start gap-1.5 min-w-0 m-0 p-0">
-              <UsageTipTarget tipId="wishlist-button">
-                <PreviewWishlistPicker
-                  wineId={wine.id}
-                  userId={userId}
-                  review={review}
-                  labelColor={panelText.label}
-                  panelTint={panelTint}
-                  onReviewChange={onReviewChange}
-                />
-              </UsageTipTarget>
-              <UsageTipTarget tipId="shortlist-button" className="hidden">
-                <PreviewShortlistButton
-                  wineId={wine.id}
-                  userId={userId}
-                  review={review}
-                  disabled={!isLoggedIn}
-                  labelColor={panelText.label}
-                  onReviewChange={onReviewChange}
-                />
-              </UsageTipTarget>
-            </div>
+            <div
+              className="flex flex-col gap-1.5 min-h-0"
+              style={{
+                pointerEvents: isLoggedIn ? 'auto' : 'none',
+                opacity: isLoggedIn ? 1 : 0.42,
+              }}
+            >
+              <div className="flex items-start justify-between min-w-0 m-0 p-0">
+                <div className="flex items-start gap-1.5 min-w-0 m-0 p-0">
+                  <UsageTipTarget tipId="wishlist-button">
+                    <PreviewWishlistPicker
+                      wineId={wine.id}
+                      userId={userId}
+                      review={review}
+                      labelColor={panelText.label}
+                      panelTint={panelTint}
+                      onReviewChange={onReviewChange}
+                    />
+                  </UsageTipTarget>
+                  <UsageTipTarget tipId="shortlist-button" className="hidden">
+                    <PreviewShortlistButton
+                      wineId={wine.id}
+                      userId={userId}
+                      review={review}
+                      disabled={!isLoggedIn}
+                      labelColor={panelText.label}
+                      onReviewChange={onReviewChange}
+                    />
+                  </UsageTipTarget>
+                </div>
 
-            <UsageTipTarget tipId="hide-wine">
-              <HideButton
-                active={isHidden}
-                saving={savingHide}
-                panelLabelColor={panelText.label}
-                panelTint={panelTint}
-                colors={colors}
-                visualStyle={visualStyle}
-                onClick={() => void toggleHide()}
+                <UsageTipTarget tipId="hide-wine">
+                  <HideButton
+                    active={isHidden}
+                    saving={savingHide}
+                    panelLabelColor={panelText.label}
+                    panelTint={panelTint}
+                    colors={colors}
+                    visualStyle={visualStyle}
+                    onClick={() => void toggleHide()}
+                  />
+                </UsageTipTarget>
+              </div>
+
+              <div
+                style={{
+                  height: 1,
+                  background:
+                    visualStyle === 'trial'
+                      ? getTrialReviewControlStyle(panelTint, 'bookmark', false).border
+                      : colors.controlIdleBorder,
+                  opacity: 0.5,
+                }}
               />
-            </UsageTipTarget>
-          </div>
 
-          <div
-            style={{
-              height: 1,
-              background:
-                visualStyle === 'trial'
-                  ? getTrialReviewControlStyle(panelTint, 'bookmark', false).border
-                  : colors.controlIdleBorder,
-              opacity: 0.5,
-            }}
-          />
-
-          <p
-            className="text-[8px] font-semibold uppercase tracking-wider leading-none text-center px-1"
-            style={{ color: panelText.label, fontFamily: 'var(--font-dm-sans), sans-serif' }}
-          >
-            Have you tried this wine?
-          </p>
-
-          <div className="flex items-end gap-1.5">
-            <div className="flex-1 min-w-0">
-              <UsageTipTarget tipId="notes-textfield">
-                <input
-                  type="text"
-                  value={notesDraft}
-                  disabled={savingNotes}
-                  placeholder="Your notes about this wine"
-                  className="w-full text-[11px] focus:outline-none transition-colors px-2 disabled:opacity-60"
-                  style={{
-                    height: 28,
-                    background: panelText.notesBg,
-                    border: `1px solid ${panelText.notesBorder}`,
-                    color: panelText.notesText,
-                    borderRadius: colors.panelRadius,
-                    fontFamily: 'var(--font-dm-sans), sans-serif',
-                    caretColor: colors.accent,
-                  }}
-                  onChange={(e) => {
-                    notesDirtyRef.current = true
-                    setNotesDraft(e.target.value)
-                  }}
-                  onBlur={() => void saveNotes()}
-                />
-              </UsageTipTarget>
-            </div>
-            <div className="flex flex-col gap-0.5 flex-shrink-0">
               <p
-                className="text-[8px] uppercase tracking-wider leading-none text-center"
+                className="text-[8px] font-semibold uppercase tracking-wider leading-none text-center px-1"
                 style={{ color: panelText.label, fontFamily: 'var(--font-dm-sans), sans-serif' }}
               >
-                Buy again?
+                Have you tried this wine?
               </p>
-              <UsageTipTarget tipId="tried-button">
-                <PreviewTriedStatusPicker
-                  wineId={wine.id}
-                  userId={userId}
-                  review={review}
-                  panelTint={panelTint}
-                  onReviewChange={onReviewChange}
-                />
-              </UsageTipTarget>
-            </div>
-          </div>
 
-          {error ? (
-            <p className="text-[10px]" style={{ color: colors.errorText }}>
-              {error}
-            </p>
-          ) : null}
-        </div>
+              <div className="flex items-end gap-1.5">
+                <div className="flex-1 min-w-0">
+                  <UsageTipTarget tipId="notes-textfield">
+                    <input
+                      type="text"
+                      value={notesDraft}
+                      disabled={savingNotes}
+                      placeholder="Your notes about this wine"
+                      className="w-full text-[11px] focus:outline-none transition-colors px-2 disabled:opacity-60"
+                      style={{
+                        height: 28,
+                        background: panelText.notesBg,
+                        border: `1px solid ${panelText.notesBorder}`,
+                        color: panelText.notesText,
+                        borderRadius: colors.panelRadius,
+                        fontFamily: 'var(--font-dm-sans), sans-serif',
+                        caretColor: colors.accent,
+                      }}
+                      onChange={(e) => {
+                        notesDirtyRef.current = true
+                        setNotesDraft(e.target.value)
+                      }}
+                      onBlur={() => void saveNotes()}
+                    />
+                  </UsageTipTarget>
+                </div>
+                <div className="flex flex-col gap-0.5 flex-shrink-0">
+                  <p
+                    className="text-[8px] uppercase tracking-wider leading-none text-center"
+                    style={{ color: panelText.label, fontFamily: 'var(--font-dm-sans), sans-serif' }}
+                  >
+                    Buy again?
+                  </p>
+                  <UsageTipTarget tipId="tried-button">
+                    <PreviewTriedStatusPicker
+                      wineId={wine.id}
+                      userId={userId}
+                      review={review}
+                      panelTint={panelTint}
+                      onReviewChange={onReviewChange}
+                    />
+                  </UsageTipTarget>
+                </div>
+              </div>
+
+              {error ? (
+                <p className="text-[10px]" style={{ color: colors.errorText }}>
+                  {error}
+                </p>
+              ) : null}
+            </div>
+          </>
+        )}
       </div>
     </div>
     </div>
