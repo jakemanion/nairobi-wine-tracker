@@ -598,11 +598,7 @@ export function PreviewWineCard({
     <div
       ref={cardRef}
       className="relative transition-opacity duration-300"
-      style={{
-        opacity: isDimmed ? 0.4 : 1,
-        contentVisibility: 'auto',
-        containIntrinsicSize: 'auto 148px',
-      }}
+      style={{ opacity: isDimmed ? 0.4 : 1 }}
     >
       {statusLabels.length > 0 ? (
         <div
