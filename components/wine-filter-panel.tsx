@@ -43,10 +43,10 @@ const SORT_FIELD_OPTIONS: Array<{ value: SortFieldKey; label: string }> = [
   { value: 'region', label: 'Region' },
   { value: 'grapes', label: 'Grapes' },
   { value: 'style', label: 'Style' },
-  { value: 'vivino_rating', label: 'Star rating' },
+  { value: 'vivino_rating', label: 'Quality' },
   { value: 'value_score', label: 'Value score' },
   { value: 'store_prices', label: 'Store price' },
-  { value: 'my_rating', label: 'My rating' },
+  { value: 'my_rating', label: 'My quality' },
   { value: 'wishlist', label: 'Bookmark' },
   { value: 'tried_status', label: 'Tried' },
   { value: 'notes', label: 'Notes' },
@@ -330,7 +330,7 @@ export function WineFilterPanel({
                 />
               </label>
               <label style={fieldLabelStyle}>
-                <span>Star rating min</span>
+                <span>Quality min</span>
                 <input
                   type="number"
                   inputMode="decimal"
@@ -344,7 +344,7 @@ export function WineFilterPanel({
                 />
               </label>
               <label style={fieldLabelStyle}>
-                <span>Star rating max</span>
+                <span>Quality max</span>
                 <input
                   type="number"
                   inputMode="decimal"
@@ -617,7 +617,7 @@ export function WineFilterPanel({
                   borderColor: ratingThenPriceActive ? '#C93048' : styles.presetButton.border,
                 }}
               >
-                Sort: rating → price
+                Sort: quality → price
               </button>
             </div>
           </section>

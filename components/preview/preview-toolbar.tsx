@@ -29,10 +29,7 @@ type PreviewToolbarProps = {
   primarySort: SortCriterion
   onPrimarySortChange: (next: SortCriterion) => void
   onSecondarySortChange: (next: SortCriterion) => void
-  searchQuery: string
-  secondarySort: SortCriterion
   resultCount: number
-  totalCount: number
   priceBounds: { min: number; max: number; median: number } | null
   isLoggedIn?: boolean
 }
@@ -45,10 +42,7 @@ export function PreviewToolbar({
   primarySort,
   onPrimarySortChange,
   onSecondarySortChange,
-  searchQuery,
-  secondarySort,
   resultCount,
-  totalCount,
   priceBounds,
   isLoggedIn = false,
 }: PreviewToolbarProps) {
@@ -57,11 +51,11 @@ export function PreviewToolbar({
   const toolsActive = activeFilterCount > 0
   const summaryText = buildListStateSummary({
     filters,
-    searchQuery,
-    primarySort,
-    secondarySort,
     resultCount,
-    totalCount,
+    storeCount: filterOptions.stores.length,
+    grapeCount: filterOptions.grapes.length,
+    countryCount: filterOptions.countries.length,
+    includeMyWines: isLoggedIn,
   })
 
   return (

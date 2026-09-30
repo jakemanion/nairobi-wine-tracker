@@ -205,10 +205,7 @@ export function PreviewWineList({
             primarySort={primarySort}
             onPrimarySortChange={setPrimarySort}
             onSecondarySortChange={setSecondarySort}
-            searchQuery={searchQuery}
-            secondarySort={secondarySort}
             resultCount={previewWines.length}
-            totalCount={wines.length}
             priceBounds={priceBounds}
             isLoggedIn={isLoggedIn}
           />

@@ -95,7 +95,7 @@ const QUICK_SORT_OPTIONS: Array<{ key: SortFieldKey; label: string; dir: 'asc' |
   { key: 'winery', label: 'Producer', dir: 'asc' },
   { key: 'wine_name', label: 'Name', dir: 'asc' },
   { key: 'store_prices', label: 'Price', dir: 'asc' },
-  { key: 'vivino_rating', label: 'Rating', dir: 'desc' },
+  { key: 'vivino_rating', label: 'Quality', dir: 'desc' },
 ]
 
 /** Sentinel so an empty Grape/Country selection can mean "match nothing" (unlike [] = all). */
