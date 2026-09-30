@@ -93,10 +93,18 @@ export function PreviewToolbar({
         />
       </div>
       <div
-        className={`grid min-w-0 grid-cols-[1fr_auto_1fr] items-center gap-2 px-1 ${filtersVisible ? 'pt-1.5' : ''}`}
+        className={`grid min-w-0 grid-cols-[1fr_minmax(0,1fr)_1fr] items-center gap-2 px-1 ${filtersVisible ? 'pt-1.5' : ''}`}
       >
+        <div className="justify-self-start self-center">
+          <PreviewSortBar
+            colors={colors}
+            primarySort={primarySort}
+            onPrimarySortChange={onPrimarySortChange}
+            onSecondarySortChange={onSecondarySortChange}
+          />
+        </div>
         <p
-          className="m-0 min-w-0 truncate text-left self-center"
+          className="m-0 min-w-0 truncate text-center self-center"
           title={summaryText}
           style={{
             color: colors.summaryText,
@@ -107,14 +115,6 @@ export function PreviewToolbar({
         >
           {summaryText}
         </p>
-        <div className="justify-self-center self-center">
-          <PreviewSortBar
-            colors={colors}
-            primarySort={primarySort}
-            onPrimarySortChange={onPrimarySortChange}
-            onSecondarySortChange={onSecondarySortChange}
-          />
-        </div>
         <button
           type="button"
           aria-expanded={filtersVisible}
