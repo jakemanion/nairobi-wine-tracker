@@ -93,7 +93,7 @@ export function PreviewToolbar({
         />
       </div>
       <div
-        className={`grid min-w-0 grid-cols-[1fr_minmax(0,1fr)_1fr] items-center gap-2 px-1 ${filtersVisible ? 'pt-1.5' : ''}`}
+        className={`grid min-w-0 grid-cols-[minmax(0,1fr)_minmax(0,2fr)_minmax(0,1fr)] items-center gap-2 px-1 ${filtersVisible ? 'pt-1.5' : ''}`}
       >
         <div className="justify-self-start self-center">
           <PreviewSortBar
