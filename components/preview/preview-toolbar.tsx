@@ -57,7 +57,7 @@ export function PreviewToolbar({
     countryCount: filterOptions.countries.length,
     includeMyWines: isLoggedIn,
   })
-  const summaryText = summaryParts.join(' … ')
+  const summaryText = summaryParts.join(' · ')
 
   return (
     <div>
@@ -119,7 +119,7 @@ export function PreviewToolbar({
             <span key={`${index}-${part}`}>
               {index > 0 ? (
                 <span aria-hidden style={{ color: '#555555', padding: '0 0.35em' }}>
-                  …
+                  ·
                 </span>
               ) : null}
               {part}

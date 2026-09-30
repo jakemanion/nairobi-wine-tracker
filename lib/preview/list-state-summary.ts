@@ -96,5 +96,5 @@ export function buildListStateSummaryParts({
 export function buildListStateSummary(
   args: Parameters<typeof buildListStateSummaryParts>[0],
 ): string {
-  return buildListStateSummaryParts(args).join(' … ')
+  return buildListStateSummaryParts(args).join(' · ')
 }
