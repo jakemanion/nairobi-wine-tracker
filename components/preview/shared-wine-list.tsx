@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { Search } from 'lucide-react'
+import { BrandLogo } from '@/components/brand-logo'
 import { LoginNavLink } from '@/components/auth/login-nav-link'
 import { RegisterNavLink } from '@/components/auth/register-nav-link'
 import { PreviewUserMenu } from '@/components/preview/preview-user-menu'
@@ -93,18 +94,21 @@ export function SharedWineList({
               className="mx-auto pl-10 pr-6 py-3 flex items-center justify-between gap-4"
               style={{ maxWidth: PREVIEW_CONTENT_MAX_WIDTH }}
             >
-              <div className="min-w-0 flex-shrink-0">
-                <Link href="/" className="no-underline">
-                  <h1
-                    className="text-base font-semibold leading-none truncate"
-                    style={{ color: colors.headerTitle, fontFamily: colors.headingFont }}
-                  >
-                    WineDiviner: Nairobi
-                  </h1>
-                </Link>
-                <p className="text-[10px] mt-1 truncate" style={{ color: colors.headerSub }}>
-                  Shared wine list
-                </p>
+              <div className="min-w-0 flex-shrink-0 flex items-center gap-2.5">
+                <BrandLogo height={40} />
+                <div className="min-w-0">
+                  <Link href="/" className="no-underline">
+                    <h1
+                      className="text-base font-semibold leading-none truncate"
+                      style={{ color: colors.headerTitle, fontFamily: colors.headingFont }}
+                    >
+                      WineDiviner: Nairobi
+                    </h1>
+                  </Link>
+                  <p className="text-[10px] mt-1 truncate" style={{ color: colors.headerSub }}>
+                    Shared wine list
+                  </p>
+                </div>
               </div>
               <div className="relative flex-1 max-w-xs">
                 <Search
