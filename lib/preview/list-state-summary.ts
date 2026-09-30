@@ -14,12 +14,12 @@ function formatKsh(value: string): string {
 }
 
 function countOrAll(selectedCount: number, totalCount: number, isAll: boolean): string {
-  if (isAll || (totalCount > 0 && selectedCount === totalCount)) return 'all'
+  if (isAll || (totalCount > 0 && selectedCount === totalCount)) return 'All'
   return String(selectedCount)
 }
 
 function typeSummary(filters: WineFilters): string {
-  if (filters.styles.length === 0) return 'all'
+  if (filters.styles.length === 0) return 'All'
   if (filters.styles.includes('__none__')) return 'none'
   return filters.styles.join(', ')
 }
@@ -33,13 +33,13 @@ function shopsSummary(filters: WineFilters, storeCount: number): string {
 }
 
 function grapesSummary(filters: WineFilters, grapeCount: number): string {
-  if (filters.grapes.length === 0) return 'all'
+  if (filters.grapes.length === 0) return 'All'
   if (filters.grapes.includes(GRAPE_FILTER_NONE)) return '0'
   return countOrAll(filters.grapes.length, grapeCount, false)
 }
 
 function countriesSummary(filters: WineFilters, countryCount: number): string {
-  if (filters.regions.length === 0) return 'all'
+  if (filters.regions.length === 0) return 'All'
   if (filters.regions.includes(countryFilterValue(COUNTRY_FILTER_NONE))) return '0'
   const selected = selectedCountriesFromRegionFilters(filters.regions)
   return countOrAll(selected.length, countryCount, false)
@@ -55,7 +55,7 @@ function myWinesSummary(filters: WineFilters): string {
   return on.length > 0 ? on.join(', ') : 'none'
 }
 
-export function buildListStateSummary({
+export function buildListStateSummaryParts({
   filters,
   resultCount,
   storeCount = 0,
@@ -69,7 +69,7 @@ export function buildListStateSummary({
   grapeCount?: number
   countryCount?: number
   includeMyWines?: boolean
-}): string {
+}): string[] {
   const parts: string[] = [
     `Showing ${resultCount} bottle${resultCount === 1 ? '' : 's'}`,
     `Type: ${typeSummary(filters)}`,
@@ -90,5 +90,11 @@ export function buildListStateSummary({
     parts.push(`Showing my wines: ${myWinesSummary(filters)}`)
   }
 
-  return parts.join(' | ')
+  return parts
+}
+
+export function buildListStateSummary(
+  args: Parameters<typeof buildListStateSummaryParts>[0],
+): string {
+  return buildListStateSummaryParts(args).join(' … ')
 }

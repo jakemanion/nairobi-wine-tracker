@@ -11,7 +11,7 @@ import {
   type RegionFilterGroup,
   type WineFilters,
 } from '@/lib/wine-filters'
-import { buildListStateSummary } from '@/lib/preview/list-state-summary'
+import { buildListStateSummaryParts } from '@/lib/preview/list-state-summary'
 
 type PreviewToolbarProps = {
   activeFilterCount: number
@@ -49,7 +49,7 @@ export function PreviewToolbar({
   const { colors, visualStyle } = usePreviewTheme()
   const [filtersVisible, setFiltersVisible] = useState(true)
   const toolsActive = activeFilterCount > 0
-  const summaryText = buildListStateSummary({
+  const summaryParts = buildListStateSummaryParts({
     filters,
     resultCount,
     storeCount: filterOptions.stores.length,
@@ -57,6 +57,7 @@ export function PreviewToolbar({
     countryCount: filterOptions.countries.length,
     includeMyWines: isLoggedIn,
   })
+  const summaryText = summaryParts.join(' … ')
 
   return (
     <div>
@@ -114,7 +115,16 @@ export function PreviewToolbar({
             overflowWrap: 'anywhere',
           }}
         >
-          {summaryText}
+          {summaryParts.map((part, index) => (
+            <span key={`${index}-${part}`}>
+              {index > 0 ? (
+                <span aria-hidden style={{ color: '#555555', padding: '0 0.35em' }}>
+                  …
+                </span>
+              ) : null}
+              {part}
+            </span>
+          ))}
         </p>
         <button
           type="button"
