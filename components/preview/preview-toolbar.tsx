@@ -104,13 +104,14 @@ export function PreviewToolbar({
           />
         </div>
         <p
-          className="m-0 min-w-0 truncate text-center self-center"
+          className="m-0 min-w-0 text-center self-center"
           title={summaryText}
           style={{
             color: colors.summaryText,
             fontFamily: 'var(--font-dm-sans), sans-serif',
             fontSize: 10,
             lineHeight: 1.2,
+            overflowWrap: 'anywhere',
           }}
         >
           {summaryText}
