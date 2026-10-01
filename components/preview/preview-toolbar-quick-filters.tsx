@@ -9,6 +9,7 @@ import {
   EyeOff,
   Grape,
   HelpCircle,
+  Store,
   ThumbsDown,
   ThumbsUp,
   User,
@@ -51,7 +52,7 @@ type PreviewToolbarQuickFiltersProps = {
   isLoggedIn?: boolean
 }
 
-type FilterTabId = 'shop' | 'wine' | 'my-wines'
+type FilterTabId = 'shops' | 'price' | 'wine' | 'my-wines'
 
 const CONTROL_HEIGHT = 22
 const CONTROL_FONT_SIZE = 10
@@ -383,6 +384,49 @@ function ColourStyleToggles({
   )
 }
 
+function ShopToggles({
+  colors,
+  stores,
+  selected,
+  onChange,
+}: {
+  colors: PreviewColors
+  stores: string[]
+  selected: string[]
+  onChange: (stores: string[]) => void
+}) {
+  const selectedSet = new Set(selected)
+
+  function toggleShop(store: string) {
+    if (selectedSet.has(store)) {
+      onChange(selected.filter((item) => item !== store))
+      return
+    }
+
+    const next = [...selected, store]
+    onChange(next.length === stores.length ? [] : next)
+  }
+
+  return (
+    <div className="flex flex-wrap items-center justify-center gap-1.5" role="group" aria-label="Shops">
+      {stores.map((store) => {
+        const isSelected = selectedSet.has(store)
+        return (
+          <button
+            key={store}
+            type="button"
+            aria-pressed={isSelected}
+            style={colourToggleStyle(colors, isSelected)}
+            onClick={() => toggleShop(store)}
+          >
+            {store}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
 function BestUnderToggles({
   colors,
   selectedPrice,
@@ -425,7 +469,8 @@ function BestUnderToggles({
 }
 
 const TAB_ICONS: Record<FilterTabId, LucideIcon> = {
-  shop: Banknote,
+  shops: Store,
+  price: Banknote,
   wine: Grape,
   'my-wines': User,
 }
@@ -502,12 +547,13 @@ export function PreviewToolbarQuickFilters({
   const { visualStyle } = usePreviewTheme()
   const trial = visualStyle === 'trial'
   const priceMaxBound = priceBounds?.max ?? 10000
-  const [activeTab, setActiveTab] = useState<FilterTabId>('shop')
+  const [activeTab, setActiveTab] = useState<FilterTabId>('shops')
 
   const selectedCountries = selectedCountriesFromRegionFilters(filters.regions)
   const allShopsEnabled = filters.disabledStores.length === 0
+  // Empty selection means "all shops" (same pattern as Type toggles).
   const selectedShops = allShopsEnabled
-    ? stores
+    ? []
     : stores.filter((store) => !filters.disabledStores.includes(store))
   const selectedGrapes =
     filters.grapes.length === 0
@@ -521,7 +567,7 @@ export function PreviewToolbarQuickFilters({
       ? countries
       : selectedCountries
   const bestUnderValue = activeBestUnderPrice(filters, primarySort)
-  const visibleTab = !isLoggedIn && activeTab === 'my-wines' ? 'shop' : activeTab
+  const visibleTab = !isLoggedIn && activeTab === 'my-wines' ? 'shops' : activeTab
 
   function updateFilters(patch: Partial<WineFilters>) {
     onFiltersChange({ ...filters, ...patch })
@@ -539,7 +585,7 @@ export function PreviewToolbarQuickFilters({
   }
 
   function applyShopSelection(next: string[]) {
-    if (next.length === stores.length) {
+    if (next.length === 0 || next.length === stores.length) {
       updateFilters({ disabledStores: [] })
       return
     }
@@ -573,7 +619,8 @@ export function PreviewToolbarQuickFilters({
   }
 
   const tabs: Array<{ id: FilterTabId; label: string }> = [
-    { id: 'shop', label: 'Shop' },
+    { id: 'shops', label: 'Shops' },
+    { id: 'price', label: 'Price' },
     { id: 'wine', label: 'Wine' },
     ...(isLoggedIn ? [{ id: 'my-wines' as const, label: 'My wines' }] : []),
   ]
@@ -655,39 +702,36 @@ export function PreviewToolbarQuickFilters({
               background: '#ffffff',
             }}
           >
-          {visibleTab === 'shop' ? (
-            <>
-              {stores.length > 0 ? (
-                <UsageTipTarget tipId="shops-filter" className="flex-none self-center">
-                  <PreviewFilterMultiSelect
-                    colors={colors}
-                    label="Shop"
-                    emptyMessage="No shops in list"
-                    options={stores}
-                    selected={selectedShops}
-                    onChange={applyShopSelection}
-                    selectAllLabel="All"
-                  />
-                </UsageTipTarget>
-              ) : null}
-
-              <UsageTipTarget tipId="highest-price-filter" className="flex-none self-center">
-                <FilterSelect
+          {visibleTab === 'shops' ? (
+            stores.length > 0 ? (
+              <UsageTipTarget tipId="shops-filter" className="w-full self-center">
+                <ShopToggles
                   colors={colors}
-                  active={!!filters.priceMax.trim() && !bestUnderValue}
-                  aria-label="Highest price"
-                  value={bestUnderValue ? '' : filters.priceMax.trim() || ''}
-                  onChange={(event) => updateFilters({ priceMax: event.target.value })}
-                >
-                  <option value="">All prices</option>
-                  {buildPriceOptions(priceMaxBound).map((price) => (
-                    <option key={price} value={String(price)}>
-                      Highest price: {price.toLocaleString()} KSh
-                    </option>
-                  ))}
-                </FilterSelect>
+                  stores={stores}
+                  selected={selectedShops}
+                  onChange={applyShopSelection}
+                />
               </UsageTipTarget>
-            </>
+            ) : null
+          ) : null}
+
+          {visibleTab === 'price' ? (
+            <UsageTipTarget tipId="highest-price-filter" className="flex-none self-center">
+              <FilterSelect
+                colors={colors}
+                active={!!filters.priceMax.trim() && !bestUnderValue}
+                aria-label="Highest price"
+                value={bestUnderValue ? '' : filters.priceMax.trim() || ''}
+                onChange={(event) => updateFilters({ priceMax: event.target.value })}
+              >
+                <option value="">All prices</option>
+                {buildPriceOptions(priceMaxBound).map((price) => (
+                  <option key={price} value={String(price)}>
+                    Highest price: {price.toLocaleString()} KSh
+                  </option>
+                ))}
+              </FilterSelect>
+            </UsageTipTarget>
           ) : null}
 
           {visibleTab === 'wine' ? (

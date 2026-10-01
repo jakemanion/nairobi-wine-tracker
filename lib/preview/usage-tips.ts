@@ -79,8 +79,8 @@ export const USAGE_TIPS: Record<UsageTipId, UsageTipContent> = {
   },
   'shops-filter': {
     id: 'shops-filter',
-    heading: 'Shop',
-    body: 'Show wines available in specific shops.',
+    heading: 'Shops',
+    body: 'Tap shops to filter. None selected shows all.',
   },
   'hide-wine': {
     id: 'hide-wine',
