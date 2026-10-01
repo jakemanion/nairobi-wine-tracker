@@ -245,24 +245,19 @@ function FilterSelect({
 function buildPriceOptions(maxBound: number): number[] {
   const options: number[] = []
   let price = 1000
-  while (price <= 3000 && price <= maxBound) {
+  while (price <= 4000 && price <= maxBound) {
     options.push(price)
     price += 250
   }
-  while (price <= 6000 && price <= maxBound) {
-    options.push(price)
-    price += 500
-  }
+  price = 5000
   while (price <= 10000 && price <= maxBound) {
     options.push(price)
     price += 1000
   }
+  price = 20000
   while (price <= maxBound) {
     options.push(price)
-    price += 5000
-  }
-  if (options.length > 0 && options[options.length - 1] < maxBound) {
-    options.push(maxBound)
+    price += 10000
   }
   return options
 }
