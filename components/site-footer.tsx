@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { BrandLogo } from '@/components/brand-logo'
 import { getPreviewColors, type PreviewColors } from '@/lib/preview/preview-colors'
 
 const fallbackColors = getPreviewColors('dark')
@@ -32,12 +33,15 @@ export function SiteFooter({ className = '', colors = fallbackColors }: SiteFoot
           className="mx-auto px-4 h-10 flex items-center justify-between gap-3 min-w-0"
           style={{ maxWidth: CONTENT_MAX_WIDTH }}
         >
-          <p
-            className="m-0 text-xs font-semibold truncate shrink-0"
-            style={{ color: colors.headerTitle, fontFamily: colors.headingFont }}
-          >
-            WineDiviner: Nairobi
-          </p>
+          <div className="flex items-center gap-2 min-w-0 shrink-0">
+            <BrandLogo height={22} />
+            <p
+              className="m-0 text-xs font-semibold truncate"
+              style={{ color: colors.headerTitle, fontFamily: colors.headingFont }}
+            >
+              WineDiviner: Nairobi
+            </p>
+          </div>
 
           <nav aria-label="Legal" className="min-w-0 overflow-x-auto">
             <ul className="m-0 p-0 list-none flex items-center gap-x-3 whitespace-nowrap">
