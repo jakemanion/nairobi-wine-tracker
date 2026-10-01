@@ -21,11 +21,11 @@ export type WineFilters = {
   producer: string
   country: string
   regions: string[]
-  /** When false, wines marked bookmarked are excluded. Default on. */
+  /** When false, bookmarked wines are excluded unless another enabled status also matches. Default on. */
   includeBookmarked: boolean
-  /** When false, wines marked buy-again are excluded. Default on. */
+  /** When false, buy-again wines are excluded unless another enabled status also matches. Default on. */
   includeBuyAgain: boolean
-  /** When false, wines marked don't-buy-again are excluded. Default on. */
+  /** When false, don't-buy-again wines are excluded unless another enabled status also matches. Default on. */
   includeDontBuyAgain: boolean
   /** When false, wines marked hidden/unwanted are excluded. Default on. */
   includeHidden: boolean
@@ -211,6 +211,35 @@ function isUnmarkedReview(review: WineRow['review'] | null | undefined): boolean
   return !bookmarked && !thumbsUp && !thumbsDown && !hidden
 }
 
+/**
+ * Bookmark and buy-again (or don't-buy-again) can both be set. An enabled
+ * status keeps the wine even when another of those statuses is turned off.
+ */
+function passesMyWineToggles(wine: WineRow, filters: WineFilters): boolean {
+  const review = wine.review
+  const bookmarked = normalizeWishlist(review?.wishlist) === 1
+  const buyAgain = normalizeTriedStatus(review?.tried_status) === 1
+  const dontBuyAgain = normalizeTriedStatus(review?.tried_status) === 2
+  const hidden = review?.wishlist === 0 || review?.hide === true
+  const unmarked = isUnmarkedReview(review)
+
+  if (
+    (filters.includeBookmarked && bookmarked) ||
+    (filters.includeBuyAgain && buyAgain) ||
+    (filters.includeDontBuyAgain && dontBuyAgain)
+  ) {
+    if (!filters.includeHidden && hidden) return false
+    return true
+  }
+
+  if (!filters.includeBookmarked && bookmarked) return false
+  if (!filters.includeBuyAgain && buyAgain) return false
+  if (!filters.includeDontBuyAgain && dontBuyAgain) return false
+  if (!filters.includeHidden && hidden) return false
+  if (!filters.includeUnmarked && unmarked) return false
+  return true
+}
+
 export type RegionFilterGroup = {
   country: string
   regions: string[]
@@ -378,23 +407,7 @@ export function filterWines<T extends WineRow>(wines: T[], filters: WineFilters)
   const selectedStyles = filters.styles.map((style) => style.toLowerCase())
 
   return wines.filter((wine) => {
-    if (!filters.includeBookmarked && normalizeWishlist(wine.review?.wishlist) === 1) {
-      return false
-    }
-    if (!filters.includeBuyAgain && normalizeTriedStatus(wine.review?.tried_status) === 1) {
-      return false
-    }
-    if (!filters.includeDontBuyAgain && normalizeTriedStatus(wine.review?.tried_status) === 2) {
-      return false
-    }
-    if (!filters.includeHidden) {
-      if (wine.review?.wishlist === 0 || wine.review?.hide === true) {
-        return false
-      }
-    }
-    if (!filters.includeUnmarked && isUnmarkedReview(wine.review)) {
-      return false
-    }
+    if (!passesMyWineToggles(wine, filters)) return false
 
     const price = minWinePriceKES(wine.store_listings)
     if (priceMin != null && (price == null || price < priceMin)) return false
