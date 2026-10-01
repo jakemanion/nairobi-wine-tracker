@@ -3,6 +3,7 @@ import { PreviewWineList } from '@/components/preview/preview-wine-list'
 import { PreviewThemeProvider } from '@/components/preview/preview-theme-context'
 import type { WineReview, WineRow } from '@/components/wine-table'
 import { getPreviewSession } from '@/lib/auth/preview-session'
+import { isAdminUserId } from '@/lib/user'
 import { createServerReadClient } from '@/lib/supabase-server'
 
 export const dynamic = 'force-dynamic'
@@ -126,6 +127,7 @@ export default async function Home() {
       <PreviewWineList
         key={session.isLoggedIn ? session.userId : 'guest'}
         isLoggedIn={session.isLoggedIn}
+        isAdmin={session.isLoggedIn && isAdminUserId(session.userId)}
         userId={session.userId ?? ''}
         userName={session.userName ?? ''}
         userEmail={session.userEmail ?? ''}

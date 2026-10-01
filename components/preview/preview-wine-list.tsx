@@ -36,6 +36,7 @@ const PREVIEW_CONTENT_MAX_WIDTH = '54.625rem'
 type PreviewWineListProps = {
   wines: WineRow[]
   isLoggedIn: boolean
+  isAdmin?: boolean
   userId: string
   userName: string
   userEmail: string
@@ -56,6 +57,7 @@ function updateWineReview(
 export function PreviewWineList({
   wines: initialWines,
   isLoggedIn,
+  isAdmin = false,
   userId,
   userName,
   userEmail,
@@ -230,6 +232,7 @@ export function PreviewWineList({
             previewWines={previewWines}
             winesById={winesById}
             isLoggedIn={isLoggedIn}
+            isAdmin={isAdmin}
             userId={userId}
             gapPx={listGapPx}
             resetKey={listResetKey}

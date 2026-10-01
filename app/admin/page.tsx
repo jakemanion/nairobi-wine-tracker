@@ -7,7 +7,13 @@ import type { WineRecord } from '@/lib/wines'
 
 export const dynamic = 'force-dynamic'
 
-export default async function AdminPage() {
+type AdminPageProps = {
+  searchParams: Promise<{ wine?: string }>
+}
+
+export default async function AdminPage({ searchParams }: AdminPageProps) {
+  const { wine } = await searchParams
+  const focusWineId = wine?.trim() || null
   if (!(await isActorAdmin())) {
     const sessionUserId = await getSessionUserId()
 
@@ -158,6 +164,7 @@ export default async function AdminPage() {
           initialImports={(imports ?? []).map(normalizeStoreListingImport)}
           initialListings={(listings ?? []).map(normalizeStoreListing)}
           initialWines={(wines ?? []) as WineRecord[]}
+          focusWineId={focusWineId}
         />
       </div>
     </main>

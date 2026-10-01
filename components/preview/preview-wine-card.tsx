@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { ExternalLink, EyeOff, MapPin, Star } from 'lucide-react'
+import { ExternalLink, EyeOff, MapPin, Pencil, Star } from 'lucide-react'
 import type { WineReview } from '@/components/wine-table'
 import { LoggedOutLoginPromptOverlay } from '@/components/preview/logged-out-login-prompt'
 import { PreviewBottleImage } from '@/components/preview/preview-bottle-image'
@@ -39,6 +39,7 @@ import type { WishlistValue, TriedStatusValue } from '@/lib/reviews'
 type PreviewWineCardProps = {
   wine: PreviewWineCardData
   isLoggedIn: boolean
+  isAdmin?: boolean
   userId: string
   review?: WineReview | null
   onReviewChange: (review: WineReview | null) => void
@@ -459,6 +460,7 @@ function useNearViewport(enabledImmediately: boolean) {
 export function PreviewWineCard({
   wine,
   isLoggedIn,
+  isAdmin = false,
   userId,
   review,
   onReviewChange,
@@ -664,7 +666,34 @@ export function PreviewWineCard({
           borderRight: visualStyle === 'trial' ? undefined : `1px solid ${colors.infoBorder}`,
         }}
       >
-        <div className="flex items-start gap-2.5 pr-2">
+        {isAdmin ? (
+          <div className="absolute top-2 right-2 z-10">
+            <InstantTooltip label="Edit in admin">
+              <a
+                href={`/admin?wine=${encodeURIComponent(wine.id)}`}
+                target="_blank"
+                rel="noreferrer"
+                aria-label={`Edit ${wine.name} in admin`}
+                className="inline-flex items-center gap-1 no-underline"
+                style={{
+                  height: 18,
+                  padding: '0 6px',
+                  borderRadius: colors.panelRadius,
+                  background: colors.buttonBg,
+                  border: `1px solid ${colors.buttonBorder}`,
+                  color: colors.buttonText,
+                  fontFamily: 'var(--font-dm-sans), sans-serif',
+                  fontSize: 10,
+                  lineHeight: 1,
+                }}
+              >
+                <Pencil size={10} strokeWidth={2} aria-hidden />
+                Edit
+              </a>
+            </InstantTooltip>
+          </div>
+        ) : null}
+        <div className={`flex items-start gap-2.5 ${isAdmin ? 'pr-14' : 'pr-2'}`}>
           <WineStarRating
             vivinoRating={wine.vivinoRating}
             vivinoUrl={wine.vivinoUrl}

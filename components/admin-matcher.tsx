@@ -2,6 +2,7 @@
 
 import {
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -59,6 +60,7 @@ function scrollContainerToElement(
   container: HTMLElement,
   element: HTMLElement,
   durationMs: number,
+  align: 'nearest' | 'start' = 'nearest',
 ) {
   const containerRect = container.getBoundingClientRect()
   const elementRect = element.getBoundingClientRect()
@@ -68,7 +70,9 @@ function scrollContainerToElement(
   const viewBottom = viewTop + container.clientHeight
 
   let targetScroll = viewTop
-  if (elementTop < viewTop) {
+  if (align === 'start') {
+    targetScroll = Math.max(0, elementTop - 8)
+  } else if (elementTop < viewTop) {
     targetScroll = elementTop
   } else if (elementBottom > viewBottom) {
     targetScroll = elementBottom - container.clientHeight
@@ -751,19 +755,24 @@ type AdminMatcherProps = {
   initialImports: StoreListingImportRecord[]
   initialListings: StoreListingRecord[]
   initialWines: WineRecord[]
+  /** Canonical wine to select and scroll into view on open. */
+  focusWineId?: string | null
 }
 
 export function AdminMatcher({
   initialImports,
   initialListings,
   initialWines,
+  focusWineId = null,
 }: AdminMatcherProps) {
   const [imports, setImports] = useState(initialImports)
   const [listings, setListings] = useState(initialListings)
   const [wines, setWines] = useState(initialWines)
   const [selectedImportId, setSelectedImportId] = useState<string | null>(null)
   const [selectedListingId, setSelectedListingId] = useState<string | null>(null)
-  const [selectedWineId, setSelectedWineId] = useState<string | null>(null)
+  const [selectedWineId, setSelectedWineId] = useState<string | null>(() =>
+    focusWineId && initialWines.some((wine) => wine.id === focusWineId) ? focusWineId : null,
+  )
   const [busy, setBusy] = useState(false)
   const [matchError, setMatchError] = useState<string | null>(null)
   const [unmatchedOnly, setUnmatchedOnly] = useState(false)
@@ -876,6 +885,7 @@ export function AdminMatcher({
 
   const wineRowRefs = useRef(new Map<string, HTMLDivElement>())
   const canonicalScrollRef = useRef<HTMLDivElement>(null)
+  const didFocusWineRef = useRef(false)
 
   const showMatchSuggestions = Boolean(selectedListing && !selectedListing.wine_id)
   const showImportMatchSuggestions = Boolean(
@@ -907,6 +917,15 @@ export function AdminMatcher({
 
     scrollContainerToElement(container, row, MATCHED_WINE_SCROLL_MS)
   }, [selectedListing, selectedListingId, selectedWineId])
+
+  useLayoutEffect(() => {
+    if (!focusWineId || didFocusWineRef.current) return
+    const container = canonicalScrollRef.current
+    const row = wineRowRefs.current.get(focusWineId)
+    if (!container || !row) return
+    didFocusWineRef.current = true
+    scrollContainerToElement(container, row, 400, 'start')
+  }, [focusWineId, visibleWines])
 
   function setWineRowRef(wineId: string, element: HTMLDivElement | null) {
     if (element) wineRowRefs.current.set(wineId, element)

@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { SharedWineList } from '@/components/preview/shared-wine-list'
 import { PreviewThemeProvider } from '@/components/preview/preview-theme-context'
 import { getPreviewSession } from '@/lib/auth/preview-session'
+import { isAdminUserId } from '@/lib/user'
 import { loadSharedListPageData } from '@/lib/share/load-shared-list'
 
 export const dynamic = 'force-dynamic'
@@ -57,6 +58,7 @@ export default async function SharePage({ params }: SharePageProps) {
         collectionLabels={data.collectionLabels}
         sharePath={nextPath}
         isLoggedIn={session.isLoggedIn}
+        isAdmin={session.isLoggedIn && isAdminUserId(session.userId)}
         userId={session.userId ?? ''}
         userName={session.userName ?? ''}
         userEmail={session.userEmail ?? ''}

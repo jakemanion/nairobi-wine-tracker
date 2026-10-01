@@ -25,6 +25,7 @@ type SharedWineListProps = {
   collectionLabels: string[]
   sharePath: string
   isLoggedIn: boolean
+  isAdmin?: boolean
   userId: string
   userName: string
   userEmail: string
@@ -47,6 +48,7 @@ export function SharedWineList({
   collectionLabels,
   sharePath,
   isLoggedIn,
+  isAdmin = false,
   userId,
   userName,
   userEmail,
@@ -208,6 +210,7 @@ export function SharedWineList({
               previewWines={previewWines}
               winesById={winesById}
               isLoggedIn={isLoggedIn}
+              isAdmin={isAdmin}
               userId={userId}
               gapPx={listGapPx}
               resetKey={searchQuery}

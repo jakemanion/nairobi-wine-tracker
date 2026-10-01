@@ -17,6 +17,7 @@ type PreviewVirtualWineListProps = {
   previewWines: PreviewWineCardData[]
   winesById: Map<string, WineRow>
   isLoggedIn: boolean
+  isAdmin?: boolean
   userId: string
   /** Vertical gap between cards (matches former space-y utility). */
   gapPx: number
@@ -29,6 +30,7 @@ export function PreviewVirtualWineList({
   previewWines,
   winesById,
   isLoggedIn,
+  isAdmin = false,
   userId,
   gapPx,
   resetKey,
@@ -105,6 +107,7 @@ export function PreviewVirtualWineList({
             <PreviewWineCard
               wine={wine}
               isLoggedIn={isLoggedIn}
+              isAdmin={isAdmin}
               userId={userId}
               review={isLoggedIn ? source?.review : undefined}
               imagePriority={virtualRow.index < EAGER_IMAGE_COUNT}
