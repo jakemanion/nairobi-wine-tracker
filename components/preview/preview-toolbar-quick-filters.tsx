@@ -550,16 +550,13 @@ export function PreviewToolbarQuickFilters({
   const selectedShops = allShopsEnabled
     ? []
     : stores.filter((store) => !filters.disabledStores.includes(store))
+  const grapesAllSelected = filters.grapes.length === 0
   const selectedGrapes =
-    filters.grapes.length === 0
-      ? grapes
-      : filters.grapes.includes(GRAPE_FILTER_NONE)
-        ? []
-        : filters.grapes
-  const selectedCountriesForUi = filters.regions.includes(countryFilterValue(COUNTRY_FILTER_NONE))
-    ? []
-    : filters.regions.length === 0
-      ? countries
+    grapesAllSelected || filters.grapes.includes(GRAPE_FILTER_NONE) ? [] : filters.grapes
+  const countriesAllSelected = filters.regions.length === 0
+  const selectedCountriesForUi =
+    countriesAllSelected || filters.regions.includes(countryFilterValue(COUNTRY_FILTER_NONE))
+      ? []
       : selectedCountries
   const bestUnderValue = activeBestUnderPrice(filters, primarySort)
   const visibleTab = !isLoggedIn && activeTab === 'my-wines' ? 'shops' : activeTab
@@ -590,10 +587,6 @@ export function PreviewToolbarQuickFilters({
   }
 
   function applyGrapeSelection(next: string[]) {
-    if (next.length === grapes.length) {
-      updateFilters({ grapes: [] })
-      return
-    }
     if (next.length === 0) {
       updateFilters({ grapes: [GRAPE_FILTER_NONE] })
       return
@@ -601,16 +594,20 @@ export function PreviewToolbarQuickFilters({
     updateFilters({ grapes: next })
   }
 
+  function selectAllGrapes() {
+    updateFilters({ grapes: [] })
+  }
+
   function applyCountrySelection(next: string[]) {
-    if (next.length === countries.length) {
-      updateFilters({ regions: [] })
-      return
-    }
     if (next.length === 0) {
       updateFilters({ regions: [countryFilterValue(COUNTRY_FILTER_NONE)] })
       return
     }
     updateFilters({ regions: countryFiltersFromSelection(next) })
+  }
+
+  function selectAllCountries() {
+    updateFilters({ regions: [] })
   }
 
   const tabs: Array<{ id: FilterTabId; label: string }> = [
@@ -738,7 +735,9 @@ export function PreviewToolbarQuickFilters({
                   emptyMessage="No grapes in list"
                   options={grapes}
                   selected={selectedGrapes}
+                  selectAllActive={grapesAllSelected}
                   onChange={applyGrapeSelection}
+                  onSelectAll={selectAllGrapes}
                   selectAllLabel="All"
                 />
               </UsageTipTarget>
@@ -750,7 +749,9 @@ export function PreviewToolbarQuickFilters({
                   emptyMessage="No countries in list"
                   options={countries}
                   selected={selectedCountriesForUi}
+                  selectAllActive={countriesAllSelected}
                   onChange={applyCountrySelection}
+                  onSelectAll={selectAllCountries}
                   selectAllLabel="All"
                 />
               </UsageTipTarget>

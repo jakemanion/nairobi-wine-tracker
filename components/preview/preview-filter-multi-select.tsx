@@ -35,9 +35,16 @@ type PreviewFilterMultiSelectProps = {
   selected: string[]
   onChange: (selected: string[]) => void
   formatSelectedLabel?: (value: string) => string
-  /** When set, shows an All option that selects/deselects every item. */
+  /** When set, shows an exclusive All option. */
   selectAllLabel?: string
-  /** Trigger label when every option is selected. Defaults to `${label}: ${selectAllLabel}`. */
+  /**
+   * True when All is the active choice. Other options are unchecked and muted
+   * until a specific option is chosen.
+   */
+  selectAllActive?: boolean
+  /** Turns All on and clears specific options. */
+  onSelectAll?: () => void
+  /** Trigger label when All is selected. Defaults to `${label}: ${selectAllLabel}`. */
   allSelectedLabel?: string
 }
 
@@ -84,6 +91,8 @@ export function PreviewFilterMultiSelect({
   onChange,
   formatSelectedLabel,
   selectAllLabel,
+  selectAllActive = false,
+  onSelectAll,
   allSelectedLabel,
 }: PreviewFilterMultiSelectProps) {
   const [open, setOpen] = useState(false)
@@ -95,11 +104,14 @@ export function PreviewFilterMultiSelect({
 
   const allOptions = flatOptions(options, groups)
   const allValues = allOptions.map((option) => option.value)
-  const allSelected =
-    allValues.length > 0 && allValues.every((value) => selected.includes(value))
+  const exclusiveAll = selectAllLabel != null && onSelectAll != null
+  const allSelected = exclusiveAll
+    ? selectAllActive
+    : allValues.length > 0 && allValues.every((value) => selected.includes(value))
   const hasSelection = selected.length > 0
   const isPartialSelection = selectAllLabel ? hasSelection && !allSelected : hasSelection
-  const isActive = hasSelection
+  const isActive = allSelected || hasSelection
+  const muteOptions = exclusiveAll && allSelected
   const triggerLabel = selectAllLabel
     ? allSelected
       ? allSelectedLabel ?? `${label}: ${selectAllLabel}`
@@ -184,15 +196,35 @@ export function PreviewFilterMultiSelect({
   }
 
   function clearSelection() {
+    if (onSelectAll) {
+      onSelectAll()
+      return
+    }
     onChange(selectAllLabel ? allValues : [])
   }
 
   function toggleSelectAll() {
-    onChange(allSelected ? [] : allValues)
+    if (allSelected) {
+      onChange([])
+      return
+    }
+    if (onSelectAll) {
+      onSelectAll()
+      return
+    }
+    onChange(allValues)
+  }
+
+  function toggleSpecificOption(value: string) {
+    if (muteOptions) {
+      onChange([value])
+      return
+    }
+    onChange(toggleOption(selected, value))
   }
 
   function renderOption(option: FilterMultiSelectOption) {
-    const checked = selected.includes(option.value)
+    const checked = muteOptions ? false : selected.includes(option.value)
     return (
       <label
         key={option.value}
@@ -201,14 +233,16 @@ export function PreviewFilterMultiSelect({
         style={{
           ...optionStyle,
           background: checked ? `${colors.accent}14` : 'transparent',
+          color: muteOptions ? colors.muted : colors.summaryStrong,
+          opacity: muteOptions ? 0.45 : 1,
         }}
       >
         <input
           type="checkbox"
           checked={checked}
           className="accent-current"
-          style={{ accentColor: colors.accent }}
-          onChange={() => onChange(toggleOption(selected, option.value))}
+          style={{ accentColor: muteOptions ? colors.muted : colors.accent }}
+          onChange={() => toggleSpecificOption(option.value)}
         />
         <span className="truncate">{option.label}</span>
       </label>
