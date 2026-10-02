@@ -277,9 +277,9 @@ function WineStarRating({
   )
 
   return (
-    <div className="flex flex-col items-center flex-shrink-0 pt-0.5">
+    <div className="flex flex-row items-center gap-2 flex-shrink-0 max-sm:flex-wrap sm:flex-col sm:items-center sm:gap-0 sm:pt-0.5">
       <InstantTooltip label="This wine's value based on its quality and price">
-        <div style={{ marginBottom: 6 }}>
+        <div className="sm:mb-1.5">
           <StarRatingMeter
             starRating={valueStars}
             label="Value"
@@ -304,14 +304,14 @@ function WineStarRating({
           href={vivinoUrl}
           target="_blank"
           rel="noreferrer"
-          className="no-underline text-inherit hover:underline mt-1.5"
+          className="no-underline text-inherit hover:underline max-sm:ml-0.5 sm:mt-1.5"
           title="View on Vivino"
           aria-label={hasVivino ? `${vivinoRating!.toFixed(1)} on Vivino` : 'View on Vivino'}
         >
           {vivinoLine}
         </a>
       ) : hasVivino ? (
-        <div className="mt-1.5">{vivinoLine}</div>
+        <div className="max-sm:ml-0.5 sm:mt-1.5">{vivinoLine}</div>
       ) : null}
     </div>
   )
@@ -626,7 +626,7 @@ export function PreviewWineCard({
       ) : null}
 
     <div
-      className="relative flex items-stretch overflow-hidden"
+      className="relative flex flex-col sm:flex-row items-stretch overflow-hidden"
       style={{
         background: colors.cardBg,
         ...cardBorderStyle,
@@ -654,20 +654,21 @@ export function PreviewWineCard({
         </div>
       ) : null}
 
-      <div
-        className="w-14 sm:w-[96px] flex-shrink-0 self-stretch relative sm:min-h-[112px]"
-        style={{ background: colors.imageColumnBg }}
-      >
-        <PreviewBottleImage
-          src={wine.image}
-          alt={wine.name}
-          priority={imagePriority}
-        />
-      </div>
-
-      <div className="flex flex-col sm:flex-row items-stretch min-w-0 flex-1">
+      {/* Mobile: image | (ratings + info). Desktop: contents so image + info sit beside review. */}
+      <div className="flex items-stretch min-w-0 flex-1 sm:contents">
         <div
-          className={`flex-1 min-w-0 pl-0 pr-3.5 py-2.5 flex flex-col justify-between gap-1.5 relative ${
+          className="w-14 sm:w-[96px] flex-shrink-0 self-stretch relative sm:min-h-[112px]"
+          style={{ background: colors.imageColumnBg }}
+        >
+          <PreviewBottleImage
+            src={wine.image}
+            alt={wine.name}
+            priority={imagePriority}
+          />
+        </div>
+
+        <div
+          className={`flex-1 min-w-0 pl-0 pr-3.5 py-2.5 flex flex-col gap-1.5 relative sm:flex-row sm:items-start sm:justify-between sm:gap-2.5 ${
             visualStyle === 'trial' ? '' : 'sm:border-r'
           }`}
           style={{
@@ -676,56 +677,71 @@ export function PreviewWineCard({
             ...(visualStyle === 'trial' ? {} : { borderColor: colors.infoBorder }),
           }}
         >
-        {(isAdmin || isLoggedIn) ? (
+          {(isAdmin || isLoggedIn) ? (
+            <div className="absolute top-2 right-2 z-10 flex items-center gap-1">
+              {isLoggedIn ? (
+                <ReportErrorButton
+                  wineId={wine.id}
+                  wineLabel={`${wine.producer} ${wine.name}`.trim()}
+                  alreadyReported={hasOpenReport}
+                />
+              ) : null}
+              {isAdmin ? (
+                <InstantTooltip label="Edit in admin">
+                  <a
+                    href={`/admin?wine=${encodeURIComponent(wine.id)}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label={`Edit ${wine.name} in admin`}
+                    className="inline-flex items-center gap-1 no-underline"
+                    style={{
+                      height: 18,
+                      padding: '0 6px',
+                      borderRadius: colors.panelRadius,
+                      background: colors.buttonBg,
+                      border: `1px solid ${colors.buttonBorder}`,
+                      color: colors.buttonText,
+                      fontFamily: 'var(--font-dm-sans), sans-serif',
+                      fontSize: 10,
+                      lineHeight: 1,
+                    }}
+                  >
+                    <Pencil size={10} strokeWidth={2} aria-hidden />
+                    Edit
+                  </a>
+                </InstantTooltip>
+              ) : null}
+            </div>
+          ) : null}
+
+          {/* Row 1 on mobile: ratings. Column on desktop. */}
           <div
-            className="absolute top-2 right-2 z-10 flex items-center gap-1"
+            className={
+              isAdmin && isLoggedIn
+                ? 'pr-[7.5rem] sm:pr-0'
+                : isAdmin || isLoggedIn
+                  ? 'pr-14 sm:pr-0'
+                  : undefined
+            }
           >
-            {isLoggedIn ? (
-              <ReportErrorButton
-                wineId={wine.id}
-                wineLabel={`${wine.producer} ${wine.name}`.trim()}
-                alreadyReported={hasOpenReport}
-              />
-            ) : null}
-            {isAdmin ? (
-              <InstantTooltip label="Edit in admin">
-                <a
-                  href={`/admin?wine=${encodeURIComponent(wine.id)}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  aria-label={`Edit ${wine.name} in admin`}
-                  className="inline-flex items-center gap-1 no-underline"
-                  style={{
-                    height: 18,
-                    padding: '0 6px',
-                    borderRadius: colors.panelRadius,
-                    background: colors.buttonBg,
-                    border: `1px solid ${colors.buttonBorder}`,
-                    color: colors.buttonText,
-                    fontFamily: 'var(--font-dm-sans), sans-serif',
-                    fontSize: 10,
-                    lineHeight: 1,
-                  }}
-                >
-                  <Pencil size={10} strokeWidth={2} aria-hidden />
-                  Edit
-                </a>
-              </InstantTooltip>
-            ) : null}
+            <WineStarRating
+              vivinoRating={wine.vivinoRating}
+              vivinoUrl={wine.vivinoUrl}
+              valueScore={wine.valueScore}
+              mutedColor={infoMuted}
+            />
           </div>
-        ) : null}
-        <div
-          className={`flex items-start gap-2.5 ${
-            isAdmin && isLoggedIn ? 'pr-[7.5rem]' : isAdmin || isLoggedIn ? 'pr-14' : 'pr-2'
-          }`}
-        >
-          <WineStarRating
-            vivinoRating={wine.vivinoRating}
-            vivinoUrl={wine.vivinoUrl}
-            valueScore={wine.valueScore}
-            mutedColor={infoMuted}
-          />
-          <div className="flex-1 min-w-0 flex flex-col gap-1.5 pt-0.5">
+
+          {/* Row 2 on mobile: wine info. */}
+          <div
+            className={`flex-1 min-w-0 flex flex-col gap-1.5 pt-0.5 ${
+              isAdmin && isLoggedIn
+                ? 'sm:pr-[7.5rem]'
+                : isAdmin || isLoggedIn
+                  ? 'sm:pr-14'
+                  : 'sm:pr-2'
+            }`}
+          >
             <p
               className="text-[9px] font-semibold uppercase tracking-[0.14em] leading-none"
               style={{ color: infoProducer, fontFamily: 'var(--font-dm-sans), sans-serif' }}
@@ -835,7 +851,7 @@ export function PreviewWineCard({
             </div>
           </div>
         </div>
-        </div>
+      </div>
 
       <div
         className={`relative w-full flex-shrink-0 px-2.5 pt-1.5 pb-2.5 flex flex-col gap-1.5 transition-colors duration-300 min-w-0 group/review-panel border-t sm:border-t-0 max-sm:!w-full ${
@@ -969,7 +985,6 @@ export function PreviewWineCard({
             </div>
           </>
         )}
-      </div>
       </div>
     </div>
     </div>
