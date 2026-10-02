@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { requireAdminAccess, getSessionUserId, ADMIN_UNAUTHORIZED_MESSAGE } from '@/lib/auth/admin'
-import { WINE_REPORT_ISSUE_TYPES, type WineReportIssueType } from '@/lib/reports/constants'
+import { type WineReportIssueType } from '@/lib/reports/constants'
 import type {
   OpenReportCounts,
   WineReportAdminRow,
@@ -491,5 +491,3 @@ export async function listAdminStoresForFilter(): Promise<{
     }
   }
 }
-
-export { WINE_REPORT_ISSUE_TYPES }
