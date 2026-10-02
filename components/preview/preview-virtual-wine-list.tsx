@@ -10,8 +10,8 @@ import type { PreviewWineCardData } from '@/lib/preview/wine-card-model'
 export const EAGER_IMAGE_COUNT = 5
 
 const OVERSCAN = 8
-/** Typical card height before measureElement runs (excludes gap). */
-const ESTIMATED_CARD_HEIGHT = 148
+/** Typical card height before measureElement runs (excludes gap). Mobile stacks the review panel, so estimate a bit taller. */
+const ESTIMATED_CARD_HEIGHT = 168
 
 type PreviewVirtualWineListProps = {
   previewWines: PreviewWineCardData[]

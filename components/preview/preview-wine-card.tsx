@@ -524,6 +524,9 @@ export function PreviewWineCard({
   const infoGrapeBorder = infoOnDark ? 'rgba(255,255,255,0.12)' : colors.grapeBorder
   const infoGrapeText = infoOnDark ? '#E8E4DC' : colors.grapeText
   const priceAmountColor = colors.priceAmount
+  const reviewPanelStyle = getReviewPanelStyle(panelTint, mode, visualStyle)
+  // Drop trial's desktop left stroke so mobile can use a top divider instead.
+  const { borderLeft: _reviewPanelBorderLeft, ...reviewPanelSurface } = reviewPanelStyle
 
   const [notesDraft, setNotesDraft] = useState(review?.tasting_notes ?? '')
   const [savingNotes, setSavingNotes] = useState(false)
@@ -652,7 +655,7 @@ export function PreviewWineCard({
       ) : null}
 
       <div
-        className="w-[96px] flex-shrink-0 self-stretch relative min-h-[112px]"
+        className="w-14 sm:w-[96px] flex-shrink-0 self-stretch relative sm:min-h-[112px]"
         style={{ background: colors.imageColumnBg }}
       >
         <PreviewBottleImage
@@ -662,14 +665,17 @@ export function PreviewWineCard({
         />
       </div>
 
-      <div
-        className="flex-1 min-w-0 pl-0 pr-3.5 py-2.5 flex flex-col justify-between gap-1.5 relative"
-        style={{
-          background: colors.wineInfoBg,
-          boxShadow: colors.wineInfoSheen,
-          borderRight: visualStyle === 'trial' ? undefined : `1px solid ${colors.infoBorder}`,
-        }}
-      >
+      <div className="flex flex-col sm:flex-row items-stretch min-w-0 flex-1">
+        <div
+          className={`flex-1 min-w-0 pl-0 pr-3.5 py-2.5 flex flex-col justify-between gap-1.5 relative ${
+            visualStyle === 'trial' ? '' : 'sm:border-r'
+          }`}
+          style={{
+            background: colors.wineInfoBg,
+            boxShadow: colors.wineInfoSheen,
+            ...(visualStyle === 'trial' ? {} : { borderColor: colors.infoBorder }),
+          }}
+        >
         {(isAdmin || isLoggedIn) ? (
           <div
             className="absolute top-2 right-2 z-10 flex items-center gap-1"
@@ -829,13 +835,17 @@ export function PreviewWineCard({
             </div>
           </div>
         </div>
-      </div>
+        </div>
 
       <div
-        className="relative flex-shrink-0 px-2.5 pt-1.5 pb-2.5 flex flex-col gap-1.5 transition-colors duration-300 min-w-0 group/review-panel"
+        className={`relative w-full flex-shrink-0 px-2.5 pt-1.5 pb-2.5 flex flex-col gap-1.5 transition-colors duration-300 min-w-0 group/review-panel border-t sm:border-t-0 max-sm:!w-full ${
+          visualStyle === 'trial' ? 'sm:border-l sm:border-[#E4E4EE]' : ''
+        }`}
         style={{
+          ...reviewPanelSurface,
+          borderColor: colors.infoBorder,
+          // REVIEW_PANEL_WIDTH on desktop; max-sm:!w-full overrides below the breakpoint.
           width: REVIEW_PANEL_WIDTH,
-          ...getReviewPanelStyle(panelTint, mode, visualStyle),
         }}
       >
         {!interactiveReady ? (
@@ -959,6 +969,7 @@ export function PreviewWineCard({
             </div>
           </>
         )}
+      </div>
       </div>
     </div>
     </div>
