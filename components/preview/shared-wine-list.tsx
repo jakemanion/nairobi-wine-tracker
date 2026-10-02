@@ -6,6 +6,7 @@ import { Search } from 'lucide-react'
 import { BrandLogo } from '@/components/brand-logo'
 import { LoginNavLink } from '@/components/auth/login-nav-link'
 import { RegisterNavLink } from '@/components/auth/register-nav-link'
+import { AdminVersionBadge } from '@/components/preview/admin-version-badge'
 import { PreviewUserMenu } from '@/components/preview/preview-user-menu'
 import { PreviewVirtualWineList } from '@/components/preview/preview-virtual-wine-list'
 import { UsageTipsProvider } from '@/components/preview/usage-tips-context'
@@ -102,14 +103,17 @@ export function SharedWineList({
               <div className="min-w-0 flex-shrink-0 flex items-center gap-2.5">
                 <BrandLogo height={40} />
                 <div className="min-w-0">
-                  <Link href="/" className="no-underline">
-                    <h1
-                      className="text-base font-semibold leading-none truncate"
-                      style={{ color: colors.headerTitle, fontFamily: colors.headingFont }}
-                    >
-                      WineDiviner: Nairobi
-                    </h1>
-                  </Link>
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Link href="/" className="no-underline min-w-0">
+                      <h1
+                        className="text-base font-semibold leading-none truncate"
+                        style={{ color: colors.headerTitle, fontFamily: colors.headingFont }}
+                      >
+                        WineDiviner: Nairobi
+                      </h1>
+                    </Link>
+                    {isAdmin ? <AdminVersionBadge colors={colors} /> : null}
+                  </div>
                   <p className="text-[10px] mt-1 truncate" style={{ color: colors.headerSub }}>
                     Shared wine list
                   </p>

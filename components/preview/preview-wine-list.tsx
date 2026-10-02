@@ -5,6 +5,7 @@ import { Search, Share2 } from 'lucide-react'
 import { BrandLogo } from '@/components/brand-logo'
 import { LoginNavLink } from '@/components/auth/login-nav-link'
 import { RegisterNavLink } from '@/components/auth/register-nav-link'
+import { AdminVersionBadge } from '@/components/preview/admin-version-badge'
 import { PreviewToolbar } from '@/components/preview/preview-toolbar'
 import { PreviewUserMenu } from '@/components/preview/preview-user-menu'
 import { PreviewVirtualWineList } from '@/components/preview/preview-virtual-wine-list'
@@ -136,12 +137,15 @@ export function PreviewWineList({
             <div className="min-w-0 flex-shrink-0 flex items-center gap-2.5">
               <BrandLogo height={40} />
               <div className="min-w-0">
-                <h1
-                  className="text-base font-semibold leading-none truncate"
-                  style={{ color: colors.headerTitle, fontFamily: colors.headingFont }}
-                >
-                  WineDiviner: Nairobi
-                </h1>
+                <div className="flex items-center gap-2 min-w-0">
+                  <h1
+                    className="text-base font-semibold leading-none truncate"
+                    style={{ color: colors.headerTitle, fontFamily: colors.headingFont }}
+                  >
+                    WineDiviner: Nairobi
+                  </h1>
+                  {isAdmin ? <AdminVersionBadge colors={colors} /> : null}
+                </div>
                 <p className="text-[10px] mt-1 truncate" style={{ color: colors.headerSub }}>
                   Find Nairobi&apos;s best bottles for your budget
                 </p>
