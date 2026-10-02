@@ -678,7 +678,7 @@ export function PreviewWineCard({
           }}
         >
           {(isAdmin || isLoggedIn) ? (
-            <div className="absolute top-2 right-2 z-10 flex items-center gap-1">
+            <div className="absolute top-2 right-2 z-10 hidden sm:flex items-center gap-1">
               {isLoggedIn ? (
                 <ReportErrorButton
                   wineId={wine.id}
@@ -715,22 +715,12 @@ export function PreviewWineCard({
           ) : null}
 
           {/* Row 1 on mobile: ratings. Column on desktop. */}
-          <div
-            className={
-              isAdmin && isLoggedIn
-                ? 'pr-[7.5rem] sm:pr-0'
-                : isAdmin || isLoggedIn
-                  ? 'pr-14 sm:pr-0'
-                  : undefined
-            }
-          >
-            <WineStarRating
-              vivinoRating={wine.vivinoRating}
-              vivinoUrl={wine.vivinoUrl}
-              valueScore={wine.valueScore}
-              mutedColor={infoMuted}
-            />
-          </div>
+          <WineStarRating
+            vivinoRating={wine.vivinoRating}
+            vivinoUrl={wine.vivinoUrl}
+            valueScore={wine.valueScore}
+            mutedColor={infoMuted}
+          />
 
           {/* Row 2 on mobile: wine info. */}
           <div
