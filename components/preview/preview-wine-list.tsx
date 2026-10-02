@@ -40,6 +40,7 @@ type PreviewWineListProps = {
   userId: string
   userName: string
   userEmail: string
+  reportedWineIds?: string[]
 }
 
 function updateWineReview(
@@ -61,11 +62,13 @@ export function PreviewWineList({
   userId,
   userName,
   userEmail,
+  reportedWineIds = [],
 }: PreviewWineListProps) {
   const { colors, visualStyle } = usePreviewTheme()
   const [wines, setWines] = useState<DisplayWineRow[]>(() =>
     initialWines.map(withComputedValueScore),
   )
+  const reportedWineIdSet = useMemo(() => new Set(reportedWineIds), [reportedWineIds])
   const [filters, setFilters] = useState<WineFilters>(EMPTY_WINE_FILTERS)
   const [searchQuery, setSearchQuery] = useState('')
   const [primarySort, setPrimarySort] = useState<SortCriterion>({ key: 'value_score', dir: 'desc' })
@@ -236,6 +239,7 @@ export function PreviewWineList({
             userId={userId}
             gapPx={listGapPx}
             resetKey={listResetKey}
+            reportedWineIds={reportedWineIdSet}
             onReviewChange={(wineId, review) =>
               setWines((current) => updateWineReview(current, wineId, review))
             }

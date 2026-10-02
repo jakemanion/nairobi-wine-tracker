@@ -4,6 +4,7 @@ import { PreviewThemeProvider } from '@/components/preview/preview-theme-context
 import type { WineReview, WineRow } from '@/components/wine-table'
 import { getPreviewSession } from '@/lib/auth/preview-session'
 import { isAdminUserId } from '@/lib/user'
+import { getMyOpenReportedWineIds } from '@/lib/reports/report-actions'
 import { createServerReadClient } from '@/lib/supabase-server'
 
 export const dynamic = 'force-dynamic'
@@ -99,13 +100,17 @@ export default async function Home() {
         .eq('user_id', session.userId)
     : null
 
-  const [{ data: wines, error: winesError }, reviewsResult] = await Promise.all([
+  const [{ data: wines, error: winesError }, reviewsResult, reportedResult] = await Promise.all([
     winesQuery,
     reviewsQuery ?? Promise.resolve({ data: [], error: null }),
+    session.isLoggedIn
+      ? getMyOpenReportedWineIds()
+      : Promise.resolve({ wineIds: [] as string[] }),
   ])
 
   const error = winesError ?? reviewsResult.error
   const reviews = (reviewsResult.data ?? []) as UserReview[]
+  const reportedWineIds = reportedResult.wineIds
 
   if (error) {
     return (
@@ -132,6 +137,7 @@ export default async function Home() {
         userName={session.userName ?? ''}
         userEmail={session.userEmail ?? ''}
         wines={wineRows}
+        reportedWineIds={reportedWineIds}
       />
     </PreviewThemeProvider>
   )

@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { SharedWineList } from '@/components/preview/shared-wine-list'
 import { PreviewThemeProvider } from '@/components/preview/preview-theme-context'
 import { getPreviewSession } from '@/lib/auth/preview-session'
+import { getMyOpenReportedWineIds } from '@/lib/reports/report-actions'
 import { isAdminUserId } from '@/lib/user'
 import { loadSharedListPageData } from '@/lib/share/load-shared-list'
 
@@ -14,10 +15,15 @@ type SharePageProps = {
 export default async function SharePage({ params }: SharePageProps) {
   const { slug } = await params
   const session = await getPreviewSession()
-  const data = await loadSharedListPageData({
-    slug,
-    viewerUserId: session.isLoggedIn ? session.userId : null,
-  })
+  const [data, reportedResult] = await Promise.all([
+    loadSharedListPageData({
+      slug,
+      viewerUserId: session.isLoggedIn ? session.userId : null,
+    }),
+    session.isLoggedIn
+      ? getMyOpenReportedWineIds()
+      : Promise.resolve({ wineIds: [] as string[] }),
+  ])
 
   if (!data) {
     return (
@@ -62,6 +68,7 @@ export default async function SharePage({ params }: SharePageProps) {
         userId={session.userId ?? ''}
         userName={session.userName ?? ''}
         userEmail={session.userEmail ?? ''}
+        reportedWineIds={reportedResult.wineIds}
       />
     </PreviewThemeProvider>
   )

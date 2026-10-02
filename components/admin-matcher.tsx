@@ -751,12 +751,55 @@ function DeleteIconButton({
   )
 }
 
+function OpenReportFlag({
+  count,
+  kind,
+}: {
+  count: number
+  kind: 'wine' | 'listing'
+}) {
+  if (count <= 0) return null
+  const label =
+    kind === 'wine'
+      ? `${count} open report${count === 1 ? '' : 's'} on this wine`
+      : `${count} open report${count === 1 ? '' : 's'} on this listing`
+  return (
+    <span
+      title={label}
+      aria-label={label}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 3,
+        padding: '0 5px',
+        height: 18,
+        borderRadius: 3,
+        background: '#fff4e5',
+        border: '1px solid #f0c36d',
+        color: '#8a5a00',
+        fontSize: 10,
+        fontWeight: 700,
+        flexShrink: 0,
+        marginLeft: 4,
+      }}
+    >
+      <span aria-hidden>⚑</span>
+      {count}
+      <span style={{ fontWeight: 500, fontSize: 9 }}>
+        {kind === 'wine' ? 'wine' : 'listing'}
+      </span>
+    </span>
+  )
+}
+
 type AdminMatcherProps = {
   initialImports: StoreListingImportRecord[]
   initialListings: StoreListingRecord[]
   initialWines: WineRecord[]
   /** Canonical wine to select and scroll into view on open. */
   focusWineId?: string | null
+  openReportCountsByWineId?: Record<string, number>
+  openReportCountsByListingId?: Record<string, number>
 }
 
 export function AdminMatcher({
@@ -764,6 +807,8 @@ export function AdminMatcher({
   initialListings,
   initialWines,
   focusWineId = null,
+  openReportCountsByWineId = {},
+  openReportCountsByListingId = {},
 }: AdminMatcherProps) {
   const [imports, setImports] = useState(initialImports)
   const [listings, setListings] = useState(initialListings)
@@ -2360,6 +2405,10 @@ export function AdminMatcher({
                                 {matchedLabel ?? '—'}
                               </span>
                             </LabeledField>
+                            <OpenReportFlag
+                              count={openReportCountsByListingId[listing.id] ?? 0}
+                              kind="listing"
+                            />
                           </div>
                           {!isMatched || isSelected ? (
                             <span style={rowActionsColumnStyle}>
@@ -2538,6 +2587,7 @@ export function AdminMatcher({
                         matchedListings={listingsByWineId.get(wine.id) ?? []}
                         isSelected={wine.id === selectedWineId}
                         busy={busy}
+                        openReportCount={openReportCountsByWineId[wine.id] ?? 0}
                         onSelect={() => selectWine(wine)}
                         onToggleRadio={() => toggleWineSelection(wine)}
                         onDelete={() => void handleDeleteWine(wine)}
@@ -2566,6 +2616,7 @@ export function AdminMatcher({
                     matchedListings={listingsByWineId.get(wine.id) ?? []}
                     isSelected={wine.id === selectedWineId}
                     busy={busy}
+                    openReportCount={openReportCountsByWineId[wine.id] ?? 0}
                     rowRef={(element) => setWineRowRef(wine.id, element)}
                     onSelect={() => selectWine(wine)}
                     onToggleRadio={() => toggleWineSelection(wine)}
@@ -2867,6 +2918,7 @@ function CanonicalWineRow({
   isSelected,
   busy,
   variant = 'list',
+  openReportCount = 0,
   rowRef,
   onSelect,
   onToggleRadio,
@@ -2879,6 +2931,7 @@ function CanonicalWineRow({
   isSelected: boolean
   busy: boolean
   variant?: 'list' | 'suggestion'
+  openReportCount?: number
   rowRef?: (element: HTMLDivElement | null) => void
   onSelect: () => void
   onToggleRadio: () => void
@@ -2917,6 +2970,7 @@ function CanonicalWineRow({
   const rowActions = (
     <span style={rowActionsColumnStyle}>
       <span style={rowActionsStyle}>
+        <OpenReportFlag count={openReportCount} kind="wine" />
         <CopyVivinoSearchButton wine={wine} />
         {deleteAction}
       </span>

@@ -29,6 +29,7 @@ type SharedWineListProps = {
   userId: string
   userName: string
   userEmail: string
+  reportedWineIds?: string[]
 }
 
 function updateWineReview(
@@ -52,10 +53,12 @@ export function SharedWineList({
   userId,
   userName,
   userEmail,
+  reportedWineIds = [],
 }: SharedWineListProps) {
   const { colors, visualStyle } = usePreviewTheme()
   const [wines, setWines] = useState<DisplayWineRow[]>(initialWines)
   const [searchQuery, setSearchQuery] = useState('')
+  const reportedWineIdSet = useMemo(() => new Set(reportedWineIds), [reportedWineIds])
 
   const searchIndex = useMemo(() => createWineSearchIndex(wines), [wines])
   const searched = useMemo(() => {
@@ -214,6 +217,7 @@ export function SharedWineList({
               userId={userId}
               gapPx={listGapPx}
               resetKey={searchQuery}
+              reportedWineIds={reportedWineIdSet}
               onReviewChange={(wineId, review) =>
                 setWines((current) => updateWineReview(current, wineId, review))
               }

@@ -5,6 +5,7 @@ import { ExternalLink, EyeOff, MapPin, Pencil, Star } from 'lucide-react'
 import type { WineReview } from '@/components/wine-table'
 import { LoggedOutLoginPromptOverlay } from '@/components/preview/logged-out-login-prompt'
 import { PreviewBottleImage } from '@/components/preview/preview-bottle-image'
+import { ReportErrorButton } from '@/components/preview/report-error-button'
 import {
   getCardBorderColor,
   getReviewPanelStyle,
@@ -44,6 +45,8 @@ type PreviewWineCardProps = {
   review?: WineReview | null
   onReviewChange: (review: WineReview | null) => void
   imagePriority?: boolean
+  /** True when the current user already has an open report for this wine. */
+  hasOpenReport?: boolean
 }
 
 function normalizeTriedStatus(value: number | null | undefined): TriedStatusValue {
@@ -465,6 +468,7 @@ export function PreviewWineCard({
   review,
   onReviewChange,
   imagePriority = false,
+  hasOpenReport = false,
 }: PreviewWineCardProps) {
   const { colors, mode, visualStyle } = usePreviewTheme()
   const { ref: cardRef, near: interactiveReady } = useNearViewport(imagePriority)
@@ -666,34 +670,49 @@ export function PreviewWineCard({
           borderRight: visualStyle === 'trial' ? undefined : `1px solid ${colors.infoBorder}`,
         }}
       >
-        {isAdmin ? (
-          <div className="absolute top-2 right-2 z-10">
-            <InstantTooltip label="Edit in admin">
-              <a
-                href={`/admin?wine=${encodeURIComponent(wine.id)}`}
-                target="_blank"
-                rel="noreferrer"
-                aria-label={`Edit ${wine.name} in admin`}
-                className="inline-flex items-center gap-1 no-underline"
-                style={{
-                  height: 18,
-                  padding: '0 6px',
-                  borderRadius: colors.panelRadius,
-                  background: colors.buttonBg,
-                  border: `1px solid ${colors.buttonBorder}`,
-                  color: colors.buttonText,
-                  fontFamily: 'var(--font-dm-sans), sans-serif',
-                  fontSize: 10,
-                  lineHeight: 1,
-                }}
-              >
-                <Pencil size={10} strokeWidth={2} aria-hidden />
-                Edit
-              </a>
-            </InstantTooltip>
+        {(isAdmin || isLoggedIn) ? (
+          <div
+            className="absolute top-2 right-2 z-10 flex items-center gap-1"
+          >
+            {isLoggedIn ? (
+              <ReportErrorButton
+                wineId={wine.id}
+                wineLabel={`${wine.producer} ${wine.name}`.trim()}
+                alreadyReported={hasOpenReport}
+              />
+            ) : null}
+            {isAdmin ? (
+              <InstantTooltip label="Edit in admin">
+                <a
+                  href={`/admin?wine=${encodeURIComponent(wine.id)}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label={`Edit ${wine.name} in admin`}
+                  className="inline-flex items-center gap-1 no-underline"
+                  style={{
+                    height: 18,
+                    padding: '0 6px',
+                    borderRadius: colors.panelRadius,
+                    background: colors.buttonBg,
+                    border: `1px solid ${colors.buttonBorder}`,
+                    color: colors.buttonText,
+                    fontFamily: 'var(--font-dm-sans), sans-serif',
+                    fontSize: 10,
+                    lineHeight: 1,
+                  }}
+                >
+                  <Pencil size={10} strokeWidth={2} aria-hidden />
+                  Edit
+                </a>
+              </InstantTooltip>
+            ) : null}
           </div>
         ) : null}
-        <div className={`flex items-start gap-2.5 ${isAdmin ? 'pr-14' : 'pr-2'}`}>
+        <div
+          className={`flex items-start gap-2.5 ${
+            isAdmin && isLoggedIn ? 'pr-[7.5rem]' : isAdmin || isLoggedIn ? 'pr-14' : 'pr-2'
+          }`}
+        >
           <WineStarRating
             vivinoRating={wine.vivinoRating}
             vivinoUrl={wine.vivinoUrl}

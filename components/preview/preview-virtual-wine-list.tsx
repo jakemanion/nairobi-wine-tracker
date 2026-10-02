@@ -24,6 +24,7 @@ type PreviewVirtualWineListProps = {
   /** Change when filters/search/sort change so scroll resets to the top. */
   resetKey: string
   onReviewChange: (wineId: string, review: WineReview | null) => void
+  reportedWineIds?: ReadonlySet<string>
 }
 
 export function PreviewVirtualWineList({
@@ -35,6 +36,7 @@ export function PreviewVirtualWineList({
   gapPx,
   resetKey,
   onReviewChange,
+  reportedWineIds,
 }: PreviewVirtualWineListProps) {
   const listRef = useRef<HTMLDivElement>(null)
   const [scrollMargin, setScrollMargin] = useState(0)
@@ -111,6 +113,7 @@ export function PreviewVirtualWineList({
               userId={userId}
               review={isLoggedIn ? source?.review : undefined}
               imagePriority={virtualRow.index < EAGER_IMAGE_COUNT}
+              hasOpenReport={reportedWineIds?.has(wine.id) ?? false}
               onReviewChange={(review) => onReviewChange(wine.id, review)}
             />
           </div>

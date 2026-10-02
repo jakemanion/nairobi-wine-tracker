@@ -6,6 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "scrape:carrefour": "tsx scripts/scrape-carrefour.ts",
     "enrich": "tsx src/index.ts",
     "enrich:first": "tsx src/first-run.ts"
@@ -33,6 +35,7 @@
     "eslint-config-next": "16.2.6",
     "tailwindcss": "^4",
     "tsx": "^4.22.4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^3.2.7"
   }
 }
