@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { Search, SlidersHorizontal } from 'lucide-react'
 import {
   PreviewSortBar,
   PreviewToolbarQuickFilters,
@@ -32,6 +33,8 @@ type PreviewToolbarProps = {
   resultCount: number
   priceBounds: { min: number; max: number; median: number } | null
   isLoggedIn?: boolean
+  searchQuery: string
+  onSearchChange: (query: string) => void
 }
 
 export function PreviewToolbar({
@@ -45,9 +48,12 @@ export function PreviewToolbar({
   resultCount,
   priceBounds,
   isLoggedIn = false,
+  searchQuery,
+  onSearchChange,
 }: PreviewToolbarProps) {
   const { colors, visualStyle } = usePreviewTheme()
   const [filtersVisible, setFiltersVisible] = useState(true)
+  const [mobileTabsOpen, setMobileTabsOpen] = useState(false)
   const toolsActive = activeFilterCount > 0
   const summaryParts = buildListStateSummaryParts({
     filters,
@@ -59,12 +65,69 @@ export function PreviewToolbar({
   })
   const summaryText = summaryParts.join(' · ')
 
+  const mobileSearchRow = (
+    <>
+      <div className="relative min-w-0 flex-1">
+        <Search
+          className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2"
+          style={{ color: colors.searchPlaceholder }}
+        />
+        <input
+          type="search"
+          value={searchQuery}
+          placeholder="Search wines"
+          aria-label="Search producer or wine name"
+          className="w-full py-1.5 pl-8 pr-3 text-sm focus:outline-none"
+          style={{
+            background: colors.searchBg,
+            border: `1px solid ${colors.searchBorder}`,
+            color: colors.searchText,
+            borderRadius: colors.panelRadius,
+            fontFamily: 'var(--font-dm-sans), sans-serif',
+          }}
+          onChange={(event) => onSearchChange(event.target.value)}
+        />
+      </div>
+      <button
+        type="button"
+        aria-expanded={mobileTabsOpen}
+        aria-controls="preview-filter-tabs"
+        onClick={() => setMobileTabsOpen((open) => !open)}
+        className="inline-flex flex-shrink-0 items-center gap-1"
+        style={{
+          height: 34,
+          padding: '0 10px',
+          fontSize: 11,
+          lineHeight: 1.2,
+          borderRadius: colors.panelRadius,
+          cursor: 'pointer',
+          fontFamily: 'var(--font-dm-sans), sans-serif',
+          background: mobileTabsOpen || toolsActive ? '#ffffff' : colors.buttonBg,
+          border: `1px solid ${
+            mobileTabsOpen || toolsActive ? colors.accent : colors.buttonBorder
+          }`,
+          color: colors.summaryStrong,
+          whiteSpace: 'nowrap',
+        }}
+      >
+        <SlidersHorizontal size={13} strokeWidth={2} aria-hidden />
+        Filters
+        {activeFilterCount > 0 ? (
+          <span aria-hidden style={{ color: colors.accent, fontWeight: 700 }}>
+            {activeFilterCount}
+          </span>
+        ) : null}
+      </button>
+    </>
+  )
+
   return (
     <div>
       <div
         id="preview-filter-panel"
-        className="overflow-hidden"
-        hidden={!filtersVisible}
+        className={`preview-filter-panel-shell overflow-hidden ${
+          filtersVisible ? '' : 'hidden max-sm:!block'
+        }`}
         style={{
           border: `1px solid ${
             visualStyle === 'trial'
@@ -91,10 +154,12 @@ export function PreviewToolbar({
           onPrimarySortChange={onPrimarySortChange}
           onSecondarySortChange={onSecondarySortChange}
           isLoggedIn={isLoggedIn}
+          tabsOpen={mobileTabsOpen}
+          mobileSearchRow={mobileSearchRow}
         />
       </div>
       <div
-        className={`grid min-w-0 grid-cols-[minmax(0,1fr)_minmax(0,2fr)_minmax(0,1fr)] items-center gap-2 px-1 ${filtersVisible ? 'pt-1.5' : ''}`}
+        className={`grid min-w-0 grid-cols-[minmax(0,1fr)_minmax(0,2fr)_minmax(0,1fr)] items-center gap-2 px-1 ${filtersVisible ? 'pt-1.5' : 'max-sm:pt-1.5'}`}
       >
         <div className="justify-self-start self-center">
           <PreviewSortBar
@@ -131,7 +196,7 @@ export function PreviewToolbar({
           aria-expanded={filtersVisible}
           aria-controls="preview-filter-panel"
           onClick={() => setFiltersVisible((visible) => !visible)}
-          className="justify-self-end self-center"
+          className="hidden justify-self-end self-center sm:inline-flex"
           style={{
             height: 22,
             padding: '0 8px',

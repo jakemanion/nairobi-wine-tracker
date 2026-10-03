@@ -30,5 +30,15 @@ body {
     width: 100% !important;
     flex-basis: 100% !important;
     max-width: 100% !important;
+    border-left: none !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  .preview-filter-panel-shell {
+    border: none !important;
+    background: transparent !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
   }
 }

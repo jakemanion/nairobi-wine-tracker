@@ -151,9 +151,9 @@ export function PreviewWineList({
                 </p>
               </div>
             </div>
-            <div className="relative flex-1 max-w-xs">
+            <div className="relative hidden max-w-xs flex-1 sm:block">
               <Search
-                className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 pointer-events-none"
+                className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2"
                 style={{ color: colors.searchPlaceholder }}
               />
               <input
@@ -161,7 +161,7 @@ export function PreviewWineList({
                 value={searchQuery}
                 placeholder="Search wine names and producers"
                 aria-label="Search producer or wine name"
-                className="w-full text-sm pl-8 pr-3 py-1.5 focus:outline-none"
+                className="w-full py-1.5 pl-8 pr-3 text-sm focus:outline-none"
                 style={{
                   background: colors.searchBg,
                   border: `1px solid ${colors.searchBorder}`,
@@ -209,7 +209,10 @@ export function PreviewWineList({
           </div>
         </header>
 
-        <div className="mx-auto pl-10 pr-6 pt-2 pb-4" style={{ maxWidth: PREVIEW_CONTENT_MAX_WIDTH }}>
+        <div
+          className="mx-auto px-3 pt-2 pb-4 sm:pl-10 sm:pr-6"
+          style={{ maxWidth: PREVIEW_CONTENT_MAX_WIDTH }}
+        >
           <PreviewToolbar
             activeFilterCount={activeFilterCount}
             filters={filters}
@@ -221,6 +224,8 @@ export function PreviewWineList({
             resultCount={previewWines.length}
             priceBounds={priceBounds}
             isLoggedIn={isLoggedIn}
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
           />
         </div>
       </div>

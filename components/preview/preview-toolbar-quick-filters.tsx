@@ -50,6 +50,10 @@ type PreviewToolbarQuickFiltersProps = {
   onPrimarySortChange: (next: SortCriterion) => void
   onSecondarySortChange: (next: SortCriterion) => void
   isLoggedIn?: boolean
+  /** Mobile: whether the shops/price/wine tabs panel is open. Desktop always shows tabs. */
+  tabsOpen?: boolean
+  /** Mobile-only row rendered between quick chips and the tabs panel. */
+  mobileSearchRow?: ReactNode
 }
 
 type FilterTabId = 'shops' | 'price' | 'wine' | 'my-wines'
@@ -336,7 +340,11 @@ function ColourStyleToggles({
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Wine type">
+    <div
+      className="flex flex-nowrap items-center gap-1.5 sm:flex-wrap"
+      role="group"
+      aria-label="Wine type"
+    >
       <span
         className="flex-none"
         style={{
@@ -432,7 +440,11 @@ function BestUnderToggles({
   onSelect: (price: number | null) => void
 }) {
   return (
-    <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Best bottles under">
+    <div
+      className="flex flex-nowrap items-center gap-1.5 sm:flex-wrap"
+      role="group"
+      aria-label="Best bottles under"
+    >
       <span
         className="flex-none"
         style={{
@@ -538,6 +550,8 @@ export function PreviewToolbarQuickFilters({
   onPrimarySortChange,
   onSecondarySortChange,
   isLoggedIn = false,
+  tabsOpen = true,
+  mobileSearchRow,
 }: PreviewToolbarQuickFiltersProps) {
   const { visualStyle } = usePreviewTheme()
   const trial = visualStyle === 'trial'
@@ -618,28 +632,37 @@ export function PreviewToolbarQuickFilters({
   ]
 
   return (
-    <div className="flex w-full flex-wrap items-stretch">
-      <div className="flex min-w-0 flex-1 flex-col items-start gap-1.5 p-2">
-        <UsageTipTarget tipId="type-filter" className="flex-none self-start">
-          <ColourStyleToggles
-            colors={colors}
-            styles={styles}
-            filters={filters}
-            onChange={(next) => updateFilters({ styles: next })}
-          />
-        </UsageTipTarget>
+    <div className="flex w-full flex-col items-stretch sm:flex-row sm:flex-wrap">
+      <div className="min-w-0 flex-1 max-sm:overflow-x-auto max-sm:overscroll-x-contain sm:p-2">
+        <div className="flex max-sm:w-max max-sm:flex-row max-sm:items-center max-sm:gap-3 sm:min-w-0 sm:w-full sm:flex-col sm:items-start sm:gap-1.5">
+          <UsageTipTarget tipId="type-filter" className="flex-none">
+            <ColourStyleToggles
+              colors={colors}
+              styles={styles}
+              filters={filters}
+              onChange={(next) => updateFilters({ styles: next })}
+            />
+          </UsageTipTarget>
 
-        <UsageTipTarget tipId="best-under-panel" className="flex-none self-start">
-          <BestUnderToggles
-            colors={colors}
-            selectedPrice={bestUnderValue}
-            onSelect={applyBestUnder}
-          />
-        </UsageTipTarget>
+          <UsageTipTarget tipId="best-under-panel" className="flex-none">
+            <BestUnderToggles
+              colors={colors}
+              selectedPrice={bestUnderValue}
+              onSelect={applyBestUnder}
+            />
+          </UsageTipTarget>
+        </div>
       </div>
 
+      {mobileSearchRow ? (
+        <div className="flex items-center gap-2 py-1.5 sm:hidden">{mobileSearchRow}</div>
+      ) : null}
+
       <div
-        className="filter-panel-aside flex max-w-full flex-col items-stretch p-2 sm:flex-none sm:border-l"
+        id="preview-filter-tabs"
+        className={`filter-panel-aside max-w-full flex-col items-stretch p-2 sm:flex sm:flex-none sm:border-l ${
+          tabsOpen ? 'flex' : 'hidden'
+        }`}
         style={{
           width: REVIEW_PANEL_WIDTH,
           flexBasis: REVIEW_PANEL_WIDTH,
