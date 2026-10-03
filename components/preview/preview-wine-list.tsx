@@ -8,6 +8,7 @@ import { RegisterNavLink } from '@/components/auth/register-nav-link'
 import { AdminVersionBadge } from '@/components/preview/admin-version-badge'
 import { PreviewToolbar } from '@/components/preview/preview-toolbar'
 import { PreviewLegalMenu } from '@/components/preview/preview-legal-menu'
+import { PreviewMobileListFooter } from '@/components/preview/preview-mobile-list-footer'
 import { PreviewUserMenu } from '@/components/preview/preview-user-menu'
 import { PreviewVirtualWineList } from '@/components/preview/preview-virtual-wine-list'
 import { ShareListsModal } from '@/components/preview/share-lists-modal'
@@ -262,6 +263,16 @@ export function PreviewWineList({
           />
         )}
       </main>
+      <PreviewMobileListFooter
+        colors={colors}
+        filters={filters}
+        onFiltersChange={setFilters}
+        resultCount={previewWines.length}
+        storeCount={filterOptions.stores.length}
+        grapeCount={filterOptions.grapes.length}
+        countryCount={filterOptions.countries.length}
+        isLoggedIn={isLoggedIn}
+      />
       <SiteFooter colors={colors} />
       </div>
       {isLoggedIn ? (

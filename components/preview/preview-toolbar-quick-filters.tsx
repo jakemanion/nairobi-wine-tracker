@@ -482,6 +482,158 @@ const TAB_ICONS: Record<FilterTabId, LucideIcon> = {
   'my-wines': User,
 }
 
+export const FILTER_CONTROL_HEIGHT = CONTROL_HEIGHT
+
+type MyWinesFilterBarProps = {
+  colors: PreviewColors
+  filters: WineFilters
+  onFiltersChange: (filters: WineFilters) => void
+  /** Show text labels under each control (mobile footer). */
+  showLabels?: boolean
+}
+
+/** Review-status quick filters used in the My wines tab and mobile footer. */
+export function MyWinesFilterBar({
+  colors,
+  filters,
+  onFiltersChange,
+  showLabels = false,
+}: MyWinesFilterBarProps) {
+  const { visualStyle } = usePreviewTheme()
+  const trial = visualStyle === 'trial'
+
+  function updateFilters(patch: Partial<WineFilters>) {
+    onFiltersChange({ ...filters, ...patch })
+  }
+
+  const items = [
+    {
+      key: 'unmarked',
+      label: 'Unmarked',
+      active: filters.includeUnmarked,
+      kind: 'unmarked' as const,
+      tip: filters.includeUnmarked ? 'Hide unmarked wines' : 'Show unmarked wines',
+      onClick: () => updateFilters({ includeUnmarked: !filters.includeUnmarked }),
+      icon: <HelpCircle size={12} strokeWidth={2} />,
+    },
+    {
+      key: 'bookmarked',
+      label: 'Bookmarked',
+      active: filters.includeBookmarked,
+      kind: 'wishlist' as const,
+      tip: filters.includeBookmarked ? 'Hide bookmarked wines' : 'Show bookmarked wines',
+      onClick: () => updateFilters({ includeBookmarked: !filters.includeBookmarked }),
+      icon: (
+        <Bookmark
+          size={11}
+          strokeWidth={2}
+          fill={filters.includeBookmarked ? 'currentColor' : 'none'}
+          className={filters.includeBookmarked ? 'fill-current' : undefined}
+        />
+      ),
+    },
+    {
+      key: 'buyAgain',
+      label: 'Buy Again',
+      active: filters.includeBuyAgain,
+      kind: 'thumbsUp' as const,
+      tip: filters.includeBuyAgain ? 'Hide buy again wines' : 'Show buy again wines',
+      onClick: () => updateFilters({ includeBuyAgain: !filters.includeBuyAgain }),
+      icon: (
+        <ThumbsUp
+          size={11}
+          strokeWidth={2}
+          fill={trial && filters.includeBuyAgain ? 'currentColor' : 'none'}
+          className={trial && filters.includeBuyAgain ? 'fill-current' : undefined}
+        />
+      ),
+    },
+    {
+      key: 'dontBuy',
+      label: "Don't buy again",
+      active: filters.includeDontBuyAgain,
+      kind: 'thumbsDown' as const,
+      tip: filters.includeDontBuyAgain
+        ? "Hide don't buy again wines"
+        : "Show don't buy again wines",
+      onClick: () => updateFilters({ includeDontBuyAgain: !filters.includeDontBuyAgain }),
+      icon: (
+        <ThumbsDown
+          size={11}
+          strokeWidth={2}
+          fill={trial && filters.includeDontBuyAgain ? 'currentColor' : 'none'}
+          className={trial && filters.includeDontBuyAgain ? 'fill-current' : undefined}
+        />
+      ),
+    },
+    {
+      key: 'ignored',
+      label: 'Ignored',
+      active: filters.includeHidden,
+      kind: 'hide' as const,
+      tip: filters.includeHidden ? 'Hide hidden wines' : 'Show hidden wines',
+      onClick: () => updateFilters({ includeHidden: !filters.includeHidden }),
+      icon: (
+        <EyeOff
+          size={11}
+          strokeWidth={2}
+          fill={trial && filters.includeHidden ? 'currentColor' : 'none'}
+          className={trial && filters.includeHidden ? 'fill-current' : undefined}
+        />
+      ),
+    },
+  ]
+
+  return (
+    <UsageTipTarget
+      tipId="my-wines-filters"
+      className={
+        showLabels
+          ? 'flex w-full items-start justify-between gap-1'
+          : 'flex items-center gap-1.5 self-center'
+      }
+    >
+      {items.map((item) => {
+        const button = (
+          <button
+            type="button"
+            aria-label={item.tip}
+            aria-pressed={item.active}
+            style={reviewFilterButtonStyle(colors, item.active, item.kind, trial)}
+            onClick={item.onClick}
+          >
+            {item.icon}
+            {item.active ? <ReviewOnTick colors={colors} /> : null}
+          </button>
+        )
+
+        if (!showLabels) {
+          return (
+            <InstantTooltip key={item.key} label={item.tip}>
+              {button}
+            </InstantTooltip>
+          )
+        }
+
+        return (
+          <div key={item.key} className="flex min-w-0 flex-1 flex-col items-center gap-0.5">
+            {button}
+            <span
+              className="max-w-full text-center text-[8px] font-medium leading-tight"
+              style={{
+                color: colors.summaryText,
+                fontFamily: 'var(--font-dm-sans), sans-serif',
+              }}
+            >
+              {item.label}
+            </span>
+          </div>
+        )
+      })}
+    </UsageTipTarget>
+  )
+}
+
 export function PreviewSortBar({
   colors,
   primarySort,
@@ -556,8 +708,6 @@ export function PreviewToolbarQuickFilters({
   tabsOpen = true,
   mobileSearchRow,
 }: PreviewToolbarQuickFiltersProps) {
-  const { visualStyle } = usePreviewTheme()
-  const trial = visualStyle === 'trial'
   const priceMaxBound = priceBounds?.max ?? 10000
   const [activeTab, setActiveTab] = useState<FilterTabId>('shops')
 
@@ -627,11 +777,12 @@ export function PreviewToolbarQuickFilters({
     updateFilters({ regions: [] })
   }
 
-  const tabs: Array<{ id: FilterTabId; label: string }> = [
+  const tabs: Array<{ id: FilterTabId; label: string; desktopOnly?: boolean }> = [
     { id: 'shops', label: 'Shops' },
     { id: 'price', label: 'Price' },
     { id: 'wine', label: 'Wine' },
-    ...(isLoggedIn ? [{ id: 'my-wines' as const, label: 'My wines' }] : []),
+    // My wines lives in the mobile footer; keep the tab on desktop only.
+    ...(isLoggedIn ? [{ id: 'my-wines' as const, label: 'My wines', desktopOnly: true }] : []),
   ]
 
   return (
@@ -689,13 +840,21 @@ export function PreviewToolbarQuickFilters({
           >
             {tabs.map((tab, index) => {
               const Icon = TAB_ICONS[tab.id]
+              const tabStyle = filterTabStyle(
+                colors,
+                visibleTab === tab.id,
+                index < tabs.length - 1,
+              )
+              // Drop inline display so Tailwind can hide desktop-only tabs on mobile.
+              const { display: _display, ...desktopOnlyStyle } = tabStyle
               return (
                 <button
                   key={tab.id}
                   type="button"
                   role="tab"
                   aria-selected={visibleTab === tab.id}
-                  style={filterTabStyle(colors, visibleTab === tab.id, index < tabs.length - 1)}
+                  className={tab.desktopOnly ? 'hidden sm:inline-flex' : undefined}
+                  style={tab.desktopOnly ? desktopOnlyStyle : tabStyle}
                   onClick={() => setActiveTab(tab.id)}
                 >
                   <Icon
@@ -785,133 +944,13 @@ export function PreviewToolbarQuickFilters({
           ) : null}
 
           {visibleTab === 'my-wines' && isLoggedIn ? (
-            <UsageTipTarget tipId="my-wines-filters" className="flex items-center gap-1.5 self-center">
-              <InstantTooltip
-                label={filters.includeUnmarked ? 'Hide unmarked wines' : 'Show unmarked wines'}
-              >
-                <button
-                  type="button"
-                  aria-label={
-                    filters.includeUnmarked ? 'Hide unmarked wines' : 'Show unmarked wines'
-                  }
-                  aria-pressed={filters.includeUnmarked}
-                  style={reviewFilterButtonStyle(colors, filters.includeUnmarked, 'unmarked', trial)}
-                  onClick={() => updateFilters({ includeUnmarked: !filters.includeUnmarked })}
-                >
-                  <HelpCircle size={12} strokeWidth={2} />
-                  {filters.includeUnmarked ? <ReviewOnTick colors={colors} /> : null}
-                </button>
-              </InstantTooltip>
-              <InstantTooltip
-                label={
-                  filters.includeBookmarked ? 'Hide bookmarked wines' : 'Show bookmarked wines'
-                }
-              >
-                <button
-                  type="button"
-                  aria-label={
-                    filters.includeBookmarked ? 'Hide bookmarked wines' : 'Show bookmarked wines'
-                  }
-                  aria-pressed={filters.includeBookmarked}
-                  style={reviewFilterButtonStyle(
-                    colors,
-                    filters.includeBookmarked,
-                    'wishlist',
-                    trial,
-                  )}
-                  onClick={() =>
-                    updateFilters({ includeBookmarked: !filters.includeBookmarked })
-                  }
-                >
-                  <Bookmark
-                    size={11}
-                    strokeWidth={2}
-                    fill={filters.includeBookmarked ? 'currentColor' : 'none'}
-                    className={filters.includeBookmarked ? 'fill-current' : undefined}
-                  />
-                  {filters.includeBookmarked ? <ReviewOnTick colors={colors} /> : null}
-                </button>
-              </InstantTooltip>
-              <InstantTooltip
-                label={filters.includeBuyAgain ? 'Hide buy again wines' : 'Show buy again wines'}
-              >
-                <button
-                  type="button"
-                  aria-label={
-                    filters.includeBuyAgain ? 'Hide buy again wines' : 'Show buy again wines'
-                  }
-                  aria-pressed={filters.includeBuyAgain}
-                  style={reviewFilterButtonStyle(
-                    colors,
-                    filters.includeBuyAgain,
-                    'thumbsUp',
-                    trial,
-                  )}
-                  onClick={() => updateFilters({ includeBuyAgain: !filters.includeBuyAgain })}
-                >
-                  <ThumbsUp
-                    size={11}
-                    strokeWidth={2}
-                    fill={trial && filters.includeBuyAgain ? 'currentColor' : 'none'}
-                    className={trial && filters.includeBuyAgain ? 'fill-current' : undefined}
-                  />
-                  {filters.includeBuyAgain ? <ReviewOnTick colors={colors} /> : null}
-                </button>
-              </InstantTooltip>
-              <InstantTooltip
-                label={
-                  filters.includeDontBuyAgain
-                    ? "Hide don't buy again wines"
-                    : "Show don't buy again wines"
-                }
-              >
-                <button
-                  type="button"
-                  aria-label={
-                    filters.includeDontBuyAgain
-                      ? "Hide don't buy again wines"
-                      : "Show don't buy again wines"
-                  }
-                  aria-pressed={filters.includeDontBuyAgain}
-                  style={reviewFilterButtonStyle(
-                    colors,
-                    filters.includeDontBuyAgain,
-                    'thumbsDown',
-                    trial,
-                  )}
-                  onClick={() =>
-                    updateFilters({ includeDontBuyAgain: !filters.includeDontBuyAgain })
-                  }
-                >
-                  <ThumbsDown
-                    size={11}
-                    strokeWidth={2}
-                    fill={trial && filters.includeDontBuyAgain ? 'currentColor' : 'none'}
-                    className={trial && filters.includeDontBuyAgain ? 'fill-current' : undefined}
-                  />
-                  {filters.includeDontBuyAgain ? <ReviewOnTick colors={colors} /> : null}
-                </button>
-              </InstantTooltip>
-              <InstantTooltip
-                label={filters.includeHidden ? 'Hide hidden wines' : 'Show hidden wines'}
-              >
-                <button
-                  type="button"
-                  aria-label={filters.includeHidden ? 'Hide hidden wines' : 'Show hidden wines'}
-                  aria-pressed={filters.includeHidden}
-                  style={reviewFilterButtonStyle(colors, filters.includeHidden, 'hide', trial)}
-                  onClick={() => updateFilters({ includeHidden: !filters.includeHidden })}
-                >
-                  <EyeOff
-                    size={11}
-                    strokeWidth={2}
-                    fill={trial && filters.includeHidden ? 'currentColor' : 'none'}
-                    className={trial && filters.includeHidden ? 'fill-current' : undefined}
-                  />
-                  {filters.includeHidden ? <ReviewOnTick colors={colors} /> : null}
-                </button>
-              </InstantTooltip>
-            </UsageTipTarget>
+            <div className="hidden sm:block">
+              <MyWinesFilterBar
+                colors={colors}
+                filters={filters}
+                onFiltersChange={onFiltersChange}
+              />
+            </div>
           ) : null}
         </div>
         </div>

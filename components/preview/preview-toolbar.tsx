@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Search, SlidersHorizontal } from 'lucide-react'
 import {
+  FILTER_CONTROL_HEIGHT,
   PreviewSortBar,
   PreviewToolbarQuickFilters,
 } from '@/components/preview/preview-toolbar-quick-filters'
@@ -80,7 +81,7 @@ export function PreviewToolbar({
     <>
       <div className="relative min-w-0 flex-1 basis-0 max-w-[42%]">
         <Search
-          className="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2"
+          className="pointer-events-none absolute left-1.5 top-1/2 h-3 w-3 -translate-y-1/2"
           style={{ color: colors.searchPlaceholder }}
         />
         <input
@@ -88,8 +89,9 @@ export function PreviewToolbar({
           value={searchQuery}
           placeholder="Search"
           aria-label="Search producer or wine name"
-          className="w-full py-1.5 pl-7 pr-2 text-sm focus:outline-none"
+          className="box-border w-full pl-6 pr-1.5 text-[10px] leading-none focus:outline-none"
           style={{
+            height: FILTER_CONTROL_HEIGHT,
             background: colors.searchBg,
             border: `1px solid ${colors.searchBorder}`,
             color: colors.searchText,
@@ -106,9 +108,9 @@ export function PreviewToolbar({
         onClick={() => setMobileTabsOpen((open) => !open)}
         className="inline-flex flex-shrink-0 items-center gap-1"
         style={{
-          height: 34,
-          padding: '0 8px',
-          fontSize: 11,
+          height: FILTER_CONTROL_HEIGHT,
+          padding: '0 7px',
+          fontSize: 10,
           lineHeight: 1.2,
           borderRadius: colors.panelRadius,
           cursor: 'pointer',
@@ -121,7 +123,7 @@ export function PreviewToolbar({
           whiteSpace: 'nowrap',
         }}
       >
-        <SlidersHorizontal size={13} strokeWidth={2} aria-hidden />
+        <SlidersHorizontal size={11} strokeWidth={2} aria-hidden />
         Filters
         {activeFilterCount > 0 ? (
           <span aria-hidden style={{ color: colors.accent, fontWeight: 700 }}>
@@ -178,21 +180,6 @@ export function PreviewToolbar({
           mobileSearchRow={mobileSearchRow}
         />
       </div>
-
-      {/* Mobile: summary on its own full-width row */}
-      <p
-        className="m-0 w-full min-w-0 pt-1.5 text-center sm:hidden"
-        title={summaryText}
-        style={{
-          color: colors.summaryText,
-          fontFamily: 'var(--font-dm-sans), sans-serif',
-          fontSize: 10,
-          lineHeight: 1.2,
-          overflowWrap: 'anywhere',
-        }}
-      >
-        {summaryContent}
-      </p>
 
       {/* Desktop: sort | summary | hide filters */}
       <div
