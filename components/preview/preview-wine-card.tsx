@@ -191,14 +191,13 @@ function StarRatingMeter({
       }
     >
       <div
-        className="relative z-10 flex items-center justify-center rounded-full flex-shrink-0"
+        className="relative z-10 flex items-center justify-center rounded-full flex-shrink-0 max-sm:-mr-[4.5px] sm:-mr-1.5"
         style={{
           width: RATING_CIRCLE_SIZE,
           height: RATING_CIRCLE_SIZE,
           background: circle.background,
           border: circle.border,
           boxShadow: circle.boxShadow,
-          marginRight: -6,
         }}
         aria-hidden={starRating == null}
       >
@@ -222,7 +221,7 @@ function StarRatingMeter({
         </span>
       </div>
       <div
-        className="flex flex-col items-center gap-0.5 px-1.5 pt-0.5 pb-1"
+        className="flex flex-col items-center max-sm:gap-px max-sm:px-[4.5px] max-sm:pt-[1.5px] max-sm:pb-[3px] sm:gap-0.5 sm:px-1.5 sm:pt-0.5 sm:pb-1"
         style={{
           background: '#FFFFFF',
           border: '1px solid #E8E8F0',
@@ -230,7 +229,7 @@ function StarRatingMeter({
           boxShadow: '0 1px 2px rgba(26, 24, 20, 0.06)',
         }}
       >
-        <div className="flex items-center gap-px" style={{ height: 16 }}>
+        <div className="flex items-center gap-px max-sm:h-3 sm:h-4">
           {[0, 1, 2, 3, 4].map((index) => (
             <FractionalStar
               key={index}
@@ -281,7 +280,7 @@ function WineStarRating({
   )
 
   return (
-    <div className="flex flex-row items-center gap-1.5 flex-shrink-0 flex-nowrap sm:flex-col sm:items-center sm:gap-0 sm:pt-0.5">
+    <div className="flex flex-row items-center gap-1 flex-shrink-0 flex-nowrap sm:flex-col sm:items-center sm:gap-0 sm:pt-0.5">
       <InstantTooltip label="This wine's value based on its quality and price">
         <div className="sm:mb-1.5">
           <StarRatingMeter
@@ -606,7 +605,9 @@ export function PreviewWineCard({
   const [notesDraft, setNotesDraft] = useState(review?.tasting_notes ?? '')
   const [savingNotes, setSavingNotes] = useState(false)
   const [notesOpen, setNotesOpen] = useState(false)
+  const notesInputRef = useRef<HTMLInputElement>(null)
   const hasNote = Boolean(notesDraft.trim() || review?.tasting_notes?.trim())
+  const showMobileNotes = notesOpen || hasNote
   const [savingHide, setSavingHide] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const notesDirtyRef = useRef(false)
@@ -847,22 +848,30 @@ export function PreviewWineCard({
             </div>
 
             {wine.grapes.length > 0 ? (
-              <div className="flex flex-wrap gap-1">
-                {wine.grapes.map((grape) => (
-                  <span
-                    key={grape}
-                    className="text-[10px] px-1.5 py-0.5 rounded"
-                    style={{
-                      background: infoGrapeBg,
-                      border: `1px solid ${infoGrapeBorder}`,
-                      color: infoGrapeText,
-                      fontFamily: 'var(--font-dm-sans), sans-serif',
-                    }}
-                  >
-                    {grape}
-                  </span>
-                ))}
-              </div>
+              <>
+                <p
+                  className="text-[10px] leading-snug sm:hidden"
+                  style={{ color: infoGrapeText, fontFamily: 'var(--font-dm-sans), sans-serif' }}
+                >
+                  {wine.grapes.join(' · ')}
+                </p>
+                <div className="hidden sm:flex flex-wrap gap-1">
+                  {wine.grapes.map((grape) => (
+                    <span
+                      key={grape}
+                      className="text-[10px] px-1.5 py-0.5 rounded"
+                      style={{
+                        background: infoGrapeBg,
+                        border: `1px solid ${infoGrapeBorder}`,
+                        color: infoGrapeText,
+                        fontFamily: 'var(--font-dm-sans), sans-serif',
+                      }}
+                    >
+                      {grape}
+                    </span>
+                  ))}
+                </div>
+              </>
             ) : null}
 
             <div className="flex flex-wrap gap-x-3 gap-y-0.5">
@@ -921,10 +930,11 @@ export function PreviewWineCard({
         </div>
         </div>
 
-        {notesOpen ? (
+        {showMobileNotes ? (
           <div className="px-2 pb-2 sm:hidden" style={{ background: colors.wineInfoBg }}>
             <UsageTipTarget tipId="notes-textfield">
               <input
+                ref={notesInputRef}
                 type="text"
                 value={notesDraft}
                 disabled={savingNotes || !isLoggedIn}
@@ -944,7 +954,7 @@ export function PreviewWineCard({
                   setNotesDraft(e.target.value)
                 }}
                 onBlur={() => void saveNotes()}
-                autoFocus
+                autoFocus={notesOpen && !hasNote}
               />
             </UsageTipTarget>
           </div>
@@ -995,29 +1005,32 @@ export function PreviewWineCard({
                   compact
                   onReviewChange={onReviewChange}
                 />
+              </div>
+              <div className="flex flex-col items-center gap-1">
                 <NotesToggleButton
-                  open={notesOpen}
+                  open={showMobileNotes}
                   hasNote={hasNote}
                   panelTint={panelTint}
                   colors={colors}
                   visualStyle={visualStyle}
-                  onClick={() => setNotesOpen((open) => !open)}
+                  onClick={() => {
+                    if (hasNote) {
+                      notesInputRef.current?.focus()
+                      return
+                    }
+                    setNotesOpen((open) => !open)
+                  }}
+                />
+                <PreviewTriedStatusPicker
+                  wineId={wine.id}
+                  userId={userId}
+                  review={review}
+                  panelTint={panelTint}
+                  orientation="vertical"
+                  compact
+                  onReviewChange={onReviewChange}
                 />
               </div>
-              <PreviewTriedStatusPicker
-                wineId={wine.id}
-                userId={userId}
-                review={review}
-                panelTint={panelTint}
-                orientation="vertical"
-                compact
-                onReviewChange={onReviewChange}
-              />
-              {error ? (
-                <p className="text-[8px] leading-tight text-center" style={{ color: colors.errorText }}>
-                  !
-                </p>
-              ) : null}
             </div>
           </>
         )}
