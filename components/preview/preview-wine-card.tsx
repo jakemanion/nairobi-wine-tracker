@@ -837,10 +837,22 @@ export function PreviewWineCard({
               )}
             </h3>
 
-            <div className="flex items-center gap-1">
+            {/* Mobile: region/country + grapes on one line; vintage hidden. */}
+            <div className="flex min-w-0 items-center gap-1 sm:hidden">
               <MapPin className="w-3 h-3 flex-shrink-0" style={{ color: infoMuted }} />
               <span
-                className="text-[11px] truncate"
+                className="truncate text-[11px]"
+                style={{ color: infoMuted, fontFamily: 'var(--font-dm-sans), sans-serif' }}
+              >
+                {[wine.region, wine.country, ...wine.grapes].filter(Boolean).join(' · ')}
+              </span>
+            </div>
+
+            {/* Desktop: vintage + location, then grape chips. */}
+            <div className="hidden items-center gap-1 sm:flex">
+              <MapPin className="w-3 h-3 flex-shrink-0" style={{ color: infoMuted }} />
+              <span
+                className="truncate text-[11px]"
                 style={{ color: infoMuted, fontFamily: 'var(--font-dm-sans), sans-serif' }}
               >
                 {[wine.vintage, wine.region, wine.country].filter(Boolean).join(' · ')}
@@ -848,30 +860,22 @@ export function PreviewWineCard({
             </div>
 
             {wine.grapes.length > 0 ? (
-              <>
-                <p
-                  className="text-[10px] leading-snug sm:hidden"
-                  style={{ color: infoGrapeText, fontFamily: 'var(--font-dm-sans), sans-serif' }}
-                >
-                  {wine.grapes.join(' · ')}
-                </p>
-                <div className="hidden sm:flex flex-wrap gap-1">
-                  {wine.grapes.map((grape) => (
-                    <span
-                      key={grape}
-                      className="text-[10px] px-1.5 py-0.5 rounded"
-                      style={{
-                        background: infoGrapeBg,
-                        border: `1px solid ${infoGrapeBorder}`,
-                        color: infoGrapeText,
-                        fontFamily: 'var(--font-dm-sans), sans-serif',
-                      }}
-                    >
-                      {grape}
-                    </span>
-                  ))}
-                </div>
-              </>
+              <div className="hidden flex-wrap gap-1 sm:flex">
+                {wine.grapes.map((grape) => (
+                  <span
+                    key={grape}
+                    className="rounded px-1.5 py-0.5 text-[10px]"
+                    style={{
+                      background: infoGrapeBg,
+                      border: `1px solid ${infoGrapeBorder}`,
+                      color: infoGrapeText,
+                      fontFamily: 'var(--font-dm-sans), sans-serif',
+                    }}
+                  >
+                    {grape}
+                  </span>
+                ))}
+              </div>
             ) : null}
 
             <div className="flex flex-wrap gap-x-3 gap-y-0.5">
