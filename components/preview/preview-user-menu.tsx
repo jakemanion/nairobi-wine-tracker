@@ -1,9 +1,11 @@
 'use client'
 
+import Link from 'next/link'
 import { LogoutButton } from '@/components/auth/logout-button'
 import { InstantTooltip } from '@/components/preview/instant-tooltip'
 import { UsageTipsToggle } from '@/components/preview/usage-tips-toggle'
 import { usePreviewTheme } from '@/components/preview/preview-theme-context'
+import { LEGAL_LINKS } from '@/components/site-footer'
 import type { PreviewColors, PreviewThemeMode } from '@/lib/preview/preview-colors'
 
 type PreviewUserMenuProps = {
@@ -69,6 +71,25 @@ export function PreviewUserMenu({
                 : undefined
             }
           />
+          <nav aria-label="Legal" className="sm:hidden">
+            <ul className="m-0 flex list-none flex-col gap-1 p-0">
+              {LEGAL_LINKS.map((link) => (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    className="block rounded px-2 py-1.5 text-[11px] no-underline hover:underline underline-offset-2"
+                    style={{
+                      color: colors.headerAccent,
+                      fontFamily: 'var(--font-dm-sans), sans-serif',
+                      background: trial ? colors.buttonBg : undefined,
+                    }}
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
           <LogoutButton
             theme={theme}
             className="w-full justify-center"

@@ -5,7 +5,7 @@ import { getPreviewColors, type PreviewColors } from '@/lib/preview/preview-colo
 const fallbackColors = getPreviewColors('dark')
 const CONTENT_MAX_WIDTH = '54.625rem'
 
-const LEGAL_LINKS = [
+export const LEGAL_LINKS = [
   { href: '/privacy', label: 'Privacy Policy' },
   { href: '/terms', label: 'Terms of Service' },
   { href: '/cookies', label: 'Cookie Policy' },
@@ -19,11 +19,11 @@ type SiteFooterProps = {
 
 export function SiteFooter({ className = '', colors = fallbackColors }: SiteFooterProps) {
   return (
-    <>
+    <div className={`max-sm:hidden ${className}`}>
       {/* Reserves space so fixed footer does not cover page content */}
       <div className="h-10 shrink-0" aria-hidden />
       <footer
-        className={`fixed bottom-0 left-0 right-0 z-40 ${className}`}
+        className="fixed bottom-0 left-0 right-0 z-40"
         style={{
           background: colors.headerBg,
           borderTop: `1px solid ${colors.headerBorder}`,
@@ -60,6 +60,6 @@ export function SiteFooter({ className = '', colors = fallbackColors }: SiteFoot
           </nav>
         </div>
       </footer>
-    </>
+    </div>
   )
 }

@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { ExternalLink, EyeOff, MapPin, NotebookPen, Pencil, Star } from 'lucide-react'
+import { ExternalLink, EyeOff, Grape, MapPin, NotebookPen, Pencil, Star } from 'lucide-react'
 import type { WineReview } from '@/components/wine-table'
 import { LoggedOutLoginPromptOverlay } from '@/components/preview/logged-out-login-prompt'
 import { PreviewBottleImage } from '@/components/preview/preview-bottle-image'
@@ -837,15 +837,30 @@ export function PreviewWineCard({
               )}
             </h3>
 
-            {/* Mobile: region/country + grapes on one line; vintage hidden. */}
-            <div className="flex min-w-0 items-center gap-1 sm:hidden">
-              <MapPin className="w-3 h-3 flex-shrink-0" style={{ color: infoMuted }} />
-              <span
-                className="truncate text-[11px]"
-                style={{ color: infoMuted, fontFamily: 'var(--font-dm-sans), sans-serif' }}
-              >
-                {[wine.country, ...wine.grapes].filter(Boolean).join(' · ')}
-              </span>
+            {/* Mobile: country + grapes on one line; vintage/region hidden. */}
+            <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5 sm:hidden">
+              {wine.country ? (
+                <div className="flex min-w-0 items-center gap-1">
+                  <MapPin className="h-3 w-3 flex-shrink-0" style={{ color: infoMuted }} />
+                  <span
+                    className="truncate text-[11px]"
+                    style={{ color: infoMuted, fontFamily: 'var(--font-dm-sans), sans-serif' }}
+                  >
+                    {wine.country}
+                  </span>
+                </div>
+              ) : null}
+              {wine.grapes.length > 0 ? (
+                <div className="flex min-w-0 items-center gap-1">
+                  <Grape className="h-3 w-3 flex-shrink-0" style={{ color: infoMuted }} />
+                  <span
+                    className="truncate text-[11px]"
+                    style={{ color: infoMuted, fontFamily: 'var(--font-dm-sans), sans-serif' }}
+                  >
+                    {wine.grapes.join(' · ')}
+                  </span>
+                </div>
+              ) : null}
             </div>
 
             {/* Desktop: vintage + location, then grape chips. */}

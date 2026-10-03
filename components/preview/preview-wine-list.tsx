@@ -7,6 +7,7 @@ import { LoginNavLink } from '@/components/auth/login-nav-link'
 import { RegisterNavLink } from '@/components/auth/register-nav-link'
 import { AdminVersionBadge } from '@/components/preview/admin-version-badge'
 import { PreviewToolbar } from '@/components/preview/preview-toolbar'
+import { PreviewLegalMenu } from '@/components/preview/preview-legal-menu'
 import { PreviewUserMenu } from '@/components/preview/preview-user-menu'
 import { PreviewVirtualWineList } from '@/components/preview/preview-virtual-wine-list'
 import { ShareListsModal } from '@/components/preview/share-lists-modal'
@@ -206,6 +207,7 @@ export function PreviewWineList({
               ) : (
                 <>
                   <UsageTipsToggle colors={colors} />
+                  <PreviewLegalMenu colors={colors} />
                   <LoginNavLink theme={colors.headerNavTheme} nextPath="/" />
                   <RegisterNavLink theme={colors.headerNavTheme} />
                 </>
@@ -236,7 +238,7 @@ export function PreviewWineList({
       </div>
 
       <main
-        className="mx-auto flex w-full flex-1 flex-col px-3 py-5 sm:pl-10 sm:pr-6"
+        className="mx-auto flex w-full flex-1 flex-col py-5 pl-7 pr-3 sm:pl-10 sm:pr-6"
         style={{ maxWidth: PREVIEW_CONTENT_MAX_WIDTH, gap: listGapPx }}
       >
         <WelcomePanel />
