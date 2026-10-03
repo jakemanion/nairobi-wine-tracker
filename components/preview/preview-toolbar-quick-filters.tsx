@@ -584,52 +584,76 @@ export function MyWinesFilterBar({
     },
   ]
 
+  const buttonWidth = showLabels ? CONTROL_HEIGHT * 1.5 : CONTROL_HEIGHT
+
   return (
     <UsageTipTarget
       tipId="my-wines-filters"
       className={
         showLabels
-          ? 'flex w-full items-start justify-between gap-1'
+          ? 'flex w-full items-center gap-1.5'
           : 'flex items-center gap-1.5 self-center'
       }
     >
-      {items.map((item) => {
-        const button = (
-          <button
-            type="button"
-            aria-label={item.tip}
-            aria-pressed={item.active}
-            style={reviewFilterButtonStyle(colors, item.active, item.kind, trial)}
-            onClick={item.onClick}
-          >
-            {item.icon}
-            {item.active ? <ReviewOnTick colors={colors} /> : null}
-          </button>
-        )
-
-        if (!showLabels) {
-          return (
-            <InstantTooltip key={item.key} label={item.tip}>
-              {button}
-            </InstantTooltip>
-          )
+      {showLabels ? (
+        <span
+          className="flex-none text-[8px] font-semibold leading-tight"
+          style={{
+            color: colors.summaryText,
+            fontFamily: 'var(--font-dm-sans), sans-serif',
+          }}
+        >
+          My wines:
+        </span>
+      ) : null}
+      <div
+        className={
+          showLabels
+            ? 'flex min-w-0 flex-1 items-start justify-between gap-1'
+            : 'flex items-center gap-1.5'
         }
-
-        return (
-          <div key={item.key} className="flex min-w-0 flex-1 flex-col items-center gap-0.5">
-            {button}
-            <span
-              className="max-w-full text-center text-[8px] font-medium leading-tight"
+      >
+        {items.map((item) => {
+          const button = (
+            <button
+              type="button"
+              aria-label={item.tip}
+              aria-pressed={item.active}
               style={{
-                color: colors.summaryText,
-                fontFamily: 'var(--font-dm-sans), sans-serif',
+                ...reviewFilterButtonStyle(colors, item.active, item.kind, trial),
+                width: buttonWidth,
               }}
+              onClick={item.onClick}
             >
-              {item.label}
-            </span>
-          </div>
-        )
-      })}
+              {item.icon}
+              {item.active ? <ReviewOnTick colors={colors} /> : null}
+            </button>
+          )
+
+          if (!showLabels) {
+            return (
+              <InstantTooltip key={item.key} label={item.tip}>
+                {button}
+              </InstantTooltip>
+            )
+          }
+
+          return (
+            <div key={item.key} className="flex min-w-0 flex-1 flex-col items-center gap-0.5">
+              {button}
+              <span
+                className="max-w-full text-center text-[8px] font-medium leading-tight"
+                style={{
+                  color: colors.summaryText,
+                  fontFamily: 'var(--font-dm-sans), sans-serif',
+                }}
+              >
+                {item.label}
+              </span>
+            </div>
+          )
+        })}
+      </div>
     </UsageTipTarget>
   )
 }

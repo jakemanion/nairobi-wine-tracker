@@ -63,7 +63,7 @@ export function PreviewMobileListFooter({
             style={{
               color: colors.summaryText,
               fontFamily: 'var(--font-dm-sans), sans-serif',
-              fontSize: 10,
+              fontSize: 8,
               lineHeight: 1.2,
               overflowWrap: 'anywhere',
             }}
