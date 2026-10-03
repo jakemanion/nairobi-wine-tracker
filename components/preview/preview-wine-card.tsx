@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { ExternalLink, EyeOff, MapPin, Pencil, Star } from 'lucide-react'
+import { ExternalLink, EyeOff, MapPin, NotebookPen, Pencil, Star } from 'lucide-react'
 import type { WineReview } from '@/components/wine-table'
 import { LoggedOutLoginPromptOverlay } from '@/components/preview/logged-out-login-prompt'
 import { PreviewBottleImage } from '@/components/preview/preview-bottle-image'
@@ -264,20 +264,24 @@ function WineStarRating({
   const qualityStars = vivinoToStarRating(vivinoRating)
   const valueStars = valueScoreToStarRating(valueScore)
   const hasVivino = vivinoRating != null
-  const vivinoLabel = hasVivino ? `${vivinoRating.toFixed(1)} on Vivino` : 'Vivino'
+  const vivinoLabelDesktop = hasVivino ? `${vivinoRating.toFixed(1)} on Vivino` : 'Vivino'
+  const vivinoLabelMobile = hasVivino ? vivinoRating.toFixed(1) : 'Vivino'
 
   const vivinoLine = (
     <span
       className="inline-flex items-center gap-0.5 text-[9px] font-medium leading-none underline-offset-2"
       style={{ color: mutedColor, fontFamily: 'var(--font-dm-sans), sans-serif' }}
     >
-      {vivinoLabel}
-      {vivinoUrl ? <ExternalLink className="w-2.5 h-2.5 flex-shrink-0" aria-hidden /> : null}
+      <span className="sm:hidden">{vivinoLabelMobile}</span>
+      <span className="hidden sm:inline">{vivinoLabelDesktop}</span>
+      {vivinoUrl ? (
+        <ExternalLink className="hidden sm:block w-2.5 h-2.5 flex-shrink-0" aria-hidden />
+      ) : null}
     </span>
   )
 
   return (
-    <div className="flex flex-row items-center gap-2 flex-shrink-0 max-sm:flex-wrap sm:flex-col sm:items-center sm:gap-0 sm:pt-0.5">
+    <div className="flex flex-row items-center gap-1.5 flex-shrink-0 flex-nowrap sm:flex-col sm:items-center sm:gap-0 sm:pt-0.5">
       <InstantTooltip label="This wine's value based on its quality and price">
         <div className="sm:mb-1.5">
           <StarRatingMeter
@@ -304,14 +308,14 @@ function WineStarRating({
           href={vivinoUrl}
           target="_blank"
           rel="noreferrer"
-          className="no-underline text-inherit hover:underline max-sm:ml-0.5 sm:mt-1.5"
+          className="no-underline text-inherit hover:underline sm:mt-1.5"
           title="View on Vivino"
           aria-label={hasVivino ? `${vivinoRating!.toFixed(1)} on Vivino` : 'View on Vivino'}
         >
           {vivinoLine}
         </a>
       ) : hasVivino ? (
-        <div className="max-sm:ml-0.5 sm:mt-1.5">{vivinoLine}</div>
+        <div className="sm:mt-1.5">{vivinoLine}</div>
       ) : null}
     </div>
   )
@@ -359,6 +363,8 @@ function HideButton({
   panelTint,
   colors,
   visualStyle,
+  showLabel = true,
+  compact = false,
   onClick,
 }: {
   active: boolean
@@ -367,6 +373,8 @@ function HideButton({
   panelTint: PanelTint
   colors: PreviewColors
   visualStyle: PreviewVisualStyle
+  showLabel?: boolean
+  compact?: boolean
   onClick: () => void
 }) {
   const trial = visualStyle === 'trial'
@@ -385,35 +393,47 @@ function HideButton({
           ? trialStyle.icon
           : colors.controlIdleIcon
   const iconFilled = trialStyle ? trialStyle.filled : false
+  const buttonSize = compact ? 20 : 40
+  const iconSize = compact ? 12 : 24
 
   return (
-    <div className="flex flex-col items-center gap-1 flex-shrink-0 m-0 p-0">
-      <p
-        className="m-0 p-0 text-[8px] uppercase tracking-wider leading-none text-center whitespace-nowrap"
-        style={{ color: panelLabelColor, fontFamily: 'var(--font-dm-sans), sans-serif' }}
-      >
-        IGNORE
-      </p>
+    <div
+      className={`flex flex-col items-center flex-shrink-0 m-0 p-0 ${showLabel ? 'gap-1' : 'gap-0'}`}
+    >
+      {showLabel ? (
+        <p
+          className="m-0 p-0 text-[8px] uppercase tracking-wider leading-none text-center whitespace-nowrap"
+          style={{ color: panelLabelColor, fontFamily: 'var(--font-dm-sans), sans-serif' }}
+        >
+          IGNORE
+        </p>
+      ) : null}
       <InstantTooltip label={active ? 'Show wine again' : 'Hide this wine'}>
         <button
           type="button"
           aria-label={active ? 'Show wine again' : 'Hide this wine'}
           aria-pressed={active}
           disabled={saving}
-          className="w-10 h-10 relative flex items-center justify-center transition-all hover:scale-105 flex-shrink-0 m-0"
+          className="relative flex items-center justify-center transition-all hover:scale-105 flex-shrink-0 m-0"
           style={{
-            border: `${trial ? 1 : 2}px solid ${borderColor}`,
+            width: buttonSize,
+            height: buttonSize,
+            border: `${trial ? 1 : compact ? 1 : 2}px solid ${borderColor}`,
             background: bgColor,
             color: iconColor,
-            borderRadius: trial ? TRIAL_REVIEW_BUTTON_RADIUS : colors.buttonRadius,
-            boxShadow: trial ? 'none' : colors.controlShadow,
+            borderRadius: trial
+              ? compact
+                ? '5px'
+                : TRIAL_REVIEW_BUTTON_RADIUS
+              : colors.buttonRadius,
+            boxShadow: trial || compact ? 'none' : colors.controlShadow,
             opacity: saving ? 0.5 : 1,
             cursor: saving ? 'wait' : 'pointer',
           }}
           onClick={onClick}
         >
           <EyeOff
-            size={24}
+            size={iconSize}
             strokeWidth={2}
             fill={iconFilled ? 'currentColor' : 'none'}
             className={iconFilled ? 'fill-current' : undefined}
@@ -423,6 +443,61 @@ function HideButton({
         </button>
       </InstantTooltip>
     </div>
+  )
+}
+
+function NotesToggleButton({
+  open,
+  hasNote,
+  panelTint,
+  colors,
+  visualStyle,
+  onClick,
+}: {
+  open: boolean
+  hasNote: boolean
+  panelTint: PanelTint
+  colors: PreviewColors
+  visualStyle: PreviewVisualStyle
+  onClick: () => void
+}) {
+  const trial = visualStyle === 'trial'
+  const trialStyle = trial ? getTrialReviewControlStyle(panelTint, 'bookmark', false) : null
+  const borderColor = open
+    ? colors.accent
+    : trialStyle
+      ? trialStyle.border
+      : colors.controlIdleBorder
+  const bgColor = open
+    ? colors.controlIdleBg
+    : trialStyle
+      ? trialStyle.bg
+      : colors.controlIdleBg
+  const iconColor = trialStyle ? trialStyle.icon : colors.controlIdleIcon
+
+  return (
+    <InstantTooltip label={open ? 'Hide notes' : hasNote ? 'Edit notes' : 'Add notes'}>
+      <button
+        type="button"
+        aria-label={open ? 'Hide notes' : hasNote ? 'Edit notes' : 'Add notes'}
+        aria-pressed={open}
+        className="relative flex items-center justify-center transition-all hover:scale-105 flex-shrink-0 m-0"
+        style={{
+          width: 20,
+          height: 20,
+          border: `1px solid ${borderColor}`,
+          background: bgColor,
+          color: iconColor,
+          borderRadius: trial ? '5px' : colors.buttonRadius,
+          boxShadow: 'none',
+          cursor: 'pointer',
+        }}
+        onClick={onClick}
+      >
+        <NotebookPen size={12} strokeWidth={2} style={{ color: iconColor }} />
+        {hasNote ? <ReviewOnTick colors={colors} accentColor={iconColor} /> : null}
+      </button>
+    </InstantTooltip>
   )
 }
 
@@ -525,11 +600,13 @@ export function PreviewWineCard({
   const infoGrapeText = infoOnDark ? '#E8E4DC' : colors.grapeText
   const priceAmountColor = colors.priceAmount
   const reviewPanelStyle = getReviewPanelStyle(panelTint, mode, visualStyle)
-  // Drop trial's desktop left stroke so mobile can use a top divider instead.
+  // Drop trial's desktop left stroke; mobile rail and classic panels set their own dividers.
   const { borderLeft: _reviewPanelBorderLeft, ...reviewPanelSurface } = reviewPanelStyle
 
   const [notesDraft, setNotesDraft] = useState(review?.tasting_notes ?? '')
   const [savingNotes, setSavingNotes] = useState(false)
+  const [notesOpen, setNotesOpen] = useState(false)
+  const hasNote = Boolean(notesDraft.trim() || review?.tasting_notes?.trim())
   const [savingHide, setSavingHide] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const notesDirtyRef = useRef(false)
@@ -626,7 +703,7 @@ export function PreviewWineCard({
       ) : null}
 
     <div
-      className="relative flex flex-col sm:flex-row items-stretch overflow-hidden"
+      className="relative flex flex-row items-stretch overflow-hidden"
       style={{
         background: colors.cardBg,
         ...cardBorderStyle,
@@ -654,29 +731,30 @@ export function PreviewWineCard({
         </div>
       ) : null}
 
-      {/* Mobile: image | (ratings + info). Desktop: contents so image + info sit beside review. */}
-      <div className="flex items-stretch min-w-0 flex-1 sm:contents">
-        <div
-          className="w-14 sm:w-[96px] flex-shrink-0 self-stretch relative sm:min-h-[112px]"
-          style={{ background: colors.imageColumnBg }}
-        >
-          <PreviewBottleImage
-            src={wine.image}
-            alt={wine.name}
-            priority={imagePriority}
-          />
-        </div>
+      {/* Mobile: image | (ratings + info) | review rail. Desktop: contents so columns sit side by side. */}
+      <div className="flex min-w-0 flex-1 flex-col sm:contents">
+        <div className="flex min-w-0 flex-1 items-stretch sm:contents">
+          <div
+            className="w-14 sm:w-[96px] flex-shrink-0 self-stretch relative sm:min-h-[112px]"
+            style={{ background: colors.imageColumnBg }}
+          >
+            <PreviewBottleImage
+              src={wine.image}
+              alt={wine.name}
+              priority={imagePriority}
+            />
+          </div>
 
-        <div
-          className={`flex-1 min-w-0 pl-0 pr-3.5 py-2.5 flex flex-col gap-1.5 relative sm:flex-row sm:items-start sm:justify-between sm:gap-2.5 ${
-            visualStyle === 'trial' ? '' : 'sm:border-r'
-          }`}
-          style={{
-            background: colors.wineInfoBg,
-            boxShadow: colors.wineInfoSheen,
-            ...(visualStyle === 'trial' ? {} : { borderColor: colors.infoBorder }),
-          }}
-        >
+          <div
+            className={`flex-1 min-w-0 pl-0 pr-2 py-2.5 flex flex-col gap-1.5 relative sm:pr-3.5 sm:flex-row sm:items-start sm:justify-between sm:gap-2.5 ${
+              visualStyle === 'trial' ? '' : 'sm:border-r'
+            }`}
+            style={{
+              background: colors.wineInfoBg,
+              boxShadow: colors.wineInfoSheen,
+              ...(visualStyle === 'trial' ? {} : { borderColor: colors.infoBorder }),
+            }}
+          >
           {(isAdmin || isLoggedIn) ? (
             <div className="absolute top-2 right-2 z-10 hidden sm:flex items-center gap-1">
               {isLoggedIn ? (
@@ -841,16 +919,118 @@ export function PreviewWineCard({
             </div>
           </div>
         </div>
+        </div>
+
+        {notesOpen ? (
+          <div className="px-2 pb-2 sm:hidden" style={{ background: colors.wineInfoBg }}>
+            <UsageTipTarget tipId="notes-textfield">
+              <input
+                type="text"
+                value={notesDraft}
+                disabled={savingNotes || !isLoggedIn}
+                placeholder="Your notes about this wine"
+                className="w-full text-[11px] focus:outline-none transition-colors px-2 disabled:opacity-60"
+                style={{
+                  height: 28,
+                  background: panelText.notesBg,
+                  border: `1px solid ${panelText.notesBorder}`,
+                  color: panelText.notesText,
+                  borderRadius: colors.panelRadius,
+                  fontFamily: 'var(--font-dm-sans), sans-serif',
+                  caretColor: colors.accent,
+                }}
+                onChange={(e) => {
+                  notesDirtyRef.current = true
+                  setNotesDraft(e.target.value)
+                }}
+                onBlur={() => void saveNotes()}
+                autoFocus
+              />
+            </UsageTipTarget>
+          </div>
+        ) : null}
       </div>
 
+      {/* Mobile review rail — icon-only vertical controls on the right. */}
       <div
-        className={`relative w-full flex-shrink-0 px-2.5 pt-1.5 pb-2.5 flex flex-col gap-1.5 transition-colors duration-300 min-w-0 group/review-panel border-t sm:border-t-0 max-sm:!w-full ${
-          visualStyle === 'trial' ? 'sm:border-l sm:border-[#E4E4EE]' : ''
+        className={`relative flex w-8 flex-shrink-0 flex-col items-center justify-between gap-1 px-0.5 py-1.5 transition-colors duration-300 group/review-panel border-l sm:hidden ${
+          visualStyle === 'trial' ? 'border-[#E4E4EE]' : ''
         }`}
         style={{
           ...reviewPanelSurface,
           borderColor: colors.infoBorder,
-          // REVIEW_PANEL_WIDTH on desktop; max-sm:!w-full overrides below the breakpoint.
+        }}
+      >
+        {!interactiveReady ? (
+          <div aria-hidden className="min-h-[88px] w-full" />
+        ) : (
+          <>
+            {!isLoggedIn ? <LoggedOutLoginPromptOverlay /> : null}
+            <div
+              className="flex h-full w-full flex-col items-center justify-between"
+              style={{
+                pointerEvents: isLoggedIn ? 'auto' : 'none',
+                opacity: isLoggedIn ? 1 : 0.42,
+              }}
+            >
+              <div className="flex flex-col items-center gap-1">
+                <HideButton
+                  active={isHidden}
+                  saving={savingHide}
+                  panelLabelColor={panelText.label}
+                  panelTint={panelTint}
+                  colors={colors}
+                  visualStyle={visualStyle}
+                  showLabel={false}
+                  compact
+                  onClick={() => void toggleHide()}
+                />
+                <PreviewWishlistPicker
+                  wineId={wine.id}
+                  userId={userId}
+                  review={review}
+                  labelColor={panelText.label}
+                  panelTint={panelTint}
+                  showLabel={false}
+                  compact
+                  onReviewChange={onReviewChange}
+                />
+                <NotesToggleButton
+                  open={notesOpen}
+                  hasNote={hasNote}
+                  panelTint={panelTint}
+                  colors={colors}
+                  visualStyle={visualStyle}
+                  onClick={() => setNotesOpen((open) => !open)}
+                />
+              </div>
+              <PreviewTriedStatusPicker
+                wineId={wine.id}
+                userId={userId}
+                review={review}
+                panelTint={panelTint}
+                orientation="vertical"
+                compact
+                onReviewChange={onReviewChange}
+              />
+              {error ? (
+                <p className="text-[8px] leading-tight text-center" style={{ color: colors.errorText }}>
+                  !
+                </p>
+              ) : null}
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Desktop review panel — unchanged layout. */}
+      <div
+        className={`relative hidden w-full flex-shrink-0 flex-col gap-1.5 px-2.5 pt-1.5 pb-2.5 transition-colors duration-300 min-w-0 group/review-panel sm:flex ${
+          visualStyle === 'trial' ? 'border-l border-[#E4E4EE]' : ''
+        }`}
+        style={{
+          ...reviewPanelSurface,
+          borderColor: colors.infoBorder,
           width: REVIEW_PANEL_WIDTH,
         }}
       >

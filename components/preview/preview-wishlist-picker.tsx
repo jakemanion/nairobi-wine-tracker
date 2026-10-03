@@ -16,6 +16,10 @@ type PreviewWishlistPickerProps = {
   review?: WineReview | null
   labelColor?: string
   panelTint?: PanelTint
+  /** Hide the BOOKMARK label above the button (mobile rail). */
+  showLabel?: boolean
+  /** Half-size control for the mobile review rail. */
+  compact?: boolean
   onReviewChange: (review: WineReview | null) => void
 }
 
@@ -99,6 +103,8 @@ export function PreviewWishlistPicker({
   review,
   labelColor,
   panelTint = 'none',
+  showLabel = true,
+  compact = false,
   onReviewChange,
 }: PreviewWishlistPickerProps) {
   const { colors, visualStyle } = usePreviewTheme()
@@ -108,6 +114,8 @@ export function PreviewWishlistPicker({
   const active = value === 1
   const trial = visualStyle === 'trial'
   const trialStyle = trial ? getTrialReviewControlStyle(panelTint, 'bookmark', active) : null
+  const buttonSize = compact ? 20 : 40
+  const iconSize = compact ? 12 : 24
 
   async function toggle() {
     if (saving) return
@@ -156,33 +164,45 @@ export function PreviewWishlistPicker({
   const iconFilled = trialStyle ? trialStyle.filled : active
 
   return (
-    <div className="relative flex flex-col items-center gap-1 flex-shrink-0 m-0 p-0">
-      <p
-        className="m-0 p-0 text-[8px] uppercase tracking-wider leading-none text-center whitespace-nowrap"
-        style={{ color: labelColor ?? colors.controlIdleIcon, fontFamily: 'var(--font-dm-sans), sans-serif' }}
-      >
-        {getWishlistStateLabel(value)}
-      </p>
+    <div
+      className={`relative flex flex-col items-center flex-shrink-0 m-0 p-0 ${
+        showLabel ? 'gap-1' : 'gap-0'
+      }`}
+    >
+      {showLabel ? (
+        <p
+          className="m-0 p-0 text-[8px] uppercase tracking-wider leading-none text-center whitespace-nowrap"
+          style={{ color: labelColor ?? colors.controlIdleIcon, fontFamily: 'var(--font-dm-sans), sans-serif' }}
+        >
+          {getWishlistStateLabel(value)}
+        </p>
+      ) : null}
       <InstantTooltip label={active ? 'Remove from bookmark' : 'Add to bookmark'}>
         <button
           type="button"
           aria-label={active ? 'Remove from bookmark' : 'Add to bookmark'}
           aria-pressed={active}
           disabled={saving}
-          className="w-10 h-10 relative flex items-center justify-center transition-all hover:scale-105 flex-shrink-0 m-0"
+          className="relative flex items-center justify-center transition-all hover:scale-105 flex-shrink-0 m-0"
           style={{
-            border: `${trial ? 1 : 2}px solid ${borderColor}`,
+            width: buttonSize,
+            height: buttonSize,
+            border: `${trial ? 1 : compact ? 1 : 2}px solid ${borderColor}`,
             background: bgColor,
             color: iconColor,
-            borderRadius: trial ? TRIAL_REVIEW_BUTTON_RADIUS : colors.buttonRadius,
-            boxShadow: trial ? 'none' : colors.controlShadow,
+            borderRadius: trial
+              ? compact
+                ? '5px'
+                : TRIAL_REVIEW_BUTTON_RADIUS
+              : colors.buttonRadius,
+            boxShadow: trial || compact ? 'none' : colors.controlShadow,
             opacity: saving ? 0.5 : 1,
             cursor: saving ? 'wait' : 'pointer',
           }}
           onClick={() => void toggle()}
         >
         <Bookmark
-          size={24}
+          size={iconSize}
           strokeWidth={2}
           fill={iconFilled ? 'currentColor' : 'none'}
           className={iconFilled ? 'fill-current' : undefined}

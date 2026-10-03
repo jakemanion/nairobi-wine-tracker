@@ -18,6 +18,10 @@ type PreviewTriedStatusPickerProps = {
   userId: string
   review?: WineReview | null
   panelTint?: PanelTint
+  /** Stack thumbs vertically (mobile rail). */
+  orientation?: 'horizontal' | 'vertical'
+  /** Half-size controls for the mobile review rail. */
+  compact?: boolean
   onReviewChange: (review: WineReview | null) => void
 }
 
@@ -56,6 +60,8 @@ export function PreviewTriedStatusPicker({
   userId,
   review,
   panelTint = 'none',
+  orientation = 'horizontal',
+  compact = false,
   onReviewChange,
 }: PreviewTriedStatusPickerProps) {
   const { colors, visualStyle } = usePreviewTheme()
@@ -63,6 +69,8 @@ export function PreviewTriedStatusPicker({
   const [error, setError] = useState<string | null>(null)
   const value = normalizeTriedStatus(review?.tried_status)
   const trial = visualStyle === 'trial'
+  const buttonSize = compact ? 20 : 28
+  const iconSize = compact ? 12 : 15
 
   async function setStatus(next: TriedStatusValue) {
     if (saving) return
@@ -99,7 +107,13 @@ export function PreviewTriedStatusPicker({
 
   return (
     <div className="flex flex-col items-center gap-0.5 flex-shrink-0">
-      <div className="flex items-center gap-1">
+      <div
+        className={
+          orientation === 'vertical'
+            ? 'flex flex-col items-center gap-1'
+            : 'flex items-center gap-1'
+        }
+      >
         <InstantTooltip label="Buy again">
           <button
             type="button"
@@ -108,9 +122,9 @@ export function PreviewTriedStatusPicker({
             disabled={saving}
             className="relative flex items-center justify-center transition-all hover:scale-105 flex-shrink-0"
             style={{
-              width: 28,
-              height: 28,
-              border: `${trial ? 1 : 1.5}px solid ${
+              width: buttonSize,
+              height: buttonSize,
+              border: `${trial || compact ? 1 : 1.5}px solid ${
                 trialUp
                   ? trialUp.border
                   : upActive
@@ -127,15 +141,19 @@ export function PreviewTriedStatusPicker({
                 : upActive
                   ? '#E0C040'
                   : colors.controlIdleIcon,
-              borderRadius: trial ? TRIAL_REVIEW_BUTTON_RADIUS : colors.buttonRadius,
-              boxShadow: trial ? 'none' : colors.controlShadow,
+              borderRadius: trial
+                ? compact
+                  ? '5px'
+                  : TRIAL_REVIEW_BUTTON_RADIUS
+                : colors.buttonRadius,
+              boxShadow: trial || compact ? 'none' : colors.controlShadow,
               opacity: saving ? 0.5 : 1,
               cursor: saving ? 'wait' : 'pointer',
             }}
             onClick={() => void setStatus(1)}
           >
             <ThumbsUp
-              size={15}
+              size={iconSize}
               strokeWidth={2}
               fill={trialUp?.filled ? 'currentColor' : 'none'}
               className={trialUp?.filled ? 'fill-current' : undefined}
@@ -156,9 +174,9 @@ export function PreviewTriedStatusPicker({
             disabled={saving}
             className="relative flex items-center justify-center transition-all hover:scale-105 flex-shrink-0"
             style={{
-              width: 28,
-              height: 28,
-              border: `${trial ? 1 : 1.5}px solid ${
+              width: buttonSize,
+              height: buttonSize,
+              border: `${trial || compact ? 1 : 1.5}px solid ${
                 trialDown
                   ? trialDown.border
                   : downActive
@@ -175,15 +193,19 @@ export function PreviewTriedStatusPicker({
                 : downActive
                   ? '#F08080'
                   : colors.controlIdleIcon,
-              borderRadius: trial ? TRIAL_REVIEW_BUTTON_RADIUS : colors.buttonRadius,
-              boxShadow: trial ? 'none' : colors.controlShadow,
+              borderRadius: trial
+                ? compact
+                  ? '5px'
+                  : TRIAL_REVIEW_BUTTON_RADIUS
+                : colors.buttonRadius,
+              boxShadow: trial || compact ? 'none' : colors.controlShadow,
               opacity: saving ? 0.5 : 1,
               cursor: saving ? 'wait' : 'pointer',
             }}
             onClick={() => void setStatus(2)}
           >
             <ThumbsDown
-              size={15}
+              size={iconSize}
               strokeWidth={2}
               fill={trialDown?.filled ? 'currentColor' : 'none'}
               className={trialDown?.filled ? 'fill-current' : undefined}
