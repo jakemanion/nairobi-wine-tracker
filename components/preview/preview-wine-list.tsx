@@ -133,20 +133,23 @@ export function PreviewWineList({
             borderBottom: `1px solid ${colors.headerBorder}`,
           }}
         >
-          <div className="mx-auto pl-10 pr-6 py-3 flex items-center justify-between gap-4" style={{ maxWidth: PREVIEW_CONTENT_MAX_WIDTH }}>
-            <div className="min-w-0 flex-shrink-0 flex items-center gap-2.5">
+          <div
+            className="mx-auto flex items-center justify-between gap-3 px-3 py-3 sm:gap-4 sm:pl-10 sm:pr-6"
+            style={{ maxWidth: PREVIEW_CONTENT_MAX_WIDTH }}
+          >
+            <div className="flex min-w-0 flex-shrink-0 items-center gap-2.5">
               <BrandLogo height={40} />
               <div className="min-w-0">
-                <div className="flex items-center gap-2 min-w-0">
+                <div className="flex min-w-0 items-center gap-2">
                   <h1
-                    className="text-base font-semibold leading-none truncate"
+                    className="truncate text-base font-semibold leading-none"
                     style={{ color: colors.headerTitle, fontFamily: colors.headingFont }}
                   >
                     WineDiviner: Nairobi
                   </h1>
                   {isAdmin ? <AdminVersionBadge colors={colors} /> : null}
                 </div>
-                <p className="text-[10px] mt-1 truncate" style={{ color: colors.headerSub }}>
+                <p className="mt-1 truncate text-[10px]" style={{ color: colors.headerSub }}>
                   Find Nairobi&apos;s best bottles for your budget
                 </p>
               </div>
@@ -172,12 +175,14 @@ export function PreviewWineList({
                 onChange={(event) => setSearchQuery(event.target.value)}
               />
             </div>
-            <div className="flex items-center gap-2 flex-shrink-0">
+            <div className="flex flex-shrink-0 items-center gap-2">
               {isLoggedIn ? (
                 <>
                   <button
                     type="button"
-                    className="inline-flex items-center gap-1.5 text-[11px] px-2.5 py-1.5"
+                    aria-label="Share your list"
+                    title="Share your list"
+                    className="inline-flex items-center gap-1.5 px-1.5 py-1.5 text-[11px] sm:px-2.5"
                     style={{
                       background: colors.buttonBg,
                       border: `1px solid ${colors.buttonBorder}`,
@@ -189,7 +194,7 @@ export function PreviewWineList({
                     onClick={() => setShareOpen(true)}
                   >
                     <Share2 size={13} strokeWidth={2} fill="none" />
-                    Share your list
+                    <span className="hidden sm:inline">Share your list</span>
                   </button>
                   <PreviewUserMenu
                     colors={colors}
@@ -231,7 +236,7 @@ export function PreviewWineList({
       </div>
 
       <main
-        className="mx-auto pl-10 pr-6 py-5 flex-1 w-full flex flex-col"
+        className="mx-auto flex w-full flex-1 flex-col px-3 py-5 sm:pl-10 sm:pr-6"
         style={{ maxWidth: PREVIEW_CONTENT_MAX_WIDTH, gap: listGapPx }}
       >
         <WelcomePanel />

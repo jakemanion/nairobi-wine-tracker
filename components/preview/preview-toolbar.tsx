@@ -65,19 +65,30 @@ export function PreviewToolbar({
   })
   const summaryText = summaryParts.join(' · ')
 
+  const summaryContent = summaryParts.map((part, index) => (
+    <span key={`${index}-${part}`}>
+      {index > 0 ? (
+        <span aria-hidden style={{ color: '#555555', padding: '0 0.35em' }}>
+          ·
+        </span>
+      ) : null}
+      {part}
+    </span>
+  ))
+
   const mobileSearchRow = (
     <>
-      <div className="relative min-w-0 flex-1">
+      <div className="relative min-w-0 flex-1 basis-0 max-w-[42%]">
         <Search
-          className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2"
+          className="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2"
           style={{ color: colors.searchPlaceholder }}
         />
         <input
           type="search"
           value={searchQuery}
-          placeholder="Search wines"
+          placeholder="Search"
           aria-label="Search producer or wine name"
-          className="w-full py-1.5 pl-8 pr-3 text-sm focus:outline-none"
+          className="w-full py-1.5 pl-7 pr-2 text-sm focus:outline-none"
           style={{
             background: colors.searchBg,
             border: `1px solid ${colors.searchBorder}`,
@@ -96,7 +107,7 @@ export function PreviewToolbar({
         className="inline-flex flex-shrink-0 items-center gap-1"
         style={{
           height: 34,
-          padding: '0 10px',
+          padding: '0 8px',
           fontSize: 11,
           lineHeight: 1.2,
           borderRadius: colors.panelRadius,
@@ -118,6 +129,15 @@ export function PreviewToolbar({
           </span>
         ) : null}
       </button>
+      <div className="flex-shrink-0">
+        <PreviewSortBar
+          colors={colors}
+          primarySort={primarySort}
+          onPrimarySortChange={onPrimarySortChange}
+          onSecondarySortChange={onSecondarySortChange}
+          compact
+        />
+      </div>
     </>
   )
 
@@ -158,8 +178,27 @@ export function PreviewToolbar({
           mobileSearchRow={mobileSearchRow}
         />
       </div>
+
+      {/* Mobile: summary on its own full-width row */}
+      <p
+        className="m-0 w-full min-w-0 pt-1.5 text-center sm:hidden"
+        title={summaryText}
+        style={{
+          color: colors.summaryText,
+          fontFamily: 'var(--font-dm-sans), sans-serif',
+          fontSize: 10,
+          lineHeight: 1.2,
+          overflowWrap: 'anywhere',
+        }}
+      >
+        {summaryContent}
+      </p>
+
+      {/* Desktop: sort | summary | hide filters */}
       <div
-        className={`grid min-w-0 grid-cols-[minmax(0,1fr)_minmax(0,2fr)_minmax(0,1fr)] items-center gap-2 px-1 ${filtersVisible ? 'pt-1.5' : 'max-sm:pt-1.5'}`}
+        className={`hidden min-w-0 grid-cols-[minmax(0,1fr)_minmax(0,2fr)_minmax(0,1fr)] items-center gap-2 px-1 sm:grid ${
+          filtersVisible ? 'pt-1.5' : ''
+        }`}
       >
         <div className="justify-self-start self-center">
           <PreviewSortBar
@@ -170,7 +209,7 @@ export function PreviewToolbar({
           />
         </div>
         <p
-          className="m-0 min-w-0 text-center self-center"
+          className="m-0 min-w-0 self-center text-center"
           title={summaryText}
           style={{
             color: colors.summaryText,
@@ -180,23 +219,14 @@ export function PreviewToolbar({
             overflowWrap: 'anywhere',
           }}
         >
-          {summaryParts.map((part, index) => (
-            <span key={`${index}-${part}`}>
-              {index > 0 ? (
-                <span aria-hidden style={{ color: '#555555', padding: '0 0.35em' }}>
-                  ·
-                </span>
-              ) : null}
-              {part}
-            </span>
-          ))}
+          {summaryContent}
         </p>
         <button
           type="button"
           aria-expanded={filtersVisible}
           aria-controls="preview-filter-panel"
           onClick={() => setFiltersVisible((visible) => !visible)}
-          className="hidden justify-self-end self-center sm:inline-flex"
+          className="justify-self-end self-center"
           style={{
             height: 22,
             padding: '0 8px',

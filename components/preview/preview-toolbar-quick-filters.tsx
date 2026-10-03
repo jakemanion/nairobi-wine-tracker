@@ -487,14 +487,17 @@ export function PreviewSortBar({
   primarySort,
   onPrimarySortChange,
   onSecondarySortChange,
+  compact = false,
 }: {
   colors: PreviewColors
   primarySort: SortCriterion
   onPrimarySortChange: (next: SortCriterion) => void
   onSecondarySortChange: (next: SortCriterion) => void
+  /** Shorter labels for tight mobile toolbars. */
+  compact?: boolean
 }) {
   return (
-    <UsageTipTarget tipId="sort-panel" className="flex items-center gap-1.5">
+    <UsageTipTarget tipId="sort-panel" className="flex items-center gap-1">
       <FilterSelect
         colors={colors}
         active
@@ -509,7 +512,7 @@ export function PreviewSortBar({
       >
         {QUICK_SORT_OPTIONS.map((option) => (
           <option key={option.key} value={option.key}>
-            Sort by {option.label}
+            {compact ? option.label : `Sort by ${option.label}`}
           </option>
         ))}
       </FilterSelect>
