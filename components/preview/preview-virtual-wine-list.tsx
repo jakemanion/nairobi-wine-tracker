@@ -12,37 +12,18 @@ export const EAGER_IMAGE_COUNT = 5
 const OVERSCAN = 8
 /** Typical card height before measureElement runs (excludes gap). Mobile stacks the review panel, so estimate a bit taller. */
 const ESTIMATED_CARD_HEIGHT = 168
-/** Matches Tailwind `sm` — below this, card gap is halved. */
-const DESKTOP_MIN_WIDTH_MQ = '(min-width: 640px)'
-
 type PreviewVirtualWineListProps = {
   previewWines: PreviewWineCardData[]
   winesById: Map<string, WineRow>
   isLoggedIn: boolean
   isAdmin?: boolean
   userId: string
-  /** Vertical gap between cards on desktop (matches former space-y utility). Mobile uses 50%. */
+  /** Vertical gap between cards (matches former space-y utility). */
   gapPx: number
   /** Change when filters/search/sort change so scroll resets to the top. */
   resetKey: string
   onReviewChange: (wineId: string, review: WineReview | null) => void
   reportedWineIds?: ReadonlySet<string>
-}
-
-function useCardGapPx(desktopGapPx: number) {
-  const [cardGapPx, setCardGapPx] = useState(desktopGapPx)
-
-  useLayoutEffect(() => {
-    const mql = window.matchMedia(DESKTOP_MIN_WIDTH_MQ)
-    const update = () => {
-      setCardGapPx(mql.matches ? desktopGapPx : Math.round(desktopGapPx / 2))
-    }
-    update()
-    mql.addEventListener('change', update)
-    return () => mql.removeEventListener('change', update)
-  }, [desktopGapPx])
-
-  return cardGapPx
 }
 
 export function PreviewVirtualWineList({
@@ -58,7 +39,7 @@ export function PreviewVirtualWineList({
 }: PreviewVirtualWineListProps) {
   const listRef = useRef<HTMLDivElement>(null)
   const [scrollMargin, setScrollMargin] = useState(0)
-  const cardGapPx = useCardGapPx(gapPx)
+  const cardGapPx = gapPx
 
   useLayoutEffect(() => {
     const node = listRef.current
