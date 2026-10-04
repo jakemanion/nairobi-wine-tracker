@@ -263,16 +263,14 @@ function WineStarRating({
   const qualityStars = vivinoToStarRating(vivinoRating)
   const valueStars = valueScoreToStarRating(valueScore)
   const hasVivino = vivinoRating != null
-  const vivinoLabelDesktop = hasVivino ? `${vivinoRating.toFixed(1)} on Vivino` : 'Vivino'
-  const vivinoLabelMobile = hasVivino ? vivinoRating.toFixed(1) : 'Vivino'
+  const vivinoLabel = hasVivino ? `${vivinoRating.toFixed(1)} on Vivino` : 'Vivino'
 
   const vivinoLine = (
     <span
       className="inline-flex items-center gap-0.5 text-[9px] font-medium leading-none underline-offset-2"
       style={{ color: mutedColor, fontFamily: 'var(--font-dm-sans), sans-serif' }}
     >
-      <span className="sm:hidden">{vivinoLabelMobile}</span>
-      <span className="hidden sm:inline">{vivinoLabelDesktop}</span>
+      <span>{vivinoLabel}</span>
       {vivinoUrl ? (
         <ExternalLink className="hidden sm:block w-2.5 h-2.5 flex-shrink-0" aria-hidden />
       ) : null}
@@ -803,7 +801,7 @@ export function PreviewWineCard({
 
           {/* Row 2 on mobile: wine info. */}
           <div
-            className={`flex-1 min-w-0 flex flex-col gap-1.5 pt-0.5 ${
+            className={`flex-1 min-w-0 flex flex-col gap-[4.5px] pt-0.5 sm:gap-1.5 ${
               isAdmin && isLoggedIn
                 ? 'sm:pr-[7.5rem]'
                 : isAdmin || isLoggedIn
@@ -818,7 +816,7 @@ export function PreviewWineCard({
               {wine.producer}
             </p>
             <h3
-              className="text-sm font-semibold leading-snug"
+              className="text-[9px] font-semibold leading-snug sm:text-sm"
               style={{ color: infoWineName, fontFamily: colors.headingFont }}
             >
               {nameHref ? (
