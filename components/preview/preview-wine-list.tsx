@@ -218,7 +218,7 @@ export function PreviewWineList({
         </header>
 
         <div
-          className="mx-auto px-3 pt-2 pb-4 sm:pl-10 sm:pr-6"
+          className="mx-auto px-3 pt-1 pb-4 sm:pt-2 sm:pl-10 sm:pr-6"
           style={{ maxWidth: PREVIEW_CONTENT_MAX_WIDTH }}
         >
           <PreviewToolbar
@@ -267,10 +267,6 @@ export function PreviewWineList({
         colors={colors}
         filters={filters}
         onFiltersChange={setFilters}
-        resultCount={previewWines.length}
-        storeCount={filterOptions.stores.length}
-        grapeCount={filterOptions.grapes.length}
-        countryCount={filterOptions.countries.length}
         isLoggedIn={isLoggedIn}
       />
       <SiteFooter colors={colors} />

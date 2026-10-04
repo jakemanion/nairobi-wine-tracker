@@ -836,14 +836,14 @@ export function PreviewToolbarQuickFilters({
       </div>
 
       {mobileSearchRow ? (
-        <div className="flex w-full items-center gap-2 px-2 py-1.5 sm:hidden">
+        <div className="flex w-full items-center gap-2 px-2 py-[3px] sm:hidden">
           {mobileSearchRow}
         </div>
       ) : null}
 
       <div
         id="preview-filter-tabs"
-        className={`filter-panel-aside max-w-full flex-col items-stretch p-2 sm:flex sm:flex-none sm:border-l ${
+        className={`filter-panel-aside max-w-full flex-col items-stretch px-0 py-1 sm:flex sm:flex-none sm:border-l sm:p-2 ${
           tabsOpen ? 'flex' : 'hidden'
         }`}
         style={{
