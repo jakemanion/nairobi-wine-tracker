@@ -745,7 +745,7 @@ export function PreviewWineCard({
           </div>
 
           <div
-            className={`flex-1 min-w-0 pl-0 pr-2 py-2.5 flex flex-col gap-1.5 relative sm:pr-3.5 sm:flex-row sm:items-start sm:justify-between sm:gap-2.5 ${
+            className={`flex-1 min-w-0 pl-0 pr-2 py-[5px] flex flex-col gap-1.5 relative sm:py-2.5 sm:pr-3.5 sm:flex-row sm:items-start sm:justify-between sm:gap-2.5 ${
               visualStyle === 'trial' ? '' : 'sm:border-r'
             }`}
             style={{
@@ -816,7 +816,7 @@ export function PreviewWineCard({
               {wine.producer}
             </p>
             <h3
-              className="text-[9px] font-semibold leading-snug sm:text-sm"
+              className="text-[11px] font-semibold leading-snug sm:text-sm"
               style={{ color: infoWineName, fontFamily: colors.headingFont }}
             >
               {nameHref ? (
@@ -980,7 +980,7 @@ export function PreviewWineCard({
 
       {/* Mobile review rail — icon-only vertical controls on the right. */}
       <div
-        className={`relative flex w-8 flex-shrink-0 flex-col items-center justify-between gap-1 px-0.5 py-1.5 transition-colors duration-300 group/review-panel border-l sm:hidden ${
+        className={`relative flex w-8 flex-shrink-0 flex-col items-center justify-between gap-1 px-0.5 py-[3px] transition-colors duration-300 group/review-panel border-l sm:hidden ${
           visualStyle === 'trial' ? 'border-[#E4E4EE]' : ''
         }`}
         style={{
