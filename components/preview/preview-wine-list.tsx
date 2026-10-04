@@ -218,7 +218,7 @@ export function PreviewWineList({
         </header>
 
         <div
-          className="mx-auto px-3 pt-1 pb-4 sm:pt-2 sm:pl-10 sm:pr-6"
+          className="mx-auto px-3 pt-0 pb-0 sm:pt-2 sm:pb-4 sm:pl-10 sm:pr-6"
           style={{ maxWidth: PREVIEW_CONTENT_MAX_WIDTH }}
         >
           <PreviewToolbar
