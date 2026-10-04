@@ -584,8 +584,6 @@ export function MyWinesFilterBar({
     },
   ]
 
-  const buttonWidth = showLabels ? CONTROL_HEIGHT * 1.5 : CONTROL_HEIGHT
-
   return (
     <UsageTipTarget
       tipId="my-wines-filters"
@@ -597,19 +595,19 @@ export function MyWinesFilterBar({
     >
       {showLabels ? (
         <span
-          className="flex-none text-[8px] font-semibold leading-tight"
+          className="flex-none text-[16px] font-semibold leading-tight"
           style={{
             color: colors.summaryText,
             fontFamily: 'var(--font-dm-sans), sans-serif',
           }}
         >
-          My wines:
+          Show:
         </span>
       ) : null}
       <div
         className={
           showLabels
-            ? 'flex min-w-0 flex-1 items-start justify-between gap-1'
+            ? 'flex min-w-0 flex-1 items-stretch gap-0.5'
             : 'flex items-center gap-1.5'
         }
       >
@@ -621,7 +619,12 @@ export function MyWinesFilterBar({
               aria-pressed={item.active}
               style={{
                 ...reviewFilterButtonStyle(colors, item.active, item.kind, trial),
-                width: buttonWidth,
+                ...(showLabels
+                  ? {
+                      width: '100%',
+                      borderRadius: 0,
+                    }
+                  : {}),
               }}
               onClick={item.onClick}
             >
@@ -639,7 +642,7 @@ export function MyWinesFilterBar({
           }
 
           return (
-            <div key={item.key} className="flex min-w-0 flex-1 flex-col items-center gap-0.5">
+            <div key={item.key} className="flex min-w-0 flex-1 flex-col items-stretch gap-0.5">
               {button}
               <span
                 className="max-w-full text-center text-[8px] font-medium leading-tight"
@@ -833,7 +836,9 @@ export function PreviewToolbarQuickFilters({
       </div>
 
       {mobileSearchRow ? (
-        <div className="flex items-center gap-2 py-1.5 sm:hidden">{mobileSearchRow}</div>
+        <div className="flex w-full items-center gap-2 px-2 py-1.5 sm:hidden">
+          {mobileSearchRow}
+        </div>
       ) : null}
 
       <div

@@ -267,10 +267,21 @@ function WineStarRating({
 
   const vivinoLine = (
     <span
-      className="inline-flex items-center gap-0.5 text-[9px] font-medium leading-none underline-offset-2"
+      className="inline-flex items-center gap-0.5 text-[9px] font-medium leading-tight underline-offset-2 sm:leading-none"
       style={{ color: mutedColor, fontFamily: 'var(--font-dm-sans), sans-serif' }}
     >
-      <span>{vivinoLabel}</span>
+      <span className="text-center sm:hidden">
+        {hasVivino ? (
+          <>
+            {vivinoRating!.toFixed(1)} on
+            <br />
+            Vivino
+          </>
+        ) : (
+          'Vivino'
+        )}
+      </span>
+      <span className="hidden sm:inline">{vivinoLabel}</span>
       {vivinoUrl ? (
         <ExternalLink className="hidden sm:block w-2.5 h-2.5 flex-shrink-0" aria-hidden />
       ) : null}
@@ -278,7 +289,7 @@ function WineStarRating({
   )
 
   return (
-    <div className="flex flex-row items-center gap-1 flex-shrink-0 flex-nowrap sm:flex-col sm:items-center sm:gap-0 sm:pt-0.5">
+    <div className="flex w-full flex-row flex-nowrap items-center justify-center gap-1 flex-shrink-0 sm:w-auto sm:flex-col sm:items-center sm:justify-start sm:gap-0 sm:pt-0.5">
       <InstantTooltip label="This wine's value based on its quality and price">
         <div className="sm:mb-1.5">
           <StarRatingMeter
@@ -810,7 +821,7 @@ export function PreviewWineCard({
             }`}
           >
             <p
-              className="text-[9px] font-semibold uppercase tracking-[0.14em] leading-none"
+              className="text-[8px] font-semibold uppercase tracking-[0.14em] leading-none sm:text-[9px]"
               style={{ color: infoProducer, fontFamily: 'var(--font-dm-sans), sans-serif' }}
             >
               {wine.producer}

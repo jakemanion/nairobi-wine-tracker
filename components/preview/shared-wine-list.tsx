@@ -127,8 +127,8 @@ export function SharedWineList({
                 <input
                   type="search"
                   value={searchQuery}
-                  placeholder="Search wine names and producers"
-                  aria-label="Search producer or wine name"
+                  placeholder="Search wine names"
+                  aria-label="Search wine names"
                   className="w-full text-sm pl-8 pr-3 py-1.5 focus:outline-none"
                   style={{
                     background: colors.searchBg,

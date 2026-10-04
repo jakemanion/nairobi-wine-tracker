@@ -79,7 +79,7 @@ export function PreviewToolbar({
 
   const mobileSearchRow = (
     <>
-      <div className="relative min-w-0 flex-1 basis-0 max-w-[42%]">
+      <div className="relative w-[31.5%] min-w-0 flex-none">
         <Search
           className="pointer-events-none absolute left-1.5 top-1/2 h-3 w-3 -translate-y-1/2"
           style={{ color: colors.searchPlaceholder }}
@@ -87,8 +87,8 @@ export function PreviewToolbar({
         <input
           type="search"
           value={searchQuery}
-          placeholder="Search"
-          aria-label="Search producer or wine name"
+          placeholder="Search wine names"
+          aria-label="Search wine names"
           className="box-border w-full pl-6 pr-1.5 text-[10px] leading-none focus:outline-none"
           style={{
             height: FILTER_CONTROL_HEIGHT,
@@ -101,37 +101,39 @@ export function PreviewToolbar({
           onChange={(event) => onSearchChange(event.target.value)}
         />
       </div>
-      <button
-        type="button"
-        aria-expanded={mobileTabsOpen}
-        aria-controls="preview-filter-tabs"
-        onClick={() => setMobileTabsOpen((open) => !open)}
-        className="inline-flex flex-shrink-0 items-center gap-1"
-        style={{
-          height: FILTER_CONTROL_HEIGHT,
-          padding: '0 7px',
-          fontSize: 10,
-          lineHeight: 1.2,
-          borderRadius: colors.panelRadius,
-          cursor: 'pointer',
-          fontFamily: 'var(--font-dm-sans), sans-serif',
-          background: mobileTabsOpen || toolsActive ? '#ffffff' : colors.buttonBg,
-          border: `1px solid ${
-            mobileTabsOpen || toolsActive ? colors.accent : colors.buttonBorder
-          }`,
-          color: colors.summaryStrong,
-          whiteSpace: 'nowrap',
-        }}
-      >
-        <SlidersHorizontal size={11} strokeWidth={2} aria-hidden />
-        Filters
-        {activeFilterCount > 0 ? (
-          <span aria-hidden style={{ color: colors.accent, fontWeight: 700 }}>
-            {activeFilterCount}
-          </span>
-        ) : null}
-      </button>
-      <div className="flex-shrink-0">
+      <div className="flex min-w-0 flex-1 items-center justify-center">
+        <button
+          type="button"
+          aria-expanded={mobileTabsOpen}
+          aria-controls="preview-filter-tabs"
+          onClick={() => setMobileTabsOpen((open) => !open)}
+          className="inline-flex flex-shrink-0 items-center gap-1"
+          style={{
+            height: FILTER_CONTROL_HEIGHT,
+            padding: '0 7px',
+            fontSize: 10,
+            lineHeight: 1.2,
+            borderRadius: colors.panelRadius,
+            cursor: 'pointer',
+            fontFamily: 'var(--font-dm-sans), sans-serif',
+            background: mobileTabsOpen || toolsActive ? '#ffffff' : colors.buttonBg,
+            border: `1px solid ${
+              mobileTabsOpen || toolsActive ? colors.accent : colors.buttonBorder
+            }`,
+            color: colors.summaryStrong,
+            whiteSpace: 'nowrap',
+          }}
+        >
+          <SlidersHorizontal size={11} strokeWidth={2} aria-hidden />
+          Filters
+          {activeFilterCount > 0 ? (
+            <span aria-hidden style={{ color: colors.accent, fontWeight: 700 }}>
+              {activeFilterCount}
+            </span>
+          ) : null}
+        </button>
+      </div>
+      <div className="flex flex-none items-center justify-end">
         <PreviewSortBar
           colors={colors}
           primarySort={primarySort}

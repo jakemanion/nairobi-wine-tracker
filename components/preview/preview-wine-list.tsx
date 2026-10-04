@@ -164,8 +164,8 @@ export function PreviewWineList({
               <input
                 type="search"
                 value={searchQuery}
-                placeholder="Search wine names and producers"
-                aria-label="Search producer or wine name"
+                placeholder="Search wine names"
+                aria-label="Search wine names"
                 className="w-full py-1.5 pl-8 pr-3 text-sm focus:outline-none"
                 style={{
                   background: colors.searchBg,
