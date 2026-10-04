@@ -54,6 +54,9 @@ type PreviewToolbarQuickFiltersProps = {
   tabsOpen?: boolean
   /** Mobile-only row rendered between quick chips and the tabs panel. */
   mobileSearchRow?: ReactNode
+  /** Mobile: filter summary shown under the tab area when the panel is open. */
+  filterSummary?: ReactNode
+  filterSummaryTitle?: string
 }
 
 type FilterTabId = 'shops' | 'price' | 'wine' | 'my-wines'
@@ -734,6 +737,8 @@ export function PreviewToolbarQuickFilters({
   isLoggedIn = false,
   tabsOpen = true,
   mobileSearchRow,
+  filterSummary,
+  filterSummaryTitle,
 }: PreviewToolbarQuickFiltersProps) {
   const priceMaxBound = priceBounds?.max ?? 10000
   const [activeTab, setActiveTab] = useState<FilterTabId>('shops')
@@ -983,6 +988,22 @@ export function PreviewToolbarQuickFilters({
           ) : null}
         </div>
         </div>
+
+        {filterSummary ? (
+          <p
+            className="m-0 w-full min-w-0 px-2 pt-1.5 text-center sm:hidden"
+            title={filterSummaryTitle}
+            style={{
+              color: colors.summaryText,
+              fontFamily: 'var(--font-dm-sans), sans-serif',
+              fontSize: 8,
+              lineHeight: 1.2,
+              overflowWrap: 'anywhere',
+            }}
+          >
+            {filterSummary}
+          </p>
+        ) : null}
       </div>
     </div>
   )

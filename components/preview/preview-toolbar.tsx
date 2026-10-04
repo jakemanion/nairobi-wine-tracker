@@ -180,6 +180,8 @@ export function PreviewToolbar({
           isLoggedIn={isLoggedIn}
           tabsOpen={mobileTabsOpen}
           mobileSearchRow={mobileSearchRow}
+          filterSummary={summaryContent}
+          filterSummaryTitle={summaryText}
         />
       </div>
 
