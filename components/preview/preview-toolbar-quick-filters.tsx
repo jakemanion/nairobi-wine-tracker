@@ -694,7 +694,11 @@ export function PreviewSortBar({
       >
         {QUICK_SORT_OPTIONS.map((option) => (
           <option key={option.key} value={option.key}>
-            {compact ? option.label : `Sort by ${option.label}`}
+            {compact
+              ? option.key === primarySort.key
+                ? `Sorted by ${option.label}`
+                : option.label
+              : `Sort by ${option.label}`}
           </option>
         ))}
       </FilterSelect>
