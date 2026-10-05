@@ -27,10 +27,20 @@ export function UsageTipTarget({ tipId, children, className, style }: UsageTipTa
   const [open, setOpen] = useState(false)
   const [point, setPoint] = useState({ x: 0, y: 0 })
   const [mounted, setMounted] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
   const closeTimeoutRef = useRef<number | null>(null)
+  const tipsActive = enabled && !isMobile
 
   useEffect(() => {
     setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    const media = window.matchMedia('(max-width: 639px)')
+    const sync = () => setIsMobile(media.matches)
+    sync()
+    media.addEventListener('change', sync)
+    return () => media.removeEventListener('change', sync)
   }, [])
 
   useEffect(() => {
@@ -42,8 +52,8 @@ export function UsageTipTarget({ tipId, children, className, style }: UsageTipTa
   }, [])
 
   useEffect(() => {
-    if (!enabled) setOpen(false)
-  }, [enabled])
+    if (!tipsActive) setOpen(false)
+  }, [tipsActive])
 
   function cancelClose() {
     if (closeTimeoutRef.current != null) {
@@ -61,7 +71,7 @@ export function UsageTipTarget({ tipId, children, className, style }: UsageTipTa
   }
 
   function openTip(event: MouseEvent) {
-    if (!enabled) return
+    if (!tipsActive) return
     cancelClose()
     if (!open) {
       setPoint({ x: event.clientX, y: event.clientY })
@@ -79,7 +89,7 @@ export function UsageTipTarget({ tipId, children, className, style }: UsageTipTa
       {children}
       {mounted ? (
         <UsageTipOverlay
-          open={open && enabled}
+          open={open && tipsActive}
           placement="bottom-left-of-cursor"
           point={point}
           heading={tip.heading}

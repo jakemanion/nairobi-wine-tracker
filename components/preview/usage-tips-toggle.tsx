@@ -19,7 +19,7 @@ export function UsageTipsToggle({
 
   return (
     <label
-      className={`inline-flex items-center gap-1.5 text-[10px] px-2 py-1 rounded-md ${className}`}
+      className={`hidden sm:inline-flex items-center gap-1.5 text-[10px] px-2 py-1 rounded-md ${className}`}
       style={{
         color: colors.buttonText,
         border: `1px solid ${colors.buttonBorder}`,

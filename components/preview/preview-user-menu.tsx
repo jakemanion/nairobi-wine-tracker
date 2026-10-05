@@ -4,7 +4,6 @@ import Link from 'next/link'
 import { User } from 'lucide-react'
 import { LogoutButton } from '@/components/auth/logout-button'
 import { InstantTooltip } from '@/components/preview/instant-tooltip'
-import { UsageTipsToggle } from '@/components/preview/usage-tips-toggle'
 import { usePreviewTheme } from '@/components/preview/preview-theme-context'
 import { LEGAL_LINKS } from '@/components/site-footer'
 import type { PreviewColors, PreviewThemeMode } from '@/lib/preview/preview-colors'
@@ -46,7 +45,8 @@ export function PreviewUserMenu({
             aria-hidden
             size={36}
             strokeWidth={1.25}
-            className="pointer-events-none absolute inset-0 m-auto"
+            fill="currentColor"
+            className="pointer-events-none absolute inset-0 m-auto fill-current"
             style={{ color: '#E4E4EE' }}
           />
           <span className="relative z-[1]">{initial}</span>
@@ -66,19 +66,6 @@ export function PreviewUserMenu({
             boxShadow: trial ? colors.cardShadow : '0 8px 24px rgba(0,0,0,0.35)',
           }}
         >
-          <UsageTipsToggle
-            colors={colors}
-            className="w-full justify-between"
-            style={
-              trial
-                ? {
-                    background: colors.buttonBg,
-                    border: `1px solid ${colors.buttonBorder}`,
-                    color: colors.buttonText,
-                  }
-                : undefined
-            }
-          />
           <nav aria-label="Legal" className="sm:hidden">
             <ul className="m-0 flex list-none flex-col gap-1 p-0">
               {LEGAL_LINKS.map((link) => (
