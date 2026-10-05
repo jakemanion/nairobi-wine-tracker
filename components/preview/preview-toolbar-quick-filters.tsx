@@ -509,6 +509,8 @@ export function MyWinesFilterBar({
     onFiltersChange({ ...filters, ...patch })
   }
 
+  const iconSize = showLabels ? Math.round(11 * 1.75) : 11
+
   const items = [
     {
       key: 'unmarked',
@@ -528,7 +530,7 @@ export function MyWinesFilterBar({
       onClick: () => updateFilters({ includeBookmarked: !filters.includeBookmarked }),
       icon: (
         <Bookmark
-          size={11}
+          size={iconSize}
           strokeWidth={2}
           fill={filters.includeBookmarked ? 'currentColor' : 'none'}
           className={filters.includeBookmarked ? 'fill-current' : undefined}
@@ -544,7 +546,7 @@ export function MyWinesFilterBar({
       onClick: () => updateFilters({ includeBuyAgain: !filters.includeBuyAgain }),
       icon: (
         <ThumbsUp
-          size={11}
+          size={iconSize}
           strokeWidth={2}
           fill={trial && filters.includeBuyAgain ? 'currentColor' : 'none'}
           className={trial && filters.includeBuyAgain ? 'fill-current' : undefined}
@@ -562,7 +564,7 @@ export function MyWinesFilterBar({
       onClick: () => updateFilters({ includeDontBuyAgain: !filters.includeDontBuyAgain }),
       icon: (
         <ThumbsDown
-          size={11}
+          size={iconSize}
           strokeWidth={2}
           fill={trial && filters.includeDontBuyAgain ? 'currentColor' : 'none'}
           className={trial && filters.includeDontBuyAgain ? 'fill-current' : undefined}
@@ -578,7 +580,7 @@ export function MyWinesFilterBar({
       onClick: () => updateFilters({ includeHidden: !filters.includeHidden }),
       icon: (
         <EyeOff
-          size={11}
+          size={iconSize}
           strokeWidth={2}
           fill={trial && filters.includeHidden ? 'currentColor' : 'none'}
           className={trial && filters.includeHidden ? 'fill-current' : undefined}
@@ -625,11 +627,12 @@ export function MyWinesFilterBar({
                 ...(showLabels
                   ? {
                       display: 'flex',
+                      flexDirection: 'column',
                       width: '100%',
-                      height: Math.round(CONTROL_HEIGHT * 1.75),
-                      minHeight: Math.round(CONTROL_HEIGHT * 1.75),
-                      padding: '0 4px',
-                      gap: 3,
+                      height: Math.round(CONTROL_HEIGHT * 1.75) + 14,
+                      minHeight: Math.round(CONTROL_HEIGHT * 1.75) + 14,
+                      padding: '4px 2px',
+                      gap: 2,
                       fontSize: 8,
                       fontWeight: 500,
                       lineHeight: 1,
@@ -638,6 +641,8 @@ export function MyWinesFilterBar({
                       alignItems: 'center',
                       justifyContent: 'center',
                       boxSizing: 'border-box',
+                      whiteSpace: 'normal',
+                      textAlign: 'center',
                     }
                   : {}),
               }}
@@ -645,7 +650,14 @@ export function MyWinesFilterBar({
             >
               {item.icon}
               {showLabels ? (
-                <span style={{ lineHeight: 1, display: 'inline-flex', alignItems: 'center' }}>
+                <span
+                  style={{
+                    lineHeight: 1.1,
+                    display: 'block',
+                    textAlign: 'center',
+                    maxWidth: '100%',
+                  }}
+                >
                   {item.label}
                 </span>
               ) : null}

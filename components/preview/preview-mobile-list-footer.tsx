@@ -22,7 +22,7 @@ export function PreviewMobileListFooter({
 
   return (
     <div className="sm:hidden">
-      <div className="h-[4.75rem] shrink-0" aria-hidden />
+      <div className="h-[5.5rem] shrink-0" aria-hidden />
       <footer
         className="fixed bottom-0 left-0 right-0 z-40"
         style={{
