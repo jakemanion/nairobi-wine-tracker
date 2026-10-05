@@ -186,14 +186,14 @@ export function PreviewWineList({
                     title="Share your list"
                     className="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full"
                     style={{
-                      background: colors.buttonBg,
+                      background: visualStyle === 'trial' ? '#FFFFFF' : colors.headerAccent,
                       border: `1px solid ${colors.buttonBorder}`,
-                      color: colors.buttonText,
+                      color: visualStyle === 'trial' ? colors.headerTitle : '#FFFFFF',
                       cursor: 'pointer',
                     }}
                     onClick={() => setShareOpen(true)}
                   >
-                    <Share2 size={13} strokeWidth={2} fill="none" />
+                    <Share2 size={15} strokeWidth={2} fill="none" />
                   </button>
                   <PreviewUserMenu
                     colors={colors}

@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { User } from 'lucide-react'
 import { LogoutButton } from '@/components/auth/logout-button'
 import { InstantTooltip } from '@/components/preview/instant-tooltip'
 import { UsageTipsToggle } from '@/components/preview/usage-tips-toggle'
@@ -32,7 +33,7 @@ export function PreviewUserMenu({
         <button
           type="button"
           aria-label={`Open account menu for ${accountLabel}`}
-          className="flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold"
+          className="relative flex h-9 w-9 items-center justify-center overflow-hidden rounded-full text-sm font-semibold"
           style={{
             background: trial ? '#FFFFFF' : colors.headerAccent,
             border: `1px solid ${colors.buttonBorder}`,
@@ -41,7 +42,14 @@ export function PreviewUserMenu({
             fontFamily: 'var(--font-dm-sans), sans-serif',
           }}
         >
-          {initial}
+          <User
+            aria-hidden
+            size={36}
+            strokeWidth={1.25}
+            className="pointer-events-none absolute inset-0 m-auto"
+            style={{ color: '#E4E4EE' }}
+          />
+          <span className="relative z-[1]">{initial}</span>
         </button>
       </InstantTooltip>
 
