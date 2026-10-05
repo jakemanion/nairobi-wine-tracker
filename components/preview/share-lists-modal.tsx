@@ -222,7 +222,7 @@ export function ShareListsModal({ open, onClose }: ShareListsModalProps) {
           className="m-0 mt-2 text-[12px] leading-relaxed"
           style={{ color: colors.headerSub, fontFamily: 'var(--font-dm-sans), sans-serif' }}
         >
-          Choose which collections to include in a read-only shared link.
+          Choose which bottles to include in a shareable link:
         </p>
 
         <div className="mt-4 flex flex-col gap-2.5">
