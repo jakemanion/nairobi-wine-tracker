@@ -624,22 +624,31 @@ export function MyWinesFilterBar({
                 ...reviewFilterButtonStyle(colors, item.active, item.kind, trial),
                 ...(showLabels
                   ? {
+                      display: 'flex',
                       width: '100%',
-                      height: 'auto',
-                      minHeight: CONTROL_HEIGHT,
-                      padding: '4px 4px',
+                      height: Math.round(CONTROL_HEIGHT * 1.75),
+                      minHeight: Math.round(CONTROL_HEIGHT * 1.75),
+                      padding: '0 4px',
                       gap: 3,
                       fontSize: 8,
                       fontWeight: 500,
+                      lineHeight: 1,
                       borderRadius: 0,
                       opacity: item.active ? 1 : 0.5,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxSizing: 'border-box',
                     }
                   : {}),
               }}
               onClick={item.onClick}
             >
               {item.icon}
-              {showLabels ? <span>{item.label}</span> : null}
+              {showLabels ? (
+                <span style={{ lineHeight: 1, display: 'inline-flex', alignItems: 'center' }}>
+                  {item.label}
+                </span>
+              ) : null}
               {item.active ? <ReviewOnTick colors={colors} /> : null}
             </button>
           )
@@ -653,7 +662,7 @@ export function MyWinesFilterBar({
           }
 
           return (
-            <div key={item.key} className="min-w-0 flex-1">
+            <div key={item.key} className="flex min-w-0 flex-1 items-stretch">
               {button}
             </div>
           )
