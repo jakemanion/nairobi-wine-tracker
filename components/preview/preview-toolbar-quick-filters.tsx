@@ -637,7 +637,7 @@ export function MyWinesFilterBar({
                       fontWeight: 500,
                       lineHeight: 1,
                       borderRadius: 0,
-                      opacity: item.active ? 1 : 0.5,
+                      opacity: item.active ? 1 : 0.25,
                       alignItems: 'center',
                       justifyContent: 'center',
                       boxSizing: 'border-box',
