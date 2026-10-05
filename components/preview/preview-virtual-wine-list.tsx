@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useCallback, useLayoutEffect, useRef, useState } from 'react'
 import { useWindowVirtualizer } from '@tanstack/react-virtual'
 import { PreviewWineCard } from '@/components/preview/preview-wine-card'
 import type { WineReview, WineRow } from '@/components/wine-table'
@@ -10,8 +10,13 @@ import type { PreviewWineCardData } from '@/lib/preview/wine-card-model'
 export const EAGER_IMAGE_COUNT = 5
 
 const OVERSCAN = 8
-/** Typical card height before measureElement runs (excludes gap). Mobile stacks the review panel, so estimate a bit taller. */
-const ESTIMATED_CARD_HEIGHT = 168
+/**
+ * Initial height guess before measureElement runs (excludes gap).
+ * Prefer slightly tall over short: short estimates cause overlaps until measured.
+ */
+const ESTIMATED_CARD_HEIGHT_MOBILE = 220
+const ESTIMATED_CARD_HEIGHT_DESKTOP = 168
+
 type PreviewVirtualWineListProps = {
   previewWines: PreviewWineCardData[]
   winesById: Map<string, WineRow>
@@ -26,14 +31,26 @@ type PreviewVirtualWineListProps = {
   reportedWineIds?: ReadonlySet<string>
 }
 
-export function PreviewVirtualWineList({
+function documentOffsetTop(node: HTMLElement): number {
+  const rect = node.getBoundingClientRect()
+  return rect.top + window.scrollY
+}
+
+/**
+ * Remount on resetKey so filter/search/sort changes get a fresh virtualizer
+ * (no stale index→size cache) without wiping measurements on every update.
+ */
+export function PreviewVirtualWineList(props: PreviewVirtualWineListProps) {
+  return <PreviewVirtualWineListInner key={props.resetKey} {...props} />
+}
+
+function PreviewVirtualWineListInner({
   previewWines,
   winesById,
   isLoggedIn,
   isAdmin = false,
   userId,
   gapPx,
-  resetKey,
   onReviewChange,
   reportedWineIds,
 }: PreviewVirtualWineListProps) {
@@ -42,18 +59,22 @@ export function PreviewVirtualWineList({
   const cardGapPx = gapPx
 
   useLayoutEffect(() => {
+    window.scrollTo({ top: 0 })
+  }, [])
+
+  useLayoutEffect(() => {
     const node = listRef.current
     if (!node) return
 
     const updateMargin = () => {
-      const rect = node.getBoundingClientRect()
-      setScrollMargin(rect.top + window.scrollY)
+      setScrollMargin(documentOffsetTop(node))
     }
 
     updateMargin()
 
+    // Observe layout above the list, not the list itself — the list height is
+    // owned by the virtualizer and changes constantly as rows measure.
     const observer = new ResizeObserver(updateMargin)
-    observer.observe(node)
     if (node.parentElement) observer.observe(node.parentElement)
     window.addEventListener('resize', updateMargin)
 
@@ -61,7 +82,7 @@ export function PreviewVirtualWineList({
       observer.disconnect()
       window.removeEventListener('resize', updateMargin)
     }
-  }, [previewWines.length, resetKey])
+  }, [])
 
   const getItemKey = useCallback(
     (index: number) => previewWines[index]?.id ?? index,
@@ -70,20 +91,15 @@ export function PreviewVirtualWineList({
 
   const virtualizer = useWindowVirtualizer({
     count: previewWines.length,
-    estimateSize: () => ESTIMATED_CARD_HEIGHT,
+    estimateSize: () =>
+      typeof window !== 'undefined' && window.innerWidth < 640
+        ? ESTIMATED_CARD_HEIGHT_MOBILE
+        : ESTIMATED_CARD_HEIGHT_DESKTOP,
     overscan: OVERSCAN,
     scrollMargin,
     gap: cardGapPx,
     getItemKey,
   })
-
-  useLayoutEffect(() => {
-    virtualizer.measure()
-  }, [cardGapPx, resetKey, previewWines.length, virtualizer])
-
-  useEffect(() => {
-    window.scrollTo({ top: 0 })
-  }, [resetKey])
 
   if (previewWines.length === 0) return null
 
