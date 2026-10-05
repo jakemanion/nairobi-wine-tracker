@@ -632,6 +632,7 @@ export function MyWinesFilterBar({
                       fontSize: 8,
                       fontWeight: 500,
                       borderRadius: 0,
+                      opacity: item.active ? 1 : 0.5,
                     }
                   : {}),
               }}
