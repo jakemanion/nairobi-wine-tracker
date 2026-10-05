@@ -184,19 +184,16 @@ export function PreviewWineList({
                     type="button"
                     aria-label="Share your list"
                     title="Share your list"
-                    className="inline-flex items-center gap-1.5 px-1.5 py-1.5 text-[11px] sm:px-2.5"
+                    className="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full"
                     style={{
                       background: colors.buttonBg,
                       border: `1px solid ${colors.buttonBorder}`,
                       color: colors.buttonText,
-                      borderRadius: colors.buttonRadius,
-                      fontFamily: 'var(--font-dm-sans), sans-serif',
                       cursor: 'pointer',
                     }}
                     onClick={() => setShareOpen(true)}
                   >
                     <Share2 size={13} strokeWidth={2} fill="none" />
-                    <span className="hidden sm:inline">Share your list</span>
                   </button>
                   <PreviewUserMenu
                     colors={colors}
