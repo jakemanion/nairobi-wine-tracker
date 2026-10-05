@@ -1,0 +1,13 @@
+section,wine_has,bookmarked_toggle_off,buy_again_toggle_off,dont_buy_toggle_off,ignored_toggle_off,unmarked_toggle_off,notes
+one_status,Unmarked only,n/a,n/a,n/a,n/a,Hide,
+one_status,Bookmarked only,Hide,n/a,n/a,n/a,n/a,
+one_status,Buy again only,n/a,Hide,n/a,n/a,n/a,
+one_status,Dont buy only,n/a,n/a,Hide,n/a,n/a,
+one_status,Ignored only,n/a,n/a,n/a,Hide,n/a,
+multi_status,Bookmarked + Buy again,see note,see note,n/a,n/a,n/a,Only hide if both bookmarked and buy-again toggles are off
+multi_status,Bookmarked + Dont buy,n/a,n/a,Hide,n/a,n/a,Don't-buy OFF hides even if bookmarked ON
+multi_status,Bookmarked + Ignored,n/a,n/a,n/a,Hide,n/a,Ignored OFF hides even if bookmarked ON
+multi_status,Buy again + Ignored,n/a,n/a,n/a,Hide,n/a,Ignored OFF hides even if buy-again ON
+multi_status,Dont buy + Ignored,n/a,n/a,Hide,Hide,n/a,Hide if either toggle is off
+multi_status,Bookmarked + Buy again + Ignored,see note,see note,n/a,Hide,n/a,OR for bookmark/buy-again; Ignored OFF still hides
+policy,Overlap policy,,,,,,,"OR for bookmark + buy again; don't-buy OFF and ignored OFF are hard vetoes"

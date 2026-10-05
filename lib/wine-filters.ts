@@ -21,13 +21,13 @@ export type WineFilters = {
   producer: string
   country: string
   regions: string[]
-  /** When false, bookmarked wines are excluded unless another enabled status also matches. Default on. */
+  /** When false, bookmarked wines are excluded unless another enabled non-vetoed status also matches. Default on. */
   includeBookmarked: boolean
-  /** When false, buy-again wines are excluded unless another enabled status also matches. Default on. */
+  /** When false, buy-again wines are excluded unless another enabled non-vetoed status also matches. Default on. */
   includeBuyAgain: boolean
-  /** When false, don't-buy-again wines are excluded unless another enabled status also matches. Default on. */
+  /** When false, don't-buy-again wines are always excluded (hard veto). Default on. */
   includeDontBuyAgain: boolean
-  /** When false, wines marked hidden/unwanted are excluded. Default on. */
+  /** When false, ignored wines are always excluded (hard veto). Default on. */
   includeHidden: boolean
   /** When false, unmarked wines (no bookmark/hide/thumbs) are excluded. Default on. */
   includeUnmarked: boolean
@@ -207,15 +207,18 @@ function isUnmarkedReview(review: WineRow['review'] | null | undefined): boolean
   const bookmarked = normalizeWishlist(review?.wishlist) === 1
   const thumbsUp = normalizeTriedStatus(review?.tried_status) === 1
   const thumbsDown = normalizeTriedStatus(review?.tried_status) === 2
-  const hidden = review?.hide === true
+  const hidden = review?.hide === true || review?.wishlist === 0
   return !bookmarked && !thumbsUp && !thumbsDown && !hidden
 }
 
 /**
- * Bookmark and buy-again (or don't-buy-again) can both be set. An enabled
- * status keeps the wine even when another of those statuses is turned off.
+ * My wines toggles (see docs/my-wines-filter-rules.md):
+ * - Hard veto: don't-buy-again wines hide when that toggle is off (bookmark cannot save them).
+ * - Hard veto: ignored wines hide when Ignored is off (other toggles cannot save them).
+ * - Otherwise show if the wine matches any enabled status toggle (OR).
+ * - Bookmarked + buy again: hide only when both of those toggles are off.
  */
-function passesMyWineToggles(wine: WineRow, filters: WineFilters): boolean {
+export function passesMyWineToggles(wine: WineRow, filters: WineFilters): boolean {
   const review = wine.review
   const bookmarked = normalizeWishlist(review?.wishlist) === 1
   const buyAgain = normalizeTriedStatus(review?.tried_status) === 1
@@ -223,21 +226,21 @@ function passesMyWineToggles(wine: WineRow, filters: WineFilters): boolean {
   const hidden = review?.wishlist === 0 || review?.hide === true
   const unmarked = isUnmarkedReview(review)
 
-  if (
-    (filters.includeBookmarked && bookmarked) ||
-    (filters.includeBuyAgain && buyAgain) ||
-    (filters.includeDontBuyAgain && dontBuyAgain)
-  ) {
-    if (!filters.includeHidden && hidden) return false
-    return true
-  }
+  // Don't-buy OFF always hides don't-buy wines, even if also bookmarked.
+  if (dontBuyAgain && !filters.includeDontBuyAgain) return false
+  // Ignored OFF always hides ignored wines, even if also bookmarked / buy-again.
+  if (hidden && !filters.includeHidden) return false
 
-  if (!filters.includeBookmarked && bookmarked) return false
-  if (!filters.includeBuyAgain && buyAgain) return false
-  if (!filters.includeDontBuyAgain && dontBuyAgain) return false
-  if (!filters.includeHidden && hidden) return false
-  if (!filters.includeUnmarked && unmarked) return false
-  return true
+  if (unmarked) return filters.includeUnmarked
+  if (bookmarked && filters.includeBookmarked) return true
+  if (buyAgain && filters.includeBuyAgain) return true
+  if (dontBuyAgain && filters.includeDontBuyAgain) return true
+  if (hidden && filters.includeHidden) return true
+
+  // Has markings, but none of their toggles are on.
+  if (bookmarked || buyAgain || dontBuyAgain || hidden) return false
+
+  return filters.includeUnmarked
 }
 
 export type RegionFilterGroup = {
