@@ -260,12 +260,14 @@ export function PreviewWineList({
           />
         )}
       </main>
-      <PreviewMobileListFooter
-        colors={colors}
-        filters={filters}
-        onFiltersChange={setFilters}
-        isLoggedIn={isLoggedIn}
-      />
+      {isLoggedIn ? (
+        <PreviewMobileListFooter
+          colors={colors}
+          filters={filters}
+          onFiltersChange={setFilters}
+          isLoggedIn
+        />
+      ) : null}
       <SiteFooter colors={colors} />
       </div>
       {isLoggedIn ? (
