@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useWindowVirtualizer } from '@tanstack/react-virtual'
 import { PreviewWineCard } from '@/components/preview/preview-wine-card'
 import type { WineReview, WineRow } from '@/components/wine-table'
@@ -63,16 +63,23 @@ export function PreviewVirtualWineList({
     }
   }, [previewWines.length, resetKey])
 
+  const getItemKey = useCallback(
+    (index: number) => previewWines[index]?.id ?? index,
+    [previewWines],
+  )
+
   const virtualizer = useWindowVirtualizer({
     count: previewWines.length,
-    estimateSize: () => ESTIMATED_CARD_HEIGHT + cardGapPx,
+    estimateSize: () => ESTIMATED_CARD_HEIGHT,
     overscan: OVERSCAN,
     scrollMargin,
+    gap: cardGapPx,
+    getItemKey,
   })
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     virtualizer.measure()
-  }, [cardGapPx, virtualizer])
+  }, [cardGapPx, resetKey, previewWines.length, virtualizer])
 
   useEffect(() => {
     window.scrollTo({ top: 0 })
@@ -98,7 +105,7 @@ export function PreviewVirtualWineList({
 
         return (
           <div
-            key={wine.id}
+            key={virtualRow.key}
             data-index={virtualRow.index}
             ref={virtualizer.measureElement}
             style={{
@@ -107,7 +114,6 @@ export function PreviewVirtualWineList({
               left: 0,
               width: '100%',
               transform: `translateY(${virtualRow.start - scrollMargin}px)`,
-              paddingBottom: virtualRow.index < previewWines.length - 1 ? cardGapPx : 0,
             }}
           >
             <PreviewWineCard
