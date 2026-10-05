@@ -491,7 +491,7 @@ type MyWinesFilterBarProps = {
   colors: PreviewColors
   filters: WineFilters
   onFiltersChange: (filters: WineFilters) => void
-  /** Show text labels under each control (mobile footer). */
+  /** Mobile footer layout: caption above, labeled buttons with icons. */
   showLabels?: boolean
 }
 
@@ -517,7 +517,7 @@ export function MyWinesFilterBar({
       kind: 'unmarked' as const,
       tip: filters.includeUnmarked ? 'Hide unmarked wines' : 'Show unmarked wines',
       onClick: () => updateFilters({ includeUnmarked: !filters.includeUnmarked }),
-      icon: <HelpCircle size={12} strokeWidth={2} />,
+      icon: showLabels ? null : <HelpCircle size={12} strokeWidth={2} />,
     },
     {
       key: 'bookmarked',
@@ -592,25 +592,25 @@ export function MyWinesFilterBar({
       tipId="my-wines-filters"
       className={
         showLabels
-          ? 'flex w-full items-center gap-1.5'
+          ? 'flex w-full flex-col items-stretch gap-1'
           : 'flex items-center gap-1.5 self-center'
       }
     >
       {showLabels ? (
         <span
-          className="flex-none text-[16px] font-semibold leading-tight"
+          className="px-2 text-center text-[8px] font-medium leading-tight"
           style={{
             color: colors.summaryText,
             fontFamily: 'var(--font-dm-sans), sans-serif',
           }}
         >
-          Show:
+          Show or hide bottles based on your preferences
         </span>
       ) : null}
       <div
         className={
           showLabels
-            ? 'flex min-w-0 flex-1 items-stretch gap-0.5'
+            ? 'flex w-full items-stretch'
             : 'flex items-center gap-1.5'
         }
       >
@@ -625,6 +625,12 @@ export function MyWinesFilterBar({
                 ...(showLabels
                   ? {
                       width: '100%',
+                      height: 'auto',
+                      minHeight: CONTROL_HEIGHT,
+                      padding: '4px 4px',
+                      gap: 3,
+                      fontSize: 8,
+                      fontWeight: 500,
                       borderRadius: 0,
                     }
                   : {}),
@@ -632,6 +638,7 @@ export function MyWinesFilterBar({
               onClick={item.onClick}
             >
               {item.icon}
+              {showLabels ? <span>{item.label}</span> : null}
               {item.active ? <ReviewOnTick colors={colors} /> : null}
             </button>
           )
@@ -645,17 +652,8 @@ export function MyWinesFilterBar({
           }
 
           return (
-            <div key={item.key} className="flex min-w-0 flex-1 flex-col items-stretch gap-0.5">
+            <div key={item.key} className="min-w-0 flex-1">
               {button}
-              <span
-                className="max-w-full text-center text-[8px] font-medium leading-tight"
-                style={{
-                  color: colors.summaryText,
-                  fontFamily: 'var(--font-dm-sans), sans-serif',
-                }}
-              >
-                {item.label}
-              </span>
             </div>
           )
         })}

@@ -22,7 +22,7 @@ export function PreviewMobileListFooter({
 
   return (
     <div className="sm:hidden">
-      <div className="h-14 shrink-0" aria-hidden />
+      <div className="h-16 shrink-0" aria-hidden />
       <footer
         className="fixed bottom-0 left-0 right-0 z-40"
         style={{
@@ -31,7 +31,7 @@ export function PreviewMobileListFooter({
           boxShadow: '0 -4px 16px rgba(0,0,0,0.12)',
         }}
       >
-        <div className="mx-auto px-3 py-2" style={{ maxWidth: '54.625rem' }}>
+        <div className="mx-auto py-1.5" style={{ maxWidth: '54.625rem' }}>
           <MyWinesFilterBar
             colors={colors}
             filters={filters}
