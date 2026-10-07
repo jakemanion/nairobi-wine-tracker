@@ -20,9 +20,7 @@
    - Profiles: users read/update own row only
    - Then add matching migrations so config is in git
 3. ~~**Sanitize redirects**~~ — **Done:** `lib/auth/safe-redirect.ts` used by login + `/auth/confirm` (reject `//`, schemes, query/hash).
-4. **Allowlist URL schemes** on write and render for `vivino_url` / `store_product_url` (and preferably `image_url`) — `http:` / `https:` only.
-   - Render: `components/preview/preview-wine-card.tsx`, `components/wine-table.tsx`, admin matcher links
-   - Write: `app/admin/actions.ts`
+4. ~~**Allowlist URL schemes**~~ — **Done:** `lib/safe-http-url.ts` on admin writes + preview/admin render (`wine-card-model`, listing thumbnails, admin matcher). Classic `wine-table` UI removed earlier.
 5. **Enable MFA** on the admin Supabase account; use a strong unique password.
 
 ### Soon after / with launch hardening

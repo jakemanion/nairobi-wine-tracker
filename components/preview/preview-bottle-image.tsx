@@ -10,6 +10,7 @@ import {
 import { createPortal } from 'react-dom'
 import { usePreviewTheme } from '@/components/preview/preview-theme-context'
 import { placeImagePreviewLeftOfCursor } from '@/lib/preview/image-preview-position'
+import { sanitizeHttpUrl } from '@/lib/safe-http-url'
 
 const previewImageStyle: CSSProperties = {
   display: 'block',
@@ -38,7 +39,7 @@ export function PreviewBottleImage({ src, alt, priority = false }: PreviewBottle
   )
   const [mounted, setMounted] = useState(false)
 
-  const imageSrc = src?.trim() || null
+  const imageSrc = sanitizeHttpUrl(src)
 
   useEffect(() => {
     setMounted(true)

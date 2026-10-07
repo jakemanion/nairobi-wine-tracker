@@ -32,6 +32,7 @@ import {
   formatGrapeVarieties,
   parseGrapeVarietiesInput,
 } from '@/lib/grape-varieties'
+import { sanitizeHttpUrl } from '@/lib/safe-http-url'
 import {
   getStoreListingMatchHighlights,
   hasPerfectSuggestedStoreListingMatch,
@@ -418,7 +419,9 @@ const externalLinkStyle: CSSProperties = {
 }
 
 function openNamedPreviewWindow(url: string, windowName: string) {
-  window.open(url, windowName)
+  const safeUrl = sanitizeHttpUrl(url)
+  if (!safeUrl) return
+  window.open(safeUrl, windowName)
 }
 
 function ExternalLink({
@@ -430,18 +433,44 @@ function ExternalLink({
   label?: string
   windowName: string
 }) {
+  const safeHref = sanitizeHttpUrl(href)
+  if (!safeHref) return null
+
   return (
     <a
-      href={href}
+      href={safeHref}
       style={externalLinkStyle}
-      title={href}
+      title={safeHref}
       onClick={(event) => {
         event.preventDefault()
         event.stopPropagation()
-        openNamedPreviewWindow(href, windowName)
+        openNamedPreviewWindow(safeHref, windowName)
       }}
     >
       {label}
+    </a>
+  )
+}
+
+function StoreProductLink({
+  url,
+  children,
+}: {
+  url: string
+  children: ReactNode
+}) {
+  const href = sanitizeHttpUrl(url)
+  if (!href) return <>{children}</>
+
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      onClick={(event) => event.stopPropagation()}
+      style={{ color: '#0a7', textDecoration: 'none' }}
+    >
+      {children}
     </a>
   )
 }
@@ -1837,16 +1866,10 @@ export function AdminMatcher({
                                       }
                                     >
                                       {listing.store_product_url ? (
-                                        <a
-                                          href={listing.store_product_url}
-                                          target="_blank"
-                                          rel="noreferrer"
-                                          onClick={(event) => event.stopPropagation()}
-                                          style={{ color: '#0a7', textDecoration: 'none' }}
-                                        >
+                                        <StoreProductLink url={listing.store_product_url}>
                                           {formatStoreUrlDirectory(listing.store_product_url) ||
                                             'link'}
-                                        </a>
+                                        </StoreProductLink>
                                       ) : (
                                         '—'
                                       )}
@@ -2207,15 +2230,9 @@ export function AdminMatcher({
                                 }
                               >
                                 {listing.store_product_url ? (
-                                  <a
-                                    href={listing.store_product_url}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    onClick={(event) => event.stopPropagation()}
-                                    style={{ color: '#0a7', textDecoration: 'none' }}
-                                  >
+                                  <StoreProductLink url={listing.store_product_url}>
                                     {formatStoreUrlDirectory(listing.store_product_url) || 'link'}
-                                  </a>
+                                  </StoreProductLink>
                                 ) : (
                                   '—'
                                 )}
@@ -2845,7 +2862,7 @@ function MatchedListingPrices({ listings }: { listings: StoreListingRecord[] }) 
                 |
               </span>
             ) : null}
-            {listing.store_product_url ? (
+            {sanitizeHttpUrl(listing.store_product_url) ? (
               <ExternalLink
                 href={listing.store_product_url}
                 label={formatListingPriceLabel(listing)}

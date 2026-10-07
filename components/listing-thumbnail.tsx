@@ -8,6 +8,7 @@ import {
   type MouseEvent as ReactMouseEvent,
 } from 'react'
 import { createPortal } from 'react-dom'
+import { sanitizeHttpUrl } from '@/lib/safe-http-url'
 
 const THUMB_DIMENSIONS = {
   default: { width: 28, minHeight: 28, maxImageHeight: 48 },
@@ -118,7 +119,7 @@ export function ListingThumbnail({
   const [preview, setPreview] = useState<{ left: number; top: number } | null>(null)
   const [mounted, setMounted] = useState(false)
 
-  const src = imageUrl?.trim() || null
+  const src = sanitizeHttpUrl(imageUrl)
 
   useEffect(() => {
     setMounted(true)
@@ -243,7 +244,7 @@ export function CursorImagePreview({
 
 export function firstListingImageUrl(listings: Array<{ image_url?: string | null }>): string | null {
   for (const listing of listings) {
-    const url = listing.image_url?.trim()
+    const url = sanitizeHttpUrl(listing.image_url)
     if (url) return url
   }
   return null

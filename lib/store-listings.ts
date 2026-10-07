@@ -1,4 +1,5 @@
 import { buildWineFromListing } from '@/lib/build-wine-from-listing'
+import { normalizeOptionalHttpUrl } from '@/lib/safe-http-url'
 import { supabase } from '@/lib/supabase'
 import { createWine, type WineRecord } from '@/lib/wines'
 
@@ -125,9 +126,16 @@ export async function updateStoreListingField({
   field,
   value,
 }: UpdateStoreListingFieldArgs): Promise<ListingMutationResult> {
+  let nextValue = value
+  if (field === 'store_product_url') {
+    const normalized = normalizeOptionalHttpUrl(value)
+    if (!normalized.ok) return { error: normalized.error }
+    nextValue = normalized.value
+  }
+
   const { data, error } = await supabase
     .from('store_listings')
-    .update({ [field]: value })
+    .update({ [field]: nextValue })
     .eq('id', listingId)
     .select(listingSelect)
     .maybeSingle()

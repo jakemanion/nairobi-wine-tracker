@@ -2,6 +2,7 @@ import { firstListingImageUrl } from '@/components/listing-thumbnail'
 import type { WineRow } from '@/components/wine-table'
 import { calculateValueScore, minWinePriceKES } from '@/lib/calculate-value-score'
 import { formatGrapeVarieties } from '@/lib/grape-varieties'
+import { sanitizeHttpUrl } from '@/lib/safe-http-url'
 
 export type StyleRibbonVariant = 'red' | 'white' | 'rose' | 'sparkling' | 'default'
 
@@ -94,7 +95,7 @@ export function toPreviewWineCard(wine: WineRow): PreviewWineCardData {
       return {
         shop,
         price,
-        url: listing.store_product_url?.trim() || null,
+        url: sanitizeHttpUrl(listing.store_product_url),
       }
     })
     .filter((row): row is { shop: string; price: number; url: string | null } => row != null)
@@ -115,7 +116,7 @@ export function toPreviewWineCard(wine: WineRow): PreviewWineCardData {
     style,
     grapes: parseGrapes(wine.grape_varieties),
     vivinoRating,
-    vivinoUrl: wine.vivino_url?.trim() || null,
+    vivinoUrl: sanitizeHttpUrl(wine.vivino_url),
     valueScore: calculateValueScore(vivinoRating, priceKES),
     prices,
     image: firstListingImageUrl(wine.store_listings ?? []) || null,

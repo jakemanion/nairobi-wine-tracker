@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { requireAdminAccess } from '@/lib/auth/admin'
 import { buildWineFromListing } from '@/lib/build-wine-from-listing'
 import { normalizeGrapeVarieties } from '@/lib/grape-varieties'
+import { normalizeOptionalHttpUrl, sanitizeHttpUrl } from '@/lib/safe-http-url'
 import { createAdminClient } from '@/lib/supabase-admin'
 import {
   normalizeStoreListing,
@@ -126,9 +127,16 @@ export async function adminUpdateWineField({
   const { client, configError } = getAdminClient()
   if (!client) return { error: configError! }
 
+  let nextValue: string | number | null = value
+  if (field === 'vivino_url') {
+    const normalized = normalizeOptionalHttpUrl(value)
+    if (!normalized.ok) return { error: normalized.error }
+    nextValue = normalized.value
+  }
+
   const { data, error } = await client
     .from('wines')
-    .update({ [field]: value })
+    .update({ [field]: nextValue })
     .eq('id', wineId)
     .select(wineSelect)
     .maybeSingle()
@@ -149,9 +157,16 @@ export async function adminCreateWine(
   const { client, configError } = getAdminClient()
   if (!client) return { error: configError! }
 
+  const insertPayload = { ...data }
+  if ('vivino_url' in insertPayload) {
+    const normalized = normalizeOptionalHttpUrl(insertPayload.vivino_url ?? null)
+    if (!normalized.ok) return { error: normalized.error }
+    insertPayload.vivino_url = normalized.value
+  }
+
   const { data: wine, error } = await client
     .from('wines')
-    .insert(data)
+    .insert(insertPayload)
     .select(wineSelect)
     .single()
 
@@ -176,9 +191,16 @@ export async function adminUpdateStoreListingField({
   const { client, configError } = getAdminClient()
   if (!client) return { error: configError! }
 
+  let nextValue: string | number | boolean | null = value
+  if (field === 'store_product_url') {
+    const normalized = normalizeOptionalHttpUrl(value)
+    if (!normalized.ok) return { error: normalized.error }
+    nextValue = normalized.value
+  }
+
   const { data, error } = await client
     .from('store_listings')
-    .update({ [field]: value })
+    .update({ [field]: nextValue })
     .eq('id', listingId)
     .select(listingSelect)
     .maybeSingle()
@@ -328,8 +350,8 @@ function storeListingInsertFromImport(
   return {
     store_id: storeId,
     raw_title: importRow.raw_title,
-    store_product_url: importRow.store_product_url,
-    image_url: importRow.image_url,
+    store_product_url: sanitizeHttpUrl(importRow.store_product_url),
+    image_url: sanitizeHttpUrl(importRow.image_url),
     current_price_ksh: importRow.current_price_ksh,
     in_stock: importRow.in_stock,
     producer: importRow.producer,

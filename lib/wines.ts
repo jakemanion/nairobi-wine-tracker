@@ -1,3 +1,4 @@
+import { normalizeOptionalHttpUrl } from '@/lib/safe-http-url'
 import { supabase } from '@/lib/supabase'
 
 export type VivinoEnrichmentStatus =
@@ -76,9 +77,16 @@ export async function updateWineField({
   field,
   value,
 }: UpdateWineFieldArgs): Promise<WineMutationResult> {
+  let nextValue = value
+  if (field === 'vivino_url') {
+    const normalized = normalizeOptionalHttpUrl(value)
+    if (!normalized.ok) return { error: normalized.error }
+    nextValue = normalized.value
+  }
+
   const { data, error } = await supabase
     .from('wines')
-    .update({ [field]: value })
+    .update({ [field]: nextValue })
     .eq('id', wineId)
     .select(wineSelect)
     .maybeSingle()
@@ -92,9 +100,16 @@ export async function updateWineField({
 export async function createWine(
   data: Partial<Omit<WineRecord, 'id'>> = {},
 ): Promise<WineMutationResult> {
+  const insertPayload = { ...data }
+  if ('vivino_url' in insertPayload) {
+    const normalized = normalizeOptionalHttpUrl(insertPayload.vivino_url ?? null)
+    if (!normalized.ok) return { error: normalized.error }
+    insertPayload.vivino_url = normalized.value
+  }
+
   const { data: wine, error } = await supabase
     .from('wines')
-    .insert(data)
+    .insert(insertPayload)
     .select(wineSelect)
     .single()
 
