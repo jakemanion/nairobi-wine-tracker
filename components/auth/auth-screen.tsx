@@ -86,7 +86,7 @@ export function AuthScreen({
         <div
           className="w-full max-w-md p-6"
           style={{
-            background: colors.cardBg,
+            background: '#ffffff',
             border: `1px solid ${colors.cardBorder}`,
             boxShadow: colors.cardShadow,
             borderRadius: colors.cardRadius,

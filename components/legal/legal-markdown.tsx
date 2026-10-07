@@ -1,5 +1,9 @@
 import type { ReactNode } from 'react'
 import Link from 'next/link'
+import { getPreviewColors } from '@/lib/preview/preview-colors'
+import { sanitizeHttpUrl } from '@/lib/safe-http-url'
+
+const colors = getPreviewColors('dark', 'trial')
 
 type InlineToken =
   | { type: 'text'; value: string }
@@ -42,7 +46,7 @@ function renderInline(text: string, keyPrefix: string): ReactNode[] {
     switch (token.type) {
       case 'strong':
         return (
-          <strong key={key} style={{ color: '#F5F2EC', fontWeight: 600 }}>
+          <strong key={key} style={{ color: colors.surfaceTitle, fontWeight: 600 }}>
             {token.value}
           </strong>
         )
@@ -51,21 +55,20 @@ function renderInline(text: string, keyPrefix: string): ReactNode[] {
       case 'link': {
         const href = token.href
         const external = href.startsWith('http')
+        const linkStyle = { color: colors.accent }
         if (external) {
+          const safeHref = sanitizeHttpUrl(href)
+          if (!safeHref) {
+            return <span key={key}>{token.value}</span>
+          }
           return (
-            <a
-              key={key}
-              href={href}
-              target="_blank"
-              rel="noreferrer"
-              style={{ color: '#C93048' }}
-            >
+            <a key={key} href={safeHref} target="_blank" rel="noreferrer" style={linkStyle}>
               {token.value}
             </a>
           )
         }
         return (
-          <Link key={key} href={href} style={{ color: '#C93048' }}>
+          <Link key={key} href={href} style={linkStyle}>
             {token.value}
           </Link>
         )
@@ -100,8 +103,8 @@ function renderTable(rows: string[], keyPrefix: string): ReactNode {
                 key={`${keyPrefix}-h-${index}`}
                 className="px-2 py-2 font-semibold"
                 style={{
-                  color: '#F5F2EC',
-                  borderBottom: '1px solid #3A3848',
+                  color: colors.surfaceTitle,
+                  borderBottom: `1px solid ${colors.cardBorder}`,
                   fontFamily: 'var(--font-dm-sans), sans-serif',
                 }}
               >
@@ -118,8 +121,8 @@ function renderTable(rows: string[], keyPrefix: string): ReactNode {
                   key={`${keyPrefix}-c-${rowIndex}-${cellIndex}`}
                   className="px-2 py-2 align-top"
                   style={{
-                    color: '#D0CED4',
-                    borderBottom: '1px solid #2A2A34',
+                    color: colors.muted,
+                    borderBottom: `1px solid ${colors.cardBorder}`,
                     fontFamily: 'var(--font-dm-sans), sans-serif',
                   }}
                 >
@@ -164,7 +167,7 @@ export function LegalMarkdown({ markdown }: { markdown: string }) {
         <h1
           key={`h1-${block++}`}
           className="m-0 mb-3 text-2xl font-semibold"
-          style={{ color: '#F5F2EC', fontFamily: 'var(--font-playfair), serif' }}
+          style={{ color: colors.surfaceTitle, fontFamily: colors.headingFont }}
         >
           {renderInline(trimmed.slice(2), `h1i-${block}`)}
         </h1>,
@@ -178,7 +181,7 @@ export function LegalMarkdown({ markdown }: { markdown: string }) {
         <h2
           key={`h2-${block++}`}
           className="m-0 mt-7 mb-2 text-lg font-semibold"
-          style={{ color: '#F5F2EC', fontFamily: 'var(--font-playfair), serif' }}
+          style={{ color: colors.surfaceTitle, fontFamily: colors.headingFont }}
         >
           {renderInline(trimmed.slice(3), `h2i-${block}`)}
         </h2>,
@@ -192,7 +195,7 @@ export function LegalMarkdown({ markdown }: { markdown: string }) {
         <h3
           key={`h3-${block++}`}
           className="m-0 mt-5 mb-2 text-sm font-semibold"
-          style={{ color: '#EDE8E0', fontFamily: 'var(--font-dm-sans), sans-serif' }}
+          style={{ color: colors.surfaceTitle, fontFamily: 'var(--font-dm-sans), sans-serif' }}
         >
           {renderInline(trimmed.slice(4), `h3i-${block}`)}
         </h3>,
@@ -211,7 +214,7 @@ export function LegalMarkdown({ markdown }: { markdown: string }) {
         <ul
           key={`ul-${block++}`}
           className="m-0 mb-3 pl-5 space-y-1.5 text-[13px] leading-relaxed list-disc"
-          style={{ color: '#D0CED4', fontFamily: 'var(--font-dm-sans), sans-serif' }}
+          style={{ color: colors.muted, fontFamily: 'var(--font-dm-sans), sans-serif' }}
         >
           {items.map((item, index) => (
             <li key={`li-${block}-${index}`}>{renderInline(item, `uli-${block}-${index}`)}</li>
@@ -238,7 +241,7 @@ export function LegalMarkdown({ markdown }: { markdown: string }) {
       <p
         key={`p-${block++}`}
         className="m-0 mb-3 text-[13px] leading-relaxed"
-        style={{ color: '#D0CED4', fontFamily: 'var(--font-dm-sans), sans-serif' }}
+        style={{ color: colors.muted, fontFamily: 'var(--font-dm-sans), sans-serif' }}
       >
         {renderInline(paragraphLines.join(' '), `pi-${block}`)}
       </p>,
