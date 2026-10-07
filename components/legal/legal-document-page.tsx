@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { BrandLogo } from '@/components/brand-logo'
 import { LegalMarkdown } from '@/components/legal/legal-markdown'
 import { SiteFooter } from '@/components/site-footer'
-import { loadLegalMarkdown, LEGAL_DOC_META, type LegalDocSlug } from '@/lib/legal/legal-docs'
+import { loadLegalMarkdown, type LegalDocSlug } from '@/lib/legal/legal-docs'
 import { getPreviewColors } from '@/lib/preview/preview-colors'
 
 /** Matches preview list / home / auth content width. */
@@ -16,7 +16,6 @@ type LegalDocumentPageProps = {
 
 export async function LegalDocumentPage({ slug }: LegalDocumentPageProps) {
   const markdown = await loadLegalMarkdown(slug)
-  const meta = LEGAL_DOC_META[slug]
 
   return (
     <div
@@ -53,7 +52,7 @@ export async function LegalDocumentPage({ slug }: LegalDocumentPageProps) {
                   </h1>
                 </Link>
                 <p className="mt-1 truncate text-[10px]" style={{ color: colors.headerSub }}>
-                  {meta.heading}
+                  Find Nairobi&apos;s best bottles for your budget
                 </p>
               </div>
             </div>
