@@ -2855,16 +2855,18 @@ function MatchedListingPrices({ listings }: { listings: StoreListingRecord[] }) 
           gap: '0 6px',
         }}
       >
-        {listings.map((listing, index) => (
+        {listings.map((listing, index) => {
+          const storeUrl = sanitizeHttpUrl(listing.store_product_url)
+          return (
           <span key={listing.id} style={{ display: 'inline-flex', alignItems: 'baseline', gap: 6 }}>
             {index > 0 ? (
               <span aria-hidden style={{ color: '#ccc', userSelect: 'none' }}>
                 |
               </span>
             ) : null}
-            {sanitizeHttpUrl(listing.store_product_url) ? (
+            {storeUrl ? (
               <ExternalLink
-                href={listing.store_product_url}
+                href={storeUrl}
                 label={formatListingPriceLabel(listing)}
                 windowName={STORE_PREVIEW_WINDOW_NAME}
               />
@@ -2874,7 +2876,8 @@ function MatchedListingPrices({ listings }: { listings: StoreListingRecord[] }) 
               </span>
             )}
           </span>
-        ))}
+          )
+        })}
       </span>
     </LabeledField>
   )
