@@ -19,8 +19,7 @@
    - Imports: no public access
    - Profiles: users read/update own row only
    - Then add matching migrations so config is in git
-3. **Sanitize redirects** on login and `/auth/confirm` — allow only same-origin relative paths (e.g. `^/[a-zA-Z0-9/_-]*$`; reject `//`).
-   - Files: `app/login/page.tsx`, `components/auth/login-form.tsx`, `app/auth/confirm/route.ts`
+3. ~~**Sanitize redirects**~~ — **Done:** `lib/auth/safe-redirect.ts` used by login + `/auth/confirm` (reject `//`, schemes, query/hash).
 4. **Allowlist URL schemes** on write and render for `vivino_url` / `store_product_url` (and preferably `image_url`) — `http:` / `https:` only.
    - Render: `components/preview/preview-wine-card.tsx`, `components/wine-table.tsx`, admin matcher links
    - Write: `app/admin/actions.ts`

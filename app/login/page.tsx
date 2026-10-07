@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { AuthScreen } from '@/components/auth/auth-screen'
 import { LoginForm } from '@/components/auth/login-form'
+import { safeRedirectPath } from '@/lib/auth/safe-redirect'
 
 export const metadata: Metadata = {
   title: 'Log in · WineDiviner: Nairobi',
@@ -12,7 +13,7 @@ type LoginPageProps = {
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
   const { next, error } = await searchParams
-  const nextPath = next && next.startsWith('/') ? next : '/'
+  const nextPath = safeRedirectPath(next)
   const initialError =
     error === 'invalid_reset_link'
       ? 'That password reset link is invalid or has expired. Request a new one from Forgot password.'
