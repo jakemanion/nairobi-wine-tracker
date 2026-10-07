@@ -21,8 +21,6 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 
   return (
     <AuthScreen
-      title="WineDiviner: Nairobi"
-      subtitle="Sign in to your account"
       heading="Log in"
       description="Access your bookmarks, ratings, and shortlist."
     >

@@ -9,8 +9,8 @@ import { validatePasswordUpdate } from '@/lib/auth/validation'
 import { supabase } from '@/lib/supabase'
 import { getPreviewColors } from '@/lib/preview/preview-colors'
 
-const colors = getPreviewColors('dark')
-const accent = '#C93048'
+const colors = getPreviewColors('dark', 'trial')
+const accent = colors.accent
 
 type FormStatus = 'idle' | 'loading' | 'success' | 'error'
 
@@ -89,9 +89,9 @@ export function UpdatePasswordForm() {
         <p
           className="text-sm rounded-lg px-3 py-2.5"
           style={{
-            background: 'rgba(201, 48, 72, 0.12)',
-            border: `1px solid ${accent}`,
-            color: '#F5A8B4',
+            background: 'rgba(160, 48, 56, 0.08)',
+            border: `1px solid ${colors.errorText}`,
+            color: colors.errorText,
             fontFamily: 'var(--font-dm-sans), sans-serif',
           }}
           role="alert"
@@ -133,7 +133,7 @@ export function UpdatePasswordForm() {
           style={{
             background: colors.searchBg,
             border: `1px solid ${colors.searchBorder}`,
-            color: colors.searchText,
+            color: colors.surfaceTitle,
             fontFamily: 'var(--font-dm-sans), sans-serif',
           }}
         />
@@ -160,7 +160,7 @@ export function UpdatePasswordForm() {
           style={{
             background: colors.searchBg,
             border: `1px solid ${colors.searchBorder}`,
-            color: colors.searchText,
+            color: colors.surfaceTitle,
             fontFamily: 'var(--font-dm-sans), sans-serif',
           }}
         />
@@ -180,9 +180,10 @@ export function UpdatePasswordForm() {
         <p
           className="text-sm rounded-lg px-3 py-2.5"
           style={{
-            background: status === 'success' ? 'rgba(72, 200, 104, 0.12)' : 'rgba(201, 48, 72, 0.12)',
-            border: `1px solid ${status === 'success' ? '#48C868' : accent}`,
-            color: status === 'success' ? '#B8F0C8' : '#F5A8B4',
+            background:
+              status === 'success' ? 'rgba(0, 123, 51, 0.1)' : 'rgba(160, 48, 56, 0.08)',
+            border: `1px solid ${status === 'success' ? accent : colors.errorText}`,
+            color: status === 'success' ? accent : colors.errorText,
             fontFamily: 'var(--font-dm-sans), sans-serif',
           }}
           role={status === 'error' ? 'alert' : 'status'}
@@ -195,10 +196,11 @@ export function UpdatePasswordForm() {
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full text-sm font-medium px-4 py-2.5 rounded-lg"
+          className="w-full text-sm font-medium px-4 py-2.5"
           style={{
             background: accent,
             border: `1px solid ${accent}`,
+            borderRadius: colors.buttonRadius,
             color: '#FFFFFF',
             fontFamily: 'var(--font-dm-sans), sans-serif',
             cursor: isLoading ? 'wait' : 'pointer',

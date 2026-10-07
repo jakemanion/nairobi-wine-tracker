@@ -9,8 +9,6 @@ export const metadata: Metadata = {
 export default function ForgotPasswordPage() {
   return (
     <AuthScreen
-      title="WineDiviner: Nairobi"
-      subtitle="Reset your password"
       heading="Forgot password"
       description="Enter your account email and we will send you a reset link."
       backHref="/login"

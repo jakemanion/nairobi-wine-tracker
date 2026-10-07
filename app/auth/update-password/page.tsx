@@ -9,8 +9,6 @@ export const metadata: Metadata = {
 export default function UpdatePasswordPage() {
   return (
     <AuthScreen
-      title="WineDiviner: Nairobi"
-      subtitle="Choose a new password"
       heading="Set new password"
       description="Enter a new password for your account."
       backHref="/login"
