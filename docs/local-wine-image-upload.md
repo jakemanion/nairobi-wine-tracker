@@ -50,7 +50,7 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 # NEXT_PUBLIC_USE_HOSTED_WINE_IMAGES=false
 ```
 
-Uploads do not change the public site by themselves. In admin, use the per-wine **Show** checkbox to display a hosted image on the frontend. Set `NEXT_PUBLIC_USE_HOSTED_WINE_IMAGES=false` only if you need an emergency kill switch.
+Public pages prefer hosted Storage images when present (retailer URL fallback). In admin, the per-wine **Show** checkbox controls whether the **wine itself** appears on the public site (`wines.show_on_site`). Set `NEXT_PUBLIC_USE_HOSTED_WINE_IMAGES=false` only as an image kill switch.
 
 ## Manifest format
 
@@ -103,7 +103,7 @@ Reports default to `tmp/local-image-upload-report-<timestamp>.csv` with outcomes
 
 1. Apply migrations 012–014 to the target Supabase project.
 2. Confirm `.env.local` has URL + **service role** key (local only).
-3. Leave per-wine **Show** toggles off until you have reviewed images in admin.
+3. Use per-wine **Show** in admin to control which wines appear on the public site.
 4. Generate a manifest template and pick five linked listings (`wine_id` present):
 
    ```powershell
@@ -120,8 +120,8 @@ Reports default to `tmp/local-image-upload-report-<timestamp>.csv` with outcomes
 7. Open the report CSV. Expect five `success` (dry-run) rows, or clear `unmatched` / `failed` reasons. Fix the manifest before continuing.
 8. Upload the same five **without** `--dry-run`.
 9. In Supabase: Storage → `wine-images` → `{wine_id}/original.*`, and `wines.hosted_image_path` / `image_migration_status=success` / `image_source_listing_id` set. Confirm `store_listings.image_url` unchanged.
-10. Reload the production site — images should still be retailer URLs while **Show** is off.
-11. In admin, tick **Show** on reviewed wines to switch the public UI to hosted Storage images.
+10. In admin, untick **Show** to hide a wine from the public site; tick it to list the wine (still requires Vivino confidence 100).
+11. Hosted images appear automatically for listed wines when `image_migration_status=success`.
 
 ## Safety notes
 

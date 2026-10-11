@@ -29,7 +29,7 @@ export type WineRow = {
   vivino_rating: string | number | null
   hosted_image_path?: string | null
   image_migration_status?: string | null
-  show_hosted_image?: boolean | null
+  show_on_site?: boolean | null
   valueScore?: number | null
   review?: WineReview | null
   store_listings?: Array<{

@@ -75,38 +75,23 @@ describe('resolveWineDisplayImage', () => {
     else process.env.NEXT_PUBLIC_USE_HOSTED_WINE_IMAGES = originalFlag
   })
 
-  it('keeps retailer URLs when show_hosted_image is off', () => {
+  it('prefers hosted image when available', () => {
     process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://example.supabase.co'
     delete process.env.NEXT_PUBLIC_USE_HOSTED_WINE_IMAGES
     expect(
       resolveWineDisplayImage({
         hosted_image_path: 'w1/original.jpg',
         image_migration_status: 'success',
-        show_hosted_image: false,
-        store_listings: [{ image_url: 'https://retailer.example/a.jpg' }],
-      }),
-    ).toBe('https://retailer.example/a.jpg')
-  })
-
-  it('uses hosted image when wine toggle is on', () => {
-    process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://example.supabase.co'
-    delete process.env.NEXT_PUBLIC_USE_HOSTED_WINE_IMAGES
-    expect(
-      resolveWineDisplayImage({
-        hosted_image_path: 'w1/original.jpg',
-        image_migration_status: 'success',
-        show_hosted_image: true,
         store_listings: [{ image_url: 'https://retailer.example/a.jpg' }],
       }),
     ).toBe('https://example.supabase.co/storage/v1/object/public/wine-images/w1/original.jpg')
   })
 
-  it('falls back to retailer URL when toggle is on but image missing', () => {
+  it('falls back to retailer URL when not migrated', () => {
     expect(
       resolveWineDisplayImage({
         hosted_image_path: null,
         image_migration_status: 'failed',
-        show_hosted_image: true,
         store_listings: [{ image_url: 'https://retailer.example/a.jpg' }],
       }),
     ).toBe('https://retailer.example/a.jpg')
@@ -119,7 +104,6 @@ describe('resolveWineDisplayImage', () => {
       resolveWineDisplayImage({
         hosted_image_path: 'w1/original.jpg',
         image_migration_status: 'success',
-        show_hosted_image: true,
         store_listings: [{ image_url: 'https://retailer.example/a.jpg' }],
       }),
     ).toBe('https://retailer.example/a.jpg')
@@ -138,13 +122,12 @@ describe('firstListingImageUrl', () => {
 })
 
 describe('resolveWineAdminImage', () => {
-  it('returns hosted storage URL even when public toggle is off', () => {
+  it('returns hosted storage URL for admin preview', () => {
     process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://example.supabase.co'
     expect(
       resolveWineAdminImage({
         hosted_image_path: 'w1/original.jpg',
         image_migration_status: 'success',
-        show_hosted_image: false,
       }),
     ).toBe('https://example.supabase.co/storage/v1/object/public/wine-images/w1/original.jpg')
   })

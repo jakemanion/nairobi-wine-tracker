@@ -53,7 +53,6 @@ const WINES_SELECT = `
   vivino_rating,
   hosted_image_path,
   image_migration_status,
-  show_hosted_image,
   store_listings!wine_id (
     id,
     current_price_ksh,
@@ -176,6 +175,7 @@ export async function loadSharedListPageData(args: {
       .from('wines')
       .select(WINES_SELECT)
       .eq('vivino_match_confidence', 100)
+      .eq('show_on_site', true)
       .order('producer')
       .order('wine_name'),
     needsBuiltin

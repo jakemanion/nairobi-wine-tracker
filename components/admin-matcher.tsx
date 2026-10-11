@@ -26,7 +26,7 @@ import {
   adminMatchStoreListingToWine,
   adminMarkImportsDone,
   adminPromoteListingToCanonicalWine,
-  adminSetWineShowHostedImage,
+  adminSetWineShowOnSite,
   adminUpdateImportStatus,
   adminUpdateStoreListingField,
   adminUpdateWineField,
@@ -1463,10 +1463,10 @@ export function AdminMatcher({
     return { error: result.error }
   }
 
-  async function setWineShowHostedImage(wine: WineRecord, showHostedImage: boolean) {
-    const result = await adminSetWineShowHostedImage({
+  async function setWineShowOnSite(wine: WineRecord, showOnSite: boolean) {
+    const result = await adminSetWineShowOnSite({
       wineId: wine.id,
-      showHostedImage,
+      showOnSite,
     })
     if (result.wine) {
       setWines((current) => updateWineInState(current, result.wine!))
@@ -2637,7 +2637,7 @@ export function AdminMatcher({
                           void saveWineField(wine, 'vivino_match_confidence', '100')
                         }
                         onSave={saveWineField}
-                        onSetShowHostedImage={setWineShowHostedImage}
+                        onSetShowOnSite={setWineShowOnSite}
                         onUploadImage={uploadWineImage}
                       />
                     </div>
@@ -2667,7 +2667,7 @@ export function AdminMatcher({
                     onDelete={() => void handleDeleteWine(wine)}
                     onVerify={() => void saveWineField(wine, 'vivino_match_confidence', '100')}
                     onSave={saveWineField}
-                    onSetShowHostedImage={setWineShowHostedImage}
+                    onSetShowOnSite={setWineShowOnSite}
                     onUploadImage={uploadWineImage}
                   />
                 ))}
@@ -2964,29 +2964,28 @@ function CanonicalWineFields({
 function CanonicalWineImageControls({
   wine,
   busy,
-  onSetShowHostedImage,
+  onSetShowOnSite,
   onUploadImage,
 }: {
   wine: WineRecord
   busy: boolean
-  onSetShowHostedImage: (
+  onSetShowOnSite: (
     wine: WineRecord,
-    showHostedImage: boolean,
+    showOnSite: boolean,
   ) => Promise<{ error?: string }>
   onUploadImage: (wine: WineRecord, file: File) => Promise<{ error?: string }>
 }) {
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const [imageBusy, setImageBusy] = useState(false)
   const [imageError, setImageError] = useState<string | null>(null)
-  const hasHostedImage = Boolean(resolveWineAdminImage(wine))
-  const showHosted = Boolean(wine.show_hosted_image)
+  const showOnSite = Boolean(wine.show_on_site)
   const disabled = busy || imageBusy
 
   async function handleToggle(event: ChangeEvent<HTMLInputElement>) {
     event.stopPropagation()
     setImageError(null)
     setImageBusy(true)
-    const result = await onSetShowHostedImage(wine, event.target.checked)
+    const result = await onSetShowOnSite(wine, event.target.checked)
     if (result.error) setImageError(result.error)
     setImageBusy(false)
   }
@@ -3019,24 +3018,24 @@ function CanonicalWineImageControls({
       <ListingThumbnail imageUrl={resolveWineAdminImage(wine)} alt={formatWineLabel(wine)} />
       <label
         title={
-          hasHostedImage
-            ? 'Show hosted image on the public site'
-            : 'Upload a hosted image before enabling public display'
+          showOnSite
+            ? 'Wine is visible on the public site (when verified)'
+            : 'Wine is hidden from the public site'
         }
         style={{
           display: 'inline-flex',
           alignItems: 'center',
           gap: 3,
           fontSize: 10,
-          color: hasHostedImage ? '#333' : '#999',
+          color: '#333',
           cursor: disabled ? 'default' : 'pointer',
           userSelect: 'none',
         }}
       >
         <input
           type="checkbox"
-          checked={showHosted}
-          disabled={disabled || !hasHostedImage}
+          checked={showOnSite}
+          disabled={disabled}
           onChange={(event) => void handleToggle(event)}
           style={{ margin: 0 }}
         />
@@ -3088,7 +3087,7 @@ function CanonicalWineRow({
   onDelete,
   onVerify,
   onSave,
-  onSetShowHostedImage,
+  onSetShowOnSite,
   onUploadImage,
 }: {
   wine: WineRecord
@@ -3107,9 +3106,9 @@ function CanonicalWineRow({
     field: WineField,
     value: string | null,
   ) => Promise<{ error?: string }>
-  onSetShowHostedImage: (
+  onSetShowOnSite: (
     wine: WineRecord,
-    showHostedImage: boolean,
+    showOnSite: boolean,
   ) => Promise<{ error?: string }>
   onUploadImage: (wine: WineRecord, file: File) => Promise<{ error?: string }>
 }) {
@@ -3152,7 +3151,7 @@ function CanonicalWineRow({
     <CanonicalWineImageControls
       wine={wine}
       busy={busy}
-      onSetShowHostedImage={onSetShowHostedImage}
+      onSetShowOnSite={onSetShowOnSite}
       onUploadImage={onUploadImage}
     />
   )

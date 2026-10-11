@@ -33,7 +33,7 @@ const wineSelect = `
   hosted_image_path,
   image_migration_status,
   image_source_listing_id,
-  show_hosted_image
+  show_on_site
 `
 
 const listingSelect = `
@@ -707,12 +707,12 @@ export async function adminBulkPromoteListingsToCanonicalWines(
   }
 }
 
-export async function adminSetWineShowHostedImage({
+export async function adminSetWineShowOnSite({
   wineId,
-  showHostedImage,
+  showOnSite,
 }: {
   wineId: string
-  showHostedImage: boolean
+  showOnSite: boolean
 }): Promise<WineMutationResult> {
   const access = await requireAdminAccess()
   if (!access.ok) return { error: access.error }
@@ -722,7 +722,7 @@ export async function adminSetWineShowHostedImage({
 
   const { data, error } = await client
     .from('wines')
-    .update({ show_hosted_image: showHostedImage })
+    .update({ show_on_site: showOnSite })
     .eq('id', wineId)
     .select(wineSelect)
     .maybeSingle()
