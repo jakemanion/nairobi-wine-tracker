@@ -24,6 +24,7 @@ export type WineRecord = {
   hosted_image_path?: string | null
   image_migration_status?: string | null
   image_source_listing_id?: string | null
+  show_hosted_image?: boolean | null
 }
 
 export type WineField =
@@ -53,7 +54,8 @@ const wineSelect = `
   vivino_enrichment_status,
   hosted_image_path,
   image_migration_status,
-  image_source_listing_id
+  image_source_listing_id,
+  show_hosted_image
 `
 
 type UpdateWineFieldArgs = {

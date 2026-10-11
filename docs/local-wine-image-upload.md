@@ -46,11 +46,11 @@ NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 
-# Keep this unset/false until you are ready for production to show hosted images
-# NEXT_PUBLIC_USE_HOSTED_WINE_IMAGES=true
+# Optional kill switch — only set this to disable all hosted images on the public site
+# NEXT_PUBLIC_USE_HOSTED_WINE_IMAGES=false
 ```
 
-Uploads can succeed while the display flag is off. The UI keeps using retailer `image_url` values until you set `NEXT_PUBLIC_USE_HOSTED_WINE_IMAGES=true` in Vercel (and rebuild).
+Uploads do not change the public site by themselves. In admin, use the per-wine **Show** checkbox to display a hosted image on the frontend. Set `NEXT_PUBLIC_USE_HOSTED_WINE_IMAGES=false` only if you need an emergency kill switch.
 
 ## Manifest format
 
@@ -103,7 +103,7 @@ Reports default to `tmp/local-image-upload-report-<timestamp>.csv` with outcomes
 
 1. Apply migrations 012–014 to the target Supabase project.
 2. Confirm `.env.local` has URL + **service role** key (local only).
-3. Confirm `NEXT_PUBLIC_USE_HOSTED_WINE_IMAGES` is **not** `true` in Vercel.
+3. Leave per-wine **Show** toggles off until you have reviewed images in admin.
 4. Generate a manifest template and pick five linked listings (`wine_id` present):
 
    ```powershell
@@ -120,8 +120,8 @@ Reports default to `tmp/local-image-upload-report-<timestamp>.csv` with outcomes
 7. Open the report CSV. Expect five `success` (dry-run) rows, or clear `unmatched` / `failed` reasons. Fix the manifest before continuing.
 8. Upload the same five **without** `--dry-run`.
 9. In Supabase: Storage → `wine-images` → `{wine_id}/original.*`, and `wines.hosted_image_path` / `image_migration_status=success` / `image_source_listing_id` set. Confirm `store_listings.image_url` unchanged.
-10. Reload the production site — images should still be retailer URLs.
-11. Only when ready: set `NEXT_PUBLIC_USE_HOSTED_WINE_IMAGES=true` on Vercel and redeploy.
+10. Reload the production site — images should still be retailer URLs while **Show** is off.
+11. In admin, tick **Show** on reviewed wines to switch the public UI to hosted Storage images.
 
 ## Safety notes
 

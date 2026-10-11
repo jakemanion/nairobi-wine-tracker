@@ -113,7 +113,8 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
           vivino_match_confidence,
           hosted_image_path,
           image_migration_status,
-          image_source_listing_id
+          image_source_listing_id,
+          show_hosted_image
         `)
       .order('producer')
       .order('wine_name'),

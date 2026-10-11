@@ -6,6 +6,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type ChangeEvent,
   type CSSProperties,
   type KeyboardEvent,
   type ReactNode,
@@ -25,9 +26,11 @@ import {
   adminMatchStoreListingToWine,
   adminMarkImportsDone,
   adminPromoteListingToCanonicalWine,
+  adminSetWineShowHostedImage,
   adminUpdateImportStatus,
   adminUpdateStoreListingField,
   adminUpdateWineField,
+  adminUploadWineImage,
 } from '@/app/admin/actions'
 import {
   formatGrapeVarieties,
@@ -1460,6 +1463,27 @@ export function AdminMatcher({
     return { error: result.error }
   }
 
+  async function setWineShowHostedImage(wine: WineRecord, showHostedImage: boolean) {
+    const result = await adminSetWineShowHostedImage({
+      wineId: wine.id,
+      showHostedImage,
+    })
+    if (result.wine) {
+      setWines((current) => updateWineInState(current, result.wine!))
+    }
+    return { error: result.error }
+  }
+
+  async function uploadWineImage(wine: WineRecord, file: File) {
+    const formData = new FormData()
+    formData.set('file', file)
+    const result = await adminUploadWineImage(wine.id, formData)
+    if (result.wine) {
+      setWines((current) => updateWineInState(current, result.wine!))
+    }
+    return { error: result.error }
+  }
+
   async function saveWineField(wine: WineRecord, field: WineField, value: string | null) {
     let parsed: string | number | null = value
 
@@ -2613,6 +2637,8 @@ export function AdminMatcher({
                           void saveWineField(wine, 'vivino_match_confidence', '100')
                         }
                         onSave={saveWineField}
+                        onSetShowHostedImage={setWineShowHostedImage}
+                        onUploadImage={uploadWineImage}
                       />
                     </div>
                   ))}
@@ -2641,6 +2667,8 @@ export function AdminMatcher({
                     onDelete={() => void handleDeleteWine(wine)}
                     onVerify={() => void saveWineField(wine, 'vivino_match_confidence', '100')}
                     onSave={saveWineField}
+                    onSetShowHostedImage={setWineShowHostedImage}
+                    onUploadImage={uploadWineImage}
                   />
                 ))}
               </div>
@@ -2933,6 +2961,120 @@ function CanonicalWineFields({
   )
 }
 
+function CanonicalWineImageControls({
+  wine,
+  busy,
+  onSetShowHostedImage,
+  onUploadImage,
+}: {
+  wine: WineRecord
+  busy: boolean
+  onSetShowHostedImage: (
+    wine: WineRecord,
+    showHostedImage: boolean,
+  ) => Promise<{ error?: string }>
+  onUploadImage: (wine: WineRecord, file: File) => Promise<{ error?: string }>
+}) {
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const [imageBusy, setImageBusy] = useState(false)
+  const [imageError, setImageError] = useState<string | null>(null)
+  const hasHostedImage = Boolean(resolveWineAdminImage(wine))
+  const showHosted = Boolean(wine.show_hosted_image)
+  const disabled = busy || imageBusy
+
+  async function handleToggle(event: ChangeEvent<HTMLInputElement>) {
+    event.stopPropagation()
+    setImageError(null)
+    setImageBusy(true)
+    const result = await onSetShowHostedImage(wine, event.target.checked)
+    if (result.error) setImageError(result.error)
+    setImageBusy(false)
+  }
+
+  async function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
+    event.stopPropagation()
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (!file) return
+    setImageError(null)
+    setImageBusy(true)
+    const result = await onUploadImage(wine, file)
+    if (result.error) setImageError(result.error)
+    setImageBusy(false)
+  }
+
+  return (
+    <span
+      onClick={(event) => event.stopPropagation()}
+      onKeyDown={(event) => event.stopPropagation()}
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'flex-end',
+        gap: 3,
+        flexShrink: 0,
+        minWidth: 72,
+      }}
+    >
+      <ListingThumbnail imageUrl={resolveWineAdminImage(wine)} alt={formatWineLabel(wine)} />
+      <label
+        title={
+          hasHostedImage
+            ? 'Show hosted image on the public site'
+            : 'Upload a hosted image before enabling public display'
+        }
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 3,
+          fontSize: 10,
+          color: hasHostedImage ? '#333' : '#999',
+          cursor: disabled ? 'default' : 'pointer',
+          userSelect: 'none',
+        }}
+      >
+        <input
+          type="checkbox"
+          checked={showHosted}
+          disabled={disabled || !hasHostedImage}
+          onChange={(event) => void handleToggle(event)}
+          style={{ margin: 0 }}
+        />
+        Show
+      </label>
+      <button
+        type="button"
+        disabled={disabled}
+        title="Upload bottle image to Supabase Storage"
+        onClick={(event) => {
+          event.stopPropagation()
+          fileInputRef.current?.click()
+        }}
+        style={{
+          ...actionButtonStyle('default', !disabled),
+          padding: '1px 5px',
+          fontSize: 10,
+          lineHeight: 1.2,
+        }}
+      >
+        {imageBusy ? '…' : 'Upload'}
+      </button>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/jpeg,image/jpg,image/png,image/webp,image/avif,.jpg,.jpeg,.png,.webp,.avif"
+        style={{ display: 'none' }}
+        onChange={(event) => void handleFileChange(event)}
+      />
+      {imageError ? (
+        <span style={{ fontSize: 9, color: '#a33', maxWidth: 90, textAlign: 'right' }}>
+          {imageError}
+        </span>
+      ) : null}
+    </span>
+  )
+}
+
 function CanonicalWineRow({
   wine,
   matchedListings,
@@ -2946,6 +3088,8 @@ function CanonicalWineRow({
   onDelete,
   onVerify,
   onSave,
+  onSetShowHostedImage,
+  onUploadImage,
 }: {
   wine: WineRecord
   matchedListings: StoreListingRecord[]
@@ -2963,6 +3107,11 @@ function CanonicalWineRow({
     field: WineField,
     value: string | null,
   ) => Promise<{ error?: string }>
+  onSetShowHostedImage: (
+    wine: WineRecord,
+    showHostedImage: boolean,
+  ) => Promise<{ error?: string }>
+  onUploadImage: (wine: WineRecord, file: File) => Promise<{ error?: string }>
 }) {
   const radio = (
     <span
@@ -2999,10 +3148,12 @@ function CanonicalWineRow({
     </span>
   )
 
-  const thumbnail = (
-    <ListingThumbnail
-      imageUrl={resolveWineAdminImage(wine)}
-      alt={formatWineLabel(wine)}
+  const imageControls = (
+    <CanonicalWineImageControls
+      wine={wine}
+      busy={busy}
+      onSetShowHostedImage={onSetShowHostedImage}
+      onUploadImage={onUploadImage}
     />
   )
 
@@ -3026,7 +3177,7 @@ function CanonicalWineRow({
           </div>
           {rowActions}
         </div>
-        {thumbnail}
+        {imageControls}
       </div>
     )
   }
@@ -3045,7 +3196,7 @@ function CanonicalWineRow({
         <CanonicalWineFields wine={wine} matchedListings={matchedListings} onSave={onSave} />
       </div>
       {rowActions}
-      {thumbnail}
+      {imageControls}
     </div>
   )
 }

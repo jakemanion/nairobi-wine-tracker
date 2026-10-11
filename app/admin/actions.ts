@@ -6,6 +6,8 @@ import { buildWineFromListing } from '@/lib/build-wine-from-listing'
 import { normalizeGrapeVarieties } from '@/lib/grape-varieties'
 import { normalizeOptionalHttpUrl, sanitizeHttpUrl } from '@/lib/safe-http-url'
 import { createAdminClient } from '@/lib/supabase-admin'
+import { MAX_IMAGE_BYTES, validateLocalImageBytes } from '@/lib/wine-image-download'
+import { WINE_IMAGES_BUCKET, wineImageStoragePath } from '@/lib/wine-images'
 import {
   normalizeStoreListing,
   normalizeStoreListingImport,
@@ -30,7 +32,8 @@ const wineSelect = `
   vivino_enrichment_status,
   hosted_image_path,
   image_migration_status,
-  image_source_listing_id
+  image_source_listing_id,
+  show_hosted_image
 `
 
 const listingSelect = `
@@ -702,4 +705,105 @@ export async function adminBulkPromoteListingsToCanonicalWines(
     listings: updatedListings,
     createdCount: createdWines.length,
   }
+}
+
+export async function adminSetWineShowHostedImage({
+  wineId,
+  showHostedImage,
+}: {
+  wineId: string
+  showHostedImage: boolean
+}): Promise<WineMutationResult> {
+  const access = await requireAdminAccess()
+  if (!access.ok) return { error: access.error }
+
+  const { client, configError } = getAdminClient()
+  if (!client) return { error: configError! }
+
+  const { data, error } = await client
+    .from('wines')
+    .update({ show_hosted_image: showHostedImage })
+    .eq('id', wineId)
+    .select(wineSelect)
+    .maybeSingle()
+
+  if (error) return { error: error.message }
+  if (!data) return { error: 'Update failed — no row returned.' }
+
+  revalidateWinePages()
+  return { wine: data as WineRecord }
+}
+
+export async function adminUploadWineImage(
+  wineId: string,
+  formData: FormData,
+): Promise<WineMutationResult> {
+  const access = await requireAdminAccess()
+  if (!access.ok) return { error: access.error }
+
+  if (!wineId?.trim()) return { error: 'Missing wine id.' }
+
+  const { client, configError } = getAdminClient()
+  if (!client) return { error: configError! }
+
+  const file = formData.get('file')
+  if (!(file instanceof File)) {
+    return { error: 'No image file provided.' }
+  }
+
+  if (file.size <= 0) return { error: 'Empty file.' }
+  if (file.size > MAX_IMAGE_BYTES) {
+    return { error: `File too large (${file.size} bytes; max ${MAX_IMAGE_BYTES}).` }
+  }
+
+  const bytes = new Uint8Array(await file.arrayBuffer())
+  const validated = validateLocalImageBytes(bytes)
+  if (!validated.ok) return { error: validated.error }
+
+  const storagePath = wineImageStoragePath(wineId, validated.format.extension)
+
+  // Remove sibling original.* objects so a format change does not leave orphans.
+  const { data: existingObjects } = await client.storage.from(WINE_IMAGES_BUCKET).list(wineId, {
+    limit: 50,
+  })
+  const stale = (existingObjects ?? [])
+    .map((item) => item.name)
+    .filter((name) => /^original\./i.test(name) && name !== `original.${validated.format.extension}`)
+  if (stale.length > 0) {
+    await client.storage
+      .from(WINE_IMAGES_BUCKET)
+      .remove(stale.map((name) => `${wineId}/${name}`))
+  }
+
+  const { error: uploadError } = await client.storage
+    .from(WINE_IMAGES_BUCKET)
+    .upload(storagePath, bytes, {
+      contentType: validated.format.mime,
+      upsert: true,
+      cacheControl: '31536000',
+    })
+
+  if (uploadError) {
+    return { error: `Upload failed: ${uploadError.message}` }
+  }
+
+  const { data, error } = await client
+    .from('wines')
+    .update({
+      hosted_image_path: storagePath,
+      image_migration_status: 'success',
+      image_migration_error: null,
+      image_migrated_at: new Date().toISOString(),
+      // Manual upload is not from a retailer listing.
+      image_source_listing_id: null,
+    })
+    .eq('id', wineId)
+    .select(wineSelect)
+    .maybeSingle()
+
+  if (error) return { error: error.message }
+  if (!data) return { error: 'Upload succeeded but wine update returned no row.' }
+
+  revalidateWinePages()
+  return { wine: data as WineRecord }
 }

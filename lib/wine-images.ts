@@ -7,6 +7,7 @@ export type ImageMigrationStatus = 'pending' | 'success' | 'failed' | 'skipped'
 export type WineImageSource = {
   hosted_image_path?: string | null
   image_migration_status?: string | null
+  show_hosted_image?: boolean | null
 }
 
 export type ListingImageSource = {
@@ -58,24 +59,25 @@ export function firstListingImageUrl(
 }
 
 /**
- * Production stays on retailer URLs until this is explicitly enabled
- * (`NEXT_PUBLIC_USE_HOSTED_WINE_IMAGES=true` in the deployment env).
+ * Optional kill switch. When set to `"false"`, public UI never uses hosted images
+ * even if a wine has `show_hosted_image`. Unset / any other value allows per-wine toggles.
  */
 export function isHostedWineImagesEnabled(): boolean {
-  return process.env.NEXT_PUBLIC_USE_HOSTED_WINE_IMAGES === 'true'
+  return process.env.NEXT_PUBLIC_USE_HOSTED_WINE_IMAGES !== 'false'
 }
 
 /**
- * Prefer the canonical wine's hosted image when the display flag is on;
- * otherwise keep showing retailer listing URLs.
+ * Public UI: use hosted Storage image only when the wine toggle is on and a
+ * successful hosted image exists. Otherwise keep the retailer listing URL.
  */
 export function resolveWineDisplayImage(
   wine: WineImageSource & {
     store_listings?: Array<ListingImageSource> | null
   },
 ): string | null {
-  if (isHostedWineImagesEnabled()) {
-    return resolveWineHostedImageUrl(wine) ?? firstListingImageUrl(wine.store_listings)
+  if (isHostedWineImagesEnabled() && wine.show_hosted_image) {
+    const hosted = resolveWineHostedImageUrl(wine)
+    if (hosted) return hosted
   }
   return firstListingImageUrl(wine.store_listings)
 }
