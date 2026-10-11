@@ -51,7 +51,9 @@ const WINES_SELECT = `
   style,
   vivino_url,
   vivino_rating,
-  store_listings (
+  hosted_image_path,
+  image_migration_status,
+  store_listings!wine_id (
     id,
     current_price_ksh,
     store_product_url,

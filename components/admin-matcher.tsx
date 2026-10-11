@@ -11,7 +11,8 @@ import {
   type ReactNode,
 } from 'react'
 import { EditableTextCell } from '@/components/editable-text-cell'
-import { firstListingImageUrl, ListingThumbnail } from '@/components/listing-thumbnail'
+import { ListingThumbnail } from '@/components/listing-thumbnail'
+import { resolveListingImageUrl, resolveWineAdminImage } from '@/lib/wine-images'
 import {
   adminClearStoreListingMatch,
   adminCreateStoreListingFromImport,
@@ -2029,7 +2030,7 @@ export function AdminMatcher({
                                   </span>
                                 </span>
                                 <ListingThumbnail
-                                  imageUrl={listing.image_url}
+                                  imageUrl={resolveListingImageUrl(listing)}
                                   alt={listing.raw_title ?? 'Imported listing'}
                                 />
                               </div>
@@ -2252,7 +2253,7 @@ export function AdminMatcher({
                             </LabeledField>
                           </div>
                           <ListingThumbnail
-                            imageUrl={listing.image_url}
+                            imageUrl={resolveListingImageUrl(listing)}
                             alt={listing.raw_title ?? 'Store listing'}
                           />
                         </div>
@@ -2468,7 +2469,7 @@ export function AdminMatcher({
                             </span>
                           ) : null}
                           <ListingThumbnail
-                            imageUrl={listing.image_url}
+                            imageUrl={resolveListingImageUrl(listing)}
                             alt={listing.raw_title ?? 'Store listing'}
                           />
                         </div>
@@ -3000,7 +3001,7 @@ function CanonicalWineRow({
 
   const thumbnail = (
     <ListingThumbnail
-      imageUrl={firstListingImageUrl(matchedListings)}
+      imageUrl={resolveWineAdminImage(wine)}
       alt={formatWineLabel(wine)}
     />
   )

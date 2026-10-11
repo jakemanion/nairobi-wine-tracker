@@ -21,6 +21,9 @@ export type WineRecord = {
   vivino_rating: string | number | null
   vivino_match_confidence: number | null
   vivino_enrichment_status: VivinoEnrichmentStatus | null
+  hosted_image_path?: string | null
+  image_migration_status?: string | null
+  image_source_listing_id?: string | null
 }
 
 export type WineField =
@@ -47,7 +50,10 @@ const wineSelect = `
   vivino_url,
   vivino_rating,
   vivino_match_confidence,
-  vivino_enrichment_status
+  vivino_enrichment_status,
+  hosted_image_path,
+  image_migration_status,
+  image_source_listing_id
 `
 
 type UpdateWineFieldArgs = {

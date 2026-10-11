@@ -27,7 +27,10 @@ const wineSelect = `
   vivino_url,
   vivino_rating,
   vivino_match_confidence,
-  vivino_enrichment_status
+  vivino_enrichment_status,
+  hosted_image_path,
+  image_migration_status,
+  image_source_listing_id
 `
 
 const listingSelect = `
@@ -49,7 +52,7 @@ const listingSelect = `
     id,
     name
   ),
-  wines (
+  wines!wine_id (
     id,
     producer,
     wine_name,

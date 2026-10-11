@@ -73,7 +73,7 @@ const listingSelect = `
     id,
     name
   ),
-  wines (
+  wines!wine_id (
     id,
     producer,
     wine_name,

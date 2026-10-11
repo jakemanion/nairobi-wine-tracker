@@ -9,6 +9,7 @@ import {
 } from 'react'
 import { createPortal } from 'react-dom'
 import { sanitizeHttpUrl } from '@/lib/safe-http-url'
+import { firstListingImageUrl as resolveFirstListingImageUrl } from '@/lib/wine-images'
 
 const THUMB_DIMENSIONS = {
   default: { width: 28, minHeight: 28, maxImageHeight: 48 },
@@ -242,10 +243,9 @@ export function CursorImagePreview({
   )
 }
 
-export function firstListingImageUrl(listings: Array<{ image_url?: string | null }>): string | null {
-  for (const listing of listings) {
-    const url = sanitizeHttpUrl(listing.image_url)
-    if (url) return url
-  }
-  return null
+/** Prefer hosted Supabase images; fall back to retailer URLs. */
+export function firstListingImageUrl(
+  listings: Parameters<typeof resolveFirstListingImageUrl>[0],
+): string | null {
+  return resolveFirstListingImageUrl(listings)
 }

@@ -9,6 +9,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "scrape:carrefour": "tsx scripts/scrape-carrefour.ts",
+    "migrate:images": "tsx scripts/migrate-wine-images.ts",
+    "upload:images": "tsx scripts/upload-local-wine-images.ts",
     "enrich": "tsx src/index.ts",
     "enrich:first": "tsx src/first-run.ts"
   },

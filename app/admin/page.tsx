@@ -89,7 +89,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
             id,
             name
           ),
-          wines (
+          wines!wine_id (
             id,
             producer,
             wine_name,
@@ -110,7 +110,10 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
           style,
           vivino_url,
           vivino_rating,
-          vivino_match_confidence
+          vivino_match_confidence,
+          hosted_image_path,
+          image_migration_status,
+          image_source_listing_id
         `)
       .order('producer')
       .order('wine_name'),
