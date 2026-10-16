@@ -807,23 +807,19 @@ export function PreviewWineCard({
             mutedColor={infoMuted}
           />
 
-          {/* Row 2 on mobile: wine info. Buttons float top-right; only header rows clear them. */}
+          {/* Row 2 on mobile: wine info. Report/edit float top-right without reserving layout space. */}
           <div
             className="flex min-w-0 flex-1 flex-col gap-[4.5px] pt-0.5 sm:gap-1.5"
             style={{ minWidth: 0 }}
           >
             <p
-              className={`text-[8px] font-semibold uppercase tracking-[0.14em] leading-none sm:text-[9px] ${
-                isAdmin ? 'sm:pr-[7.5rem]' : 'sm:pr-[5.5rem]'
-              }`}
+              className="text-[8px] font-semibold uppercase tracking-[0.14em] leading-none sm:text-[9px]"
               style={{ color: infoProducer, fontFamily: 'var(--font-dm-sans), sans-serif' }}
             >
               {wine.producer}
             </p>
             <h3
-              className={`text-[11px] font-semibold leading-snug sm:text-sm ${
-                isAdmin ? 'sm:pr-[7.5rem]' : 'sm:pr-[5.5rem]'
-              }`}
+              className="text-[11px] font-semibold leading-snug sm:text-sm"
               style={{ color: infoWineName, fontFamily: colors.headingFont }}
             >
               {nameHref ? (
