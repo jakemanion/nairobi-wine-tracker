@@ -535,7 +535,9 @@ function MyWinesFilterStatus({
           <Check size={8} strokeWidth={2.5} style={{ color: colors.accent }} />
         </span>
       ) : null}
-      {active ? 'Shown' : 'Hidden'}
+      <span style={{ position: 'relative', top: 2 }}>
+        {active ? 'Shown' : 'Hidden'}
+      </span>
     </span>
   )
 }
