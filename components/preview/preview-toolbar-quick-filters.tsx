@@ -5,6 +5,7 @@ import {
   ArrowUpDown,
   Banknote,
   Bookmark,
+  Check,
   ChevronDown,
   EyeOff,
   Grape,
@@ -491,8 +492,52 @@ type MyWinesFilterBarProps = {
   colors: PreviewColors
   filters: WineFilters
   onFiltersChange: (filters: WineFilters) => void
-  /** Mobile footer layout: caption above, labeled buttons with icons. */
+  /** Labeled layout: caption (mobile), full-width buttons with status text. */
   showLabels?: boolean
+}
+
+/** Bottom-left Shown/Hidden status next to the on-state tick (labeled My wines buttons). */
+function MyWinesFilterStatus({
+  colors,
+  active,
+}: {
+  colors: PreviewColors
+  active: boolean
+}) {
+  return (
+    <span
+      aria-hidden
+      className="pointer-events-none absolute inline-flex items-center gap-0.5"
+      style={{
+        left: 2,
+        bottom: 2,
+        fontFamily: 'var(--font-dm-sans), sans-serif',
+        fontSize: 7,
+        fontWeight: 600,
+        lineHeight: 1,
+        letterSpacing: '0.02em',
+        color: active ? colors.accent : colors.summaryText,
+        opacity: active ? 1 : 0.85,
+      }}
+    >
+      {active ? (
+        <span
+          className="inline-flex items-center justify-center"
+          style={{
+            width: 10,
+            height: 10,
+            borderRadius: '50%',
+            background: '#ffffff',
+            boxShadow: `0 0 0 1px ${colors.buttonBorder ?? colors.controlIdleBorder}`,
+            flexShrink: 0,
+          }}
+        >
+          <Check size={8} strokeWidth={2.5} style={{ color: colors.accent }} />
+        </span>
+      ) : null}
+      {active ? 'Shown' : 'Hidden'}
+    </span>
+  )
 }
 
 /** Review-status quick filters used in the My wines tab and mobile footer. */
@@ -594,13 +639,13 @@ export function MyWinesFilterBar({
       tipId="my-wines-filters"
       className={
         showLabels
-          ? 'flex w-full flex-col items-stretch gap-1'
+          ? 'flex w-full min-w-0 flex-col items-stretch gap-1'
           : 'flex items-center gap-1.5 self-center'
       }
     >
       {showLabels ? (
         <span
-          className="px-2 text-center text-[8px] font-medium leading-tight"
+          className="px-2 text-center text-[8px] font-medium leading-tight sm:hidden"
           style={{
             color: colors.summaryText,
             fontFamily: 'var(--font-dm-sans), sans-serif',
@@ -612,7 +657,7 @@ export function MyWinesFilterBar({
       <div
         className={
           showLabels
-            ? 'flex w-full items-stretch'
+            ? 'flex w-full min-w-0 items-stretch'
             : 'flex items-center gap-1.5'
         }
       >
@@ -631,13 +676,13 @@ export function MyWinesFilterBar({
                       width: '100%',
                       height: Math.round(CONTROL_HEIGHT * 1.75) + 14,
                       minHeight: Math.round(CONTROL_HEIGHT * 1.75) + 14,
-                      padding: '4px 2px',
+                      padding: '4px 2px 12px',
                       gap: 2,
                       fontSize: 8,
                       fontWeight: 500,
                       lineHeight: 1,
                       borderRadius: 0,
-                      opacity: item.active ? 1 : 0.25,
+                      opacity: item.active ? 1 : 0.45,
                       alignItems: 'center',
                       justifyContent: 'center',
                       boxSizing: 'border-box',
@@ -661,7 +706,11 @@ export function MyWinesFilterBar({
                   {item.label}
                 </span>
               ) : null}
-              {item.active ? <ReviewOnTick colors={colors} /> : null}
+              {showLabels ? (
+                <MyWinesFilterStatus colors={colors} active={item.active} />
+              ) : item.active ? (
+                <ReviewOnTick colors={colors} />
+              ) : null}
             </button>
           )
 
@@ -1002,11 +1051,12 @@ export function PreviewToolbarQuickFilters({
           ) : null}
 
           {visibleTab === 'my-wines' && isLoggedIn ? (
-            <div className="hidden sm:block">
+            <div className="hidden w-full min-w-0 sm:block">
               <MyWinesFilterBar
                 colors={colors}
                 filters={filters}
                 onFiltersChange={onFiltersChange}
+                showLabels
               />
             </div>
           ) : null}
