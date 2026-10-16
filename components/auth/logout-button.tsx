@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useState, type CSSProperties } from 'react'
+import { resetAnalyticsIdentity, trackEvent } from '@/lib/analytics'
 import { signOut } from '@/lib/auth/sign-out'
 
 type LogoutButtonProps = {
@@ -26,6 +27,9 @@ export function LogoutButton({ className = '', style, theme = 'light' }: LogoutB
       window.alert(result.message)
       return
     }
+
+    trackEvent('user_logged_out')
+    resetAnalyticsIdentity()
 
     router.push('/')
     router.refresh()

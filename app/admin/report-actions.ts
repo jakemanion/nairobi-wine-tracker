@@ -11,6 +11,7 @@ import type {
 } from '@/lib/reports/types'
 import { isUuid, isWineReportIssueType, normalizeResolutionNote } from '@/lib/reports/validation'
 import { createAdminClient } from '@/lib/supabase-admin'
+import { logPostHogInfo } from '@/lib/posthog-logs'
 
 const REPORT_SELECT = `
   id,
@@ -381,6 +382,7 @@ export async function resolveWineReport(input: {
 
     revalidatePath('/admin')
     revalidatePath('/admin/reports')
+    logPostHogInfo('wine report resolved', { action: 'wine_report_resolved' })
     return { report: mapReport(data as Record<string, unknown>) }
   } catch (err) {
     return { error: err instanceof Error ? err.message : 'Failed to resolve report.' }
@@ -413,6 +415,7 @@ export async function reopenWineReport(input: {
 
     revalidatePath('/admin')
     revalidatePath('/admin/reports')
+    logPostHogInfo('wine report reopened', { action: 'wine_report_reopened' })
     return { report: mapReport(data as Record<string, unknown>) }
   } catch (err) {
     return { error: err instanceof Error ? err.message : 'Failed to reopen report.' }

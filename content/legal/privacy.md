@@ -36,6 +36,7 @@ We may automatically process limited technical data needed to run the Service, s
 - Browser type and basic device information
 - Pages or features you access
 - Approximate timestamps of activity
+- Product analytics events (via PostHog EU Cloud), using an opaque account ID when you are signed in — not your email or password
 
 ### 2.4 Information from third parties
 Wine catalogue data (for example Vivino ratings or retailer listings) may be sourced from third-party sites or partners. That information relates to products, not to you personally, unless you choose to associate it with your account preferences.
@@ -66,7 +67,7 @@ Where data-protection laws require a legal basis, we generally process personal 
 
 We may share information with:
 
-- **Service providers** that help us operate the Service (for example hosting, authentication, and database providers such as Supabase)
+- **Service providers** that help us operate the Service (for example hosting, authentication, database, and product analytics providers such as Supabase and PostHog)
 - **Professional advisers** or authorities when required by law
 - **Other users**, only when you intentionally create a public shared list. Shared lists are designed to show curated wine catalogue information, not your private notes or ratings
 

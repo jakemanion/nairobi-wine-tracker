@@ -1,7 +1,7 @@
 import { supabase } from '@/lib/supabase'
 
 export type SignUpResult =
-  | { status: 'success'; needsEmailConfirmation: boolean; email: string }
+  | { status: 'success'; needsEmailConfirmation: boolean; email: string; userId: string }
   | { status: 'error'; message: string }
 
 export async function signUpWithEmail(email: string, password: string): Promise<SignUpResult> {
@@ -20,9 +20,14 @@ export async function signUpWithEmail(email: string, password: string): Promise<
     return { status: 'error', message: 'An account with this email already exists.' }
   }
 
+  if (!data.user) {
+    return { status: 'error', message: 'Registration did not return a user.' }
+  }
+
   return {
     status: 'success',
-    needsEmailConfirmation: data.user !== null && data.session === null,
+    needsEmailConfirmation: data.session === null,
     email: trimmedEmail,
+    userId: data.user.id,
   }
 }

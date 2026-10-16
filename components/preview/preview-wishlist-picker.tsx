@@ -7,6 +7,7 @@ import type { WineReview } from '@/components/wine-table'
 import { InstantTooltip } from '@/components/preview/instant-tooltip'
 import { ReviewOnTick } from '@/components/preview/review-on-tick'
 import { useNotifyMyWineMark } from '@/components/preview/my-wine-mark-toast'
+import { trackEvent } from '@/lib/analytics'
 import { saveReviewWishlistField, type WishlistValue } from '@/lib/reviews'
 import type { PreviewThemeMode, PanelTint, PreviewVisualStyle } from '@/lib/preview/preview-colors'
 import { usePreviewTheme } from '@/components/preview/preview-theme-context'
@@ -149,6 +150,10 @@ export function PreviewWishlistPicker({
     }
 
     onReviewChange(result.review)
+    trackEvent('wine_bookmarked', {
+      wine_id: wineId,
+      action: next === 1 ? 'added' : 'removed',
+    })
     notifyMark({
       wineId,
       wineName,

@@ -9,6 +9,7 @@ import {
   type SubmitWineReportInput,
 } from '@/lib/reports/validation'
 import { createAdminClient } from '@/lib/supabase-admin'
+import { logPostHogInfo } from '@/lib/posthog-logs'
 import { createAuthServerClient } from '@/lib/supabase-auth-server'
 import { createServerReadClient } from '@/lib/supabase-server'
 
@@ -305,5 +306,11 @@ export async function submitWineReport(
     return { error: insertError.message }
   }
 
+  logPostHogInfo('wine report submitted', {
+    action: 'wine_report_submitted',
+    issue_type: issueType,
+    reporter_kind: reporter.kind,
+    has_store_listing: Boolean(resolvedListingId),
+  })
   return { report: mapReportRow(inserted as Record<string, unknown>) }
 }

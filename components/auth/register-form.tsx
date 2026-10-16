@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useState, type FormEvent } from 'react'
 import { LegalAgreementNotice } from '@/components/auth/legal-agreement-notice'
+import { identifyRegisteredUser, trackEvent } from '@/lib/analytics'
 import { MIN_PASSWORD_LENGTH } from '@/lib/auth/constants'
 import { signUpWithEmail } from '@/lib/auth/sign-up'
 import { validateRegistrationForm } from '@/lib/auth/validation'
@@ -41,6 +42,11 @@ export function RegisterForm() {
       setMessage(result.message)
       return
     }
+
+    identifyRegisteredUser(result.userId)
+    trackEvent('user_signed_up', {
+      requires_email_confirmation: result.needsEmailConfirmation,
+    })
 
     setNeedsEmailConfirmation(result.needsEmailConfirmation)
     setStatus('success')

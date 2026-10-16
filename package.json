@@ -15,6 +15,9 @@
     "enrich:first": "tsx src/first-run.ts"
   },
   "dependencies": {
+    "@opentelemetry/api-logs": "^0.223.0",
+    "@opentelemetry/exporter-logs-otlp-http": "^0.223.0",
+    "@opentelemetry/sdk-logs": "^0.223.0",
     "@supabase/ssr": "^0.10.3",
     "@supabase/supabase-js": "^2.105.4",
     "@tanstack/react-virtual": "^3.14.13",
@@ -25,6 +28,7 @@
     "fuse.js": "^7.1.0",
     "lucide-react": "^0.511.0",
     "next": "16.2.6",
+    "posthog-js": "^1.438.12",
     "react": "19.2.4",
     "react-dom": "19.2.4"
   },

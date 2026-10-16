@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState, type FormEvent } from 'react'
 import { LegalAgreementNotice } from '@/components/auth/legal-agreement-notice'
+import { identifyRegisteredUser, trackEvent } from '@/lib/analytics'
 import { safeRedirectPath } from '@/lib/auth/safe-redirect'
 import { signInWithEmail } from '@/lib/auth/sign-in'
 import { validateEmail } from '@/lib/auth/validation'
@@ -52,6 +53,9 @@ export function LoginForm({ nextPath = '/', initialError = null }: LoginFormProp
       setMessage(result.message)
       return
     }
+
+    identifyRegisteredUser(result.userId)
+    trackEvent('user_logged_in')
 
     router.push(safeRedirectPath(nextPath))
     router.refresh()

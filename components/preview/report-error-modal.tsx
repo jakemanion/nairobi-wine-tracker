@@ -4,6 +4,7 @@ import { useEffect, useId, useRef, useState, useSyncExternalStore } from 'react'
 import { createPortal } from 'react-dom'
 import { Loader2, X } from 'lucide-react'
 import { usePreviewTheme } from '@/components/preview/preview-theme-context'
+import { trackEvent } from '@/lib/analytics'
 import {
   WINE_REPORT_ISSUE_LABELS,
   WINE_REPORT_ISSUE_TYPES,
@@ -94,6 +95,10 @@ export function ReportErrorModal({
     }
 
     setSuccess(true)
+    trackEvent('wine_issue_report_submitted', {
+      wine_id: wineId,
+      issue_type: issueType,
+    })
     setIssueType('')
     setDetails('')
     onSubmitted()

@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Search, Share2 } from 'lucide-react'
 import { BrandLogo } from '@/components/brand-logo'
 import { LoginNavLink } from '@/components/auth/login-nav-link'
@@ -25,6 +25,7 @@ import type { SortCriterion } from '@/components/wine-filter-panel'
 import type { WineReview, WineRow } from '@/components/wine-table'
 import { sortWines } from '@/components/wine-table'
 import { withComputedValueScore } from '@/lib/calculate-value-score'
+import { trackEvent } from '@/lib/analytics'
 import {
   collectFilterOptions,
   computeListPriceBounds,
@@ -81,6 +82,7 @@ export function PreviewWineList({
   const [primarySort, setPrimarySort] = useState<SortCriterion>({ key: 'value_score', dir: 'desc' })
   const [secondarySort, setSecondarySort] = useState<SortCriterion>({ key: 'none', dir: 'asc' })
   const [shareOpen, setShareOpen] = useState(false)
+  const searchTrackTimer = useRef<number | null>(null)
   const filterOptions = useMemo(() => collectFilterOptions(wines), [wines])
   const priceBounds = useMemo(() => computeListPriceBounds(wines), [wines])
   const activeFilterCount = useMemo(() => countActiveFilters(filters), [filters])
@@ -99,6 +101,45 @@ export function PreviewWineList({
   }, [searched, primarySort, secondarySort, searchQuery])
 
   const previewWines = useMemo(() => sorted.map(toPreviewWineCard), [sorted])
+
+  useEffect(() => {
+    if (searchTrackTimer.current != null) window.clearTimeout(searchTrackTimer.current)
+    if (!hasActiveWineSearch(searchQuery)) return
+    searchTrackTimer.current = window.setTimeout(() => {
+      trackEvent('wine_searched', {
+        result_count: searched.length,
+        query_length: searchQuery.trim().length,
+      })
+    }, 600)
+    return () => {
+      if (searchTrackTimer.current != null) window.clearTimeout(searchTrackTimer.current)
+    }
+  }, [searchQuery, searched.length])
+
+  function handleFiltersChange(next: WineFilters) {
+    setFilters(next)
+    trackEvent('wine_filter_used', {
+      active_filter_count: countActiveFilters(next),
+      include_unmarked: next.includeUnmarked,
+      include_bookmarked: next.includeBookmarked,
+      include_buy_again: next.includeBuyAgain,
+      include_dont_buy_again: next.includeDontBuyAgain,
+      include_hidden: next.includeHidden,
+      has_price_max: Boolean(next.priceMax.trim()),
+      style_count: next.styles.length,
+      grape_count: next.grapes.length,
+      region_count: next.regions.length,
+      disabled_store_count: next.disabledStores.length,
+    })
+  }
+
+  function handlePrimarySortChange(next: SortCriterion) {
+    setPrimarySort(next)
+    trackEvent('wine_sorted', {
+      sort_key: next.key,
+      sort_dir: next.dir,
+    })
+  }
 
   const winesById = useMemo(() => {
     const map = new Map<string, WineRow>()
@@ -224,10 +265,10 @@ export function PreviewWineList({
           <PreviewToolbar
             activeFilterCount={activeFilterCount}
             filters={filters}
-            onFiltersChange={setFilters}
+            onFiltersChange={handleFiltersChange}
             filterOptions={filterOptions}
             primarySort={primarySort}
-            onPrimarySortChange={setPrimarySort}
+            onPrimarySortChange={handlePrimarySortChange}
             onSecondarySortChange={setSecondarySort}
             resultCount={previewWines.length}
             priceBounds={priceBounds}
@@ -269,7 +310,7 @@ export function PreviewWineList({
         <PreviewMobileListFooter
           colors={colors}
           filters={filters}
-          onFiltersChange={setFilters}
+          onFiltersChange={handleFiltersChange}
           isLoggedIn
         />
       ) : null}

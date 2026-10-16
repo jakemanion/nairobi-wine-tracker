@@ -1,8 +1,45 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { identifyRegisteredUser, resetAnalyticsIdentity } from '@/lib/analytics'
 
 export const AGE_GATE_STORAGE_KEY = 'wine-diviner-age-confirmed'
+
+type AuthenticatedPostHogIdentityProps = {
+  userId: string | null
+}
+
+/**
+ * Keeps PostHog distinct_id aligned with the Supabase user UUID.
+ * No email/name is sent. Resets on logout and when switching accounts.
+ */
+export function AuthenticatedPostHogIdentity({ userId }: AuthenticatedPostHogIdentityProps) {
+  const previousUserId = useRef<string | null>(null)
+
+  useEffect(() => {
+    if (!process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN || !process.env.NEXT_PUBLIC_POSTHOG_HOST) {
+      return
+    }
+
+    if (!userId) {
+      if (previousUserId.current) {
+        resetAnalyticsIdentity()
+        previousUserId.current = null
+      }
+      return
+    }
+
+    if (previousUserId.current && previousUserId.current !== userId) {
+      resetAnalyticsIdentity()
+    }
+
+    // No-ops until analytics consent is granted and PostHog is initialised.
+    identifyRegisteredUser(userId)
+    previousUserId.current = userId
+  }, [userId])
+
+  return null
+}
 
 export function AgeGate() {
   const [ready, setReady] = useState(false)

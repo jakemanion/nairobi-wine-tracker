@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Check, Copy, Loader2, RefreshCw, X } from 'lucide-react'
 import { usePreviewTheme } from '@/components/preview/preview-theme-context'
+import { trackEvent } from '@/lib/analytics'
 import {
   getMySharedList,
   regenerateSharedListSlug,
@@ -160,6 +161,9 @@ export function ShareListsModal({ open, onClose }: ShareListsModalProps) {
     setConfig(result.config)
     setSelected(result.config.collectionKeys)
     setAwaitingLink(false)
+    trackEvent('share_link_regenerated', {
+      collection_count: result.config.collectionKeys.length,
+    })
   }
 
   async function copyLink() {
@@ -168,6 +172,9 @@ export function ShareListsModal({ open, onClose }: ShareListsModalProps) {
     try {
       await navigator.clipboard.writeText(url)
       setCopied(true)
+      trackEvent('share_link_copied', {
+        collection_count: config.collectionKeys.length,
+      })
       window.setTimeout(() => setCopied(false), 1800)
     } catch {
       setError('Could not copy link. Select and copy it manually.')

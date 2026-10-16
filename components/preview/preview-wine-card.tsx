@@ -35,6 +35,7 @@ import {
 } from '@/lib/preview/preview-colors'
 import { formatStarRating, vivinoToStarRating } from '@/lib/ratings/vivino-star-rating'
 import { valueScoreToStarRating } from '@/lib/ratings/value-star-rating'
+import { trackEvent } from '@/lib/analytics'
 import { saveReviewField } from '@/lib/reviews'
 import type { WishlistValue, TriedStatusValue } from '@/lib/reviews'
 
@@ -662,6 +663,12 @@ export function PreviewWineCard({
 
     onReviewChange(result.review)
     setNotesDraft(result.review.tasting_notes ?? '')
+    if (next) {
+      trackEvent('wine_review_submitted', {
+        wine_id: wine.id,
+        action: stored ? 'updated' : 'created',
+      })
+    }
   }
 
   async function toggleHide() {
@@ -840,6 +847,14 @@ export function PreviewWineCard({
                   className="no-underline hover:underline underline-offset-2"
                   style={{ color: 'inherit' }}
                   title={wine.vivinoUrl ? 'View on Vivino' : 'View cheapest store listing'}
+                  onClick={() => {
+                    if (!wine.vivinoUrl) {
+                      trackEvent('outbound_retailer_link_clicked', {
+                        wine_id: wine.id,
+                        source: 'wine_name',
+                      })
+                    }
+                  }}
                 >
                   {wine.name}
                 </a>
@@ -939,6 +954,13 @@ export function PreviewWineCard({
                           target="_blank"
                           rel="noreferrer"
                           className="whitespace-nowrap no-underline hover:underline underline-offset-2"
+                          onClick={() => {
+                            trackEvent('outbound_retailer_link_clicked', {
+                              wine_id: wine.id,
+                              store_name: listing.shop,
+                              is_lowest_price: isLowest,
+                            })
+                          }}
                         >
                           {content}
                         </a>

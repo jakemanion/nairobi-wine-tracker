@@ -12,6 +12,7 @@ import { ReviewOnTick } from '@/components/preview/review-on-tick'
 import { usePreviewTheme } from '@/components/preview/preview-theme-context'
 import type { PanelTint } from '@/lib/preview/preview-colors'
 import { useNotifyMyWineMark } from '@/components/preview/my-wine-mark-toast'
+import { trackEvent } from '@/lib/analytics'
 import { saveReviewTriedStatusField, type TriedStatusValue } from '@/lib/reviews'
 
 type PreviewTriedStatusPickerProps = {
@@ -102,6 +103,23 @@ export function PreviewTriedStatusPicker({
     }
 
     onReviewChange(result.review)
+    if (toggle === 1) {
+      trackEvent('wine_marked_would_buy_again', { wine_id: wineId, action: 'set' })
+    } else if (toggle === 2) {
+      trackEvent('wine_marked_tried', {
+        wine_id: wineId,
+        would_buy_again: false,
+        action: 'set',
+      })
+    } else if (value === 1) {
+      trackEvent('wine_marked_would_buy_again', { wine_id: wineId, action: 'cleared' })
+    } else if (value === 2) {
+      trackEvent('wine_marked_tried', {
+        wine_id: wineId,
+        would_buy_again: false,
+        action: 'cleared',
+      })
+    }
     notifyMark({
       wineId,
       wineName,
