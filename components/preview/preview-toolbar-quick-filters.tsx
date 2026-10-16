@@ -516,7 +516,7 @@ function MyWinesFilterStatus({
         fontWeight: 600,
         lineHeight: 1,
         letterSpacing: '0.02em',
-        color: active ? colors.accent : colors.summaryText,
+        color: 'currentColor',
         opacity: active ? 1 : 0.85,
       }}
     >
