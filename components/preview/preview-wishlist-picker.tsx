@@ -120,7 +120,8 @@ export function PreviewWishlistPicker({
   async function toggle() {
     if (saving) return
 
-    const next: WishlistValue = active ? 0 : 1
+    // Clear to null (not 0). wishlist=0 is legacy "don't want" / ignored in filters.
+    const next: WishlistValue = active ? null : 1
     const previousReview = review ?? null
     const optimisticReview = buildOptimisticReview(review, next)
 

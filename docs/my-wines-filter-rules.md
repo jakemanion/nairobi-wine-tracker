@@ -18,7 +18,7 @@ Source: filled `my-wines-filter-rules-template.csv`. Implemented in `passesMyWin
 | Bookmarked | wishlist = 1 |
 | Buy again | tried_status = 1 |
 | Don’t buy again | tried_status = 2 (or 3) |
-| Ignored | hide = true, or wishlist = 0 |
+| Ignored | hide = true (wishlist = 0 is legacy “don’t want” and counts as not bookmarked / unmarked) |
 
 Buy again and don’t buy again are mutually exclusive.
 

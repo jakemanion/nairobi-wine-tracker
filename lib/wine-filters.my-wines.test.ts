@@ -128,4 +128,18 @@ describe('passesMyWineToggles', () => {
       ),
     ).toBe(true)
   })
+
+  it('keeps a wine visible as unmarked after clearing a bookmark', () => {
+    const showing = filters({
+      includeUnmarked: true,
+      includeBookmarked: true,
+      includeBuyAgain: true,
+      includeDontBuyAgain: false,
+      includeHidden: false,
+    })
+    // Cleared bookmark (null) or legacy wishlist=0 both count as unmarked, not ignored.
+    expect(passesMyWineToggles(wine({ wishlist: null }), showing)).toBe(true)
+    expect(passesMyWineToggles(wine({ wishlist: 0 }), showing)).toBe(true)
+    expect(passesMyWineToggles(wine({}), showing)).toBe(true)
+  })
 })

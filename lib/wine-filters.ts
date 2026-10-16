@@ -203,11 +203,17 @@ function normalizeTriedStatus(value: number | null | undefined): TriedStatusFilt
   return 'unset'
 }
 
+function isIgnoredReview(review: WineRow['review'] | null | undefined): boolean {
+  // Ignored is only the explicit hide flag. wishlist=0 is legacy "don't want" and is
+  // treated as not-bookmarked (unmarked) so unbookmarking does not force Ignored.
+  return review?.hide === true
+}
+
 function isUnmarkedReview(review: WineRow['review'] | null | undefined): boolean {
   const bookmarked = normalizeWishlist(review?.wishlist) === 1
   const thumbsUp = normalizeTriedStatus(review?.tried_status) === 1
   const thumbsDown = normalizeTriedStatus(review?.tried_status) === 2
-  const hidden = review?.hide === true || review?.wishlist === 0
+  const hidden = isIgnoredReview(review)
   return !bookmarked && !thumbsUp && !thumbsDown && !hidden
 }
 
@@ -223,7 +229,7 @@ export function passesMyWineToggles(wine: WineRow, filters: WineFilters): boolea
   const bookmarked = normalizeWishlist(review?.wishlist) === 1
   const buyAgain = normalizeTriedStatus(review?.tried_status) === 1
   const dontBuyAgain = normalizeTriedStatus(review?.tried_status) === 2
-  const hidden = review?.wishlist === 0 || review?.hide === true
+  const hidden = isIgnoredReview(review)
   const unmarked = isUnmarkedReview(review)
 
   // Don't-buy OFF always hides don't-buy wines, even if also bookmarked.
