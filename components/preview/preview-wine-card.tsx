@@ -765,7 +765,8 @@ export function PreviewWineCard({
               ...(visualStyle === 'trial' ? {} : { borderColor: colors.infoBorder }),
             }}
           >
-          <div className="absolute top-2 right-2 z-10 flex items-center gap-1">
+          {/* Mobile: flag icon bottom-right. Desktop: report + edit top-right. */}
+          <div className="absolute bottom-2 right-2 z-10 flex items-center gap-1 sm:top-2 sm:bottom-auto">
             <ReportErrorButton
               wineId={wine.id}
               wineLabel={`${wine.producer} ${wine.name}`.trim()}
@@ -809,7 +810,7 @@ export function PreviewWineCard({
           {/* Row 2 on mobile: wine info. */}
           <div
             className={`flex-1 min-w-0 flex flex-col gap-[4.5px] pt-0.5 sm:gap-1.5 ${
-              isAdmin ? 'pr-14 sm:pr-[7.5rem]' : 'pr-14'
+              isAdmin ? 'sm:pr-[7.5rem]' : 'sm:pr-14'
             }`}
           >
             <p

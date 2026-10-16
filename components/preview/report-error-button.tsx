@@ -11,7 +11,7 @@ type ReportErrorButtonProps = {
   wineLabel: string
   storeListingId?: string | null
   alreadyReported: boolean
-  /** When true, nest beside admin Edit in the top-right corner. */
+  /** When true, nest beside admin Edit in the corner. */
   compact?: boolean
 }
 
@@ -28,14 +28,16 @@ export function ReportErrorButton({
   const [submitted, setSubmitted] = useState(alreadyReported)
 
   const isSubmitted = submitted || alreadyReported
+  // Icon-only square on mobile; padded label chip from sm up.
+  const layoutClass = compact
+    ? 'inline-flex h-[18px] w-[18px] items-center justify-center gap-1 sm:w-auto sm:px-1.5'
+    : 'inline-flex h-[18px] w-[18px] items-center justify-center gap-1 sm:w-auto sm:px-2'
 
   if (isSubmitted) {
     return (
       <span
-        className="inline-flex items-center gap-1"
+        className={layoutClass}
         style={{
-          height: 18,
-          padding: compact ? '0 6px' : '0 8px',
           borderRadius: colors.panelRadius,
           color: colors.muted,
           fontFamily: 'var(--font-dm-sans), sans-serif',
@@ -46,7 +48,7 @@ export function ReportErrorButton({
         aria-label="Report submitted for this wine"
       >
         <Flag size={10} strokeWidth={2} aria-hidden />
-        Report submitted
+        <span className="hidden sm:inline">Report submitted</span>
       </span>
     )
   }
@@ -57,10 +59,8 @@ export function ReportErrorButton({
         <button
           type="button"
           aria-label={`Report a problem with ${wineLabel}`}
-          className="inline-flex items-center gap-1"
+          className={layoutClass}
           style={{
-            height: 18,
-            padding: compact ? '0 6px' : '0 8px',
             borderRadius: colors.panelRadius,
             background: colors.buttonBg,
             border: `1px solid ${colors.buttonBorder}`,
@@ -79,7 +79,7 @@ export function ReportErrorButton({
           }}
         >
           <Flag size={10} strokeWidth={2} aria-hidden />
-          Report error
+          <span className="hidden sm:inline">Report error</span>
         </button>
       </InstantTooltip>
 
