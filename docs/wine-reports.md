@@ -22,10 +22,18 @@ Until the migration is applied, report submission and the admin Reports page wil
 
 ## What it adds
 
-- Authenticated users can submit a **Report error** from wine cards (home and shared lists).
-- Reports are stored in `public.wine_reports` with RLS (users insert/read own rows only).
+- Anyone can submit a **Report error** from wine cards (home and shared lists), on desktop and mobile.
+- Logged-in reports store `user_id`. Guest reports store a cookie-backed `guest_key` (`user_id` null).
+- Authenticated users insert/read own rows via RLS; guest inserts go through the service-role server action.
 - Admins review reports at `/admin/reports` (service role after `requireAdminAccess()`).
 - Open-report flag counts appear on admin matcher wine and listing rows.
+
+## Guest reports migration
+
+Also apply:
+
+- `supabase/migrations/017_wine_reports_guest.sql`
+
 
 ## Configuration
 

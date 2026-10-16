@@ -2,30 +2,39 @@
 
 import { getPreviewSession } from '@/lib/auth/preview-session'
 import { WINE_REPORT_RATE_LIMIT_PER_HOUR } from '@/lib/reports/constants'
+import { getGuestReporterKey, getOrCreateGuestReporterKey } from '@/lib/reports/guest-reporter'
 import type { WineReportListingSnapshot, WineReportRecord } from '@/lib/reports/types'
 import {
   validateSubmitWineReportInput,
   type SubmitWineReportInput,
 } from '@/lib/reports/validation'
+import { createAdminClient } from '@/lib/supabase-admin'
 import { createAuthServerClient } from '@/lib/supabase-auth-server'
 import { createServerReadClient } from '@/lib/supabase-server'
 
-async function requireLoggedInUserId(): Promise<
-  { ok: true; userId: string } | { ok: false; error: string }
-> {
-  const session = await getPreviewSession()
-  if (!session.isLoggedIn) {
-    return { ok: false, error: 'You must be logged in to report a problem.' }
-  }
-  return { ok: true, userId: session.userId }
-}
+const REPORT_SELECT = `
+  id,
+  wine_id,
+  store_listing_id,
+  user_id,
+  guest_key,
+  issue_type,
+  description,
+  status,
+  listing_snapshot,
+  created_at,
+  resolved_at,
+  resolved_by,
+  resolution_note
+`
 
 function mapReportRow(row: Record<string, unknown>): WineReportRecord {
   return {
     id: String(row.id),
     wine_id: row.wine_id != null ? String(row.wine_id) : null,
     store_listing_id: row.store_listing_id != null ? String(row.store_listing_id) : null,
-    user_id: String(row.user_id),
+    user_id: row.user_id != null ? String(row.user_id) : null,
+    guest_key: row.guest_key != null ? String(row.guest_key) : null,
     issue_type: row.issue_type as WineReportRecord['issue_type'],
     description: row.description != null ? String(row.description) : null,
     status: row.status as WineReportRecord['status'],
@@ -38,56 +47,124 @@ function mapReportRow(row: Record<string, unknown>): WineReportRecord {
 }
 
 /**
- * Wine IDs the current user already has an open report against.
+ * Wine IDs the current user or guest already has an open report against.
  * Used to show "Report submitted" on cards without exposing other users' data.
  */
 export async function getMyOpenReportedWineIds(): Promise<{
   wineIds: string[]
   error?: string
 }> {
-  const auth = await requireLoggedInUserId()
-  if (!auth.ok) return { wineIds: [] }
+  const session = await getPreviewSession()
 
-  const supabase = await createAuthServerClient()
-  const { data, error } = await supabase
-    .from('wine_reports')
-    .select('wine_id')
-    .eq('user_id', auth.userId)
-    .eq('status', 'open')
-    .not('wine_id', 'is', null)
+  if (session.isLoggedIn) {
+    const supabase = await createAuthServerClient()
+    const { data, error } = await supabase
+      .from('wine_reports')
+      .select('wine_id')
+      .eq('user_id', session.userId)
+      .eq('status', 'open')
+      .not('wine_id', 'is', null)
 
-  if (error) return { wineIds: [], error: error.message }
+    if (error) return { wineIds: [], error: error.message }
 
-  const wineIds = [
-    ...new Set(
-      (data ?? [])
-        .map((row) => (row.wine_id != null ? String(row.wine_id) : null))
-        .filter((id): id is string => Boolean(id)),
-    ),
-  ]
-  return { wineIds }
+    return {
+      wineIds: [
+        ...new Set(
+          (data ?? [])
+            .map((row) => (row.wine_id != null ? String(row.wine_id) : null))
+            .filter((id): id is string => Boolean(id)),
+        ),
+      ],
+    }
+  }
+
+  const guestKey = await getGuestReporterKey()
+  if (!guestKey) return { wineIds: [] }
+
+  try {
+    const supabase = createAdminClient()
+    const { data, error } = await supabase
+      .from('wine_reports')
+      .select('wine_id')
+      .eq('guest_key', guestKey)
+      .eq('status', 'open')
+      .not('wine_id', 'is', null)
+
+    if (error) return { wineIds: [], error: error.message }
+
+    return {
+      wineIds: [
+        ...new Set(
+          (data ?? [])
+            .map((row) => (row.wine_id != null ? String(row.wine_id) : null))
+            .filter((id): id is string => Boolean(id)),
+        ),
+      ],
+    }
+  } catch (err) {
+    return {
+      wineIds: [],
+      error: err instanceof Error ? err.message : 'Failed to load guest reports.',
+    }
+  }
 }
 
 export async function submitWineReport(
   input: SubmitWineReportInput,
 ): Promise<{ report?: WineReportRecord; error?: string }> {
-  const auth = await requireLoggedInUserId()
-  if (!auth.ok) return { error: auth.error }
-
+  const session = await getPreviewSession()
   const validated = validateSubmitWineReportInput(input)
   if (!validated.ok) return { error: validated.error }
 
   const { wineId, storeListingId, issueType, description } = validated.data
-  const authClient = await createAuthServerClient()
   const readClient = createServerReadClient()
 
   const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString()
-  const { count: recentCount, error: rateError } = await authClient
-    .from('wine_reports')
-    .select('id', { count: 'exact', head: true })
-    .eq('user_id', auth.userId)
-    .gte('created_at', oneHourAgo)
 
+  let reporter:
+    | { kind: 'user'; userId: string }
+    | { kind: 'guest'; guestKey: string }
+
+  if (session.isLoggedIn) {
+    reporter = { kind: 'user', userId: session.userId }
+  } else {
+    try {
+      reporter = { kind: 'guest', guestKey: await getOrCreateGuestReporterKey() }
+    } catch (err) {
+      return {
+        error: err instanceof Error ? err.message : 'Could not start a guest report session.',
+      }
+    }
+  }
+
+  // Logged-in inserts use the auth client (RLS). Guests use service role.
+  let writeClient
+  try {
+    writeClient =
+      reporter.kind === 'user' ? await createAuthServerClient() : createAdminClient()
+  } catch (err) {
+    return {
+      error:
+        err instanceof Error
+          ? err.message
+          : 'Reporting is temporarily unavailable. Please try again later.',
+    }
+  }
+
+  const rateQuery =
+    reporter.kind === 'user'
+      ? writeClient
+          .from('wine_reports')
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id', reporter.userId)
+          .gte('created_at', oneHourAgo)
+      : writeClient
+          .from('wine_reports')
+          .select('id', { count: 'exact', head: true })
+          .eq('guest_key', reporter.guestKey)
+          .gte('created_at', oneHourAgo)
+
+  const { count: recentCount, error: rateError } = await rateQuery
   if (rateError) return { error: rateError.message }
   if ((recentCount ?? 0) >= WINE_REPORT_RATE_LIMIT_PER_HOUR) {
     return {
@@ -176,13 +253,24 @@ export async function submitWineReport(
     listings: snapshotListings,
   }
 
-  const { data: existingOpen } = await authClient
-    .from('wine_reports')
-    .select('id')
-    .eq('user_id', auth.userId)
-    .eq('wine_id', wineId)
-    .eq('status', 'open')
-    .maybeSingle()
+  const existingQuery =
+    reporter.kind === 'user'
+      ? writeClient
+          .from('wine_reports')
+          .select('id')
+          .eq('user_id', reporter.userId)
+          .eq('wine_id', wineId)
+          .eq('status', 'open')
+          .maybeSingle()
+      : writeClient
+          .from('wine_reports')
+          .select('id')
+          .eq('guest_key', reporter.guestKey)
+          .eq('wine_id', wineId)
+          .eq('status', 'open')
+          .maybeSingle()
+
+  const { data: existingOpen } = await existingQuery
 
   if (existingOpen) {
     return {
@@ -190,12 +278,13 @@ export async function submitWineReport(
     }
   }
 
-  const { data: inserted, error: insertError } = await authClient
+  const { data: inserted, error: insertError } = await writeClient
     .from('wine_reports')
     .insert({
       wine_id: wineId,
       store_listing_id: resolvedListingId,
-      user_id: auth.userId,
+      user_id: reporter.kind === 'user' ? reporter.userId : null,
+      guest_key: reporter.kind === 'guest' ? reporter.guestKey : null,
       issue_type: issueType,
       description,
       status: 'open',
@@ -204,22 +293,7 @@ export async function submitWineReport(
       resolved_by: null,
       resolution_note: null,
     })
-    .select(
-      `
-        id,
-        wine_id,
-        store_listing_id,
-        user_id,
-        issue_type,
-        description,
-        status,
-        listing_snapshot,
-        created_at,
-        resolved_at,
-        resolved_by,
-        resolution_note
-      `,
-    )
+    .select(REPORT_SELECT)
     .single()
 
   if (insertError) {

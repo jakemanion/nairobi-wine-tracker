@@ -19,7 +19,10 @@ export type WineReportRecord = {
   id: string
   wine_id: string | null
   store_listing_id: string | null
-  user_id: string
+  /** Null for anonymous guest reports. */
+  user_id: string | null
+  /** Cookie-backed id for guest reports when user_id is null. */
+  guest_key: string | null
   issue_type: WineReportIssueType
   description: string | null
   status: WineReportStatus

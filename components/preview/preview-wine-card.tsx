@@ -765,42 +765,38 @@ export function PreviewWineCard({
               ...(visualStyle === 'trial' ? {} : { borderColor: colors.infoBorder }),
             }}
           >
-          {(isAdmin || isLoggedIn) ? (
-            <div className="absolute top-2 right-2 z-10 hidden sm:flex items-center gap-1">
-              {isLoggedIn ? (
-                <ReportErrorButton
-                  wineId={wine.id}
-                  wineLabel={`${wine.producer} ${wine.name}`.trim()}
-                  alreadyReported={hasOpenReport}
-                />
-              ) : null}
-              {isAdmin ? (
-                <InstantTooltip label="Edit in admin">
-                  <a
-                    href={`/admin?wine=${encodeURIComponent(wine.id)}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    aria-label={`Edit ${wine.name} in admin`}
-                    className="inline-flex items-center gap-1 no-underline"
-                    style={{
-                      height: 18,
-                      padding: '0 6px',
-                      borderRadius: colors.panelRadius,
-                      background: colors.buttonBg,
-                      border: `1px solid ${colors.buttonBorder}`,
-                      color: colors.buttonText,
-                      fontFamily: 'var(--font-dm-sans), sans-serif',
-                      fontSize: 10,
-                      lineHeight: 1,
-                    }}
-                  >
-                    <Pencil size={10} strokeWidth={2} aria-hidden />
-                    Edit
-                  </a>
-                </InstantTooltip>
-              ) : null}
-            </div>
-          ) : null}
+          <div className="absolute top-2 right-2 z-10 flex items-center gap-1">
+            <ReportErrorButton
+              wineId={wine.id}
+              wineLabel={`${wine.producer} ${wine.name}`.trim()}
+              alreadyReported={hasOpenReport}
+            />
+            {isAdmin ? (
+              <InstantTooltip label="Edit in admin">
+                <a
+                  href={`/admin?wine=${encodeURIComponent(wine.id)}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label={`Edit ${wine.name} in admin`}
+                  className="hidden sm:inline-flex items-center gap-1 no-underline"
+                  style={{
+                    height: 18,
+                    padding: '0 6px',
+                    borderRadius: colors.panelRadius,
+                    background: colors.buttonBg,
+                    border: `1px solid ${colors.buttonBorder}`,
+                    color: colors.buttonText,
+                    fontFamily: 'var(--font-dm-sans), sans-serif',
+                    fontSize: 10,
+                    lineHeight: 1,
+                  }}
+                >
+                  <Pencil size={10} strokeWidth={2} aria-hidden />
+                  Edit
+                </a>
+              </InstantTooltip>
+            ) : null}
+          </div>
 
           {/* Row 1 on mobile: ratings. Column on desktop. */}
           <WineStarRating
@@ -813,11 +809,7 @@ export function PreviewWineCard({
           {/* Row 2 on mobile: wine info. */}
           <div
             className={`flex-1 min-w-0 flex flex-col gap-[4.5px] pt-0.5 sm:gap-1.5 ${
-              isAdmin && isLoggedIn
-                ? 'sm:pr-[7.5rem]'
-                : isAdmin || isLoggedIn
-                  ? 'sm:pr-14'
-                  : 'sm:pr-2'
+              isAdmin ? 'pr-14 sm:pr-[7.5rem]' : 'pr-14'
             }`}
           >
             <p

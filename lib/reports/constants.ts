@@ -27,7 +27,7 @@ export type WineReportStatus = (typeof WINE_REPORT_STATUSES)[number]
 export const WINE_REPORT_DESCRIPTION_MAX_LENGTH = 2000
 export const WINE_REPORT_RESOLUTION_NOTE_MAX_LENGTH = 2000
 
-/** Max reports a single user may submit per rolling hour. */
+/** Max reports a single user or guest may submit per rolling hour. */
 export const WINE_REPORT_RATE_LIMIT_PER_HOUR = 10
 
 export const WINE_REPORT_UUID_RE =

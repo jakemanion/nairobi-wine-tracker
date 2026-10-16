@@ -106,9 +106,7 @@ export default async function Home() {
   const [{ data: wines, error: winesError }, reviewsResult, reportedResult] = await Promise.all([
     winesQuery,
     reviewsQuery ?? Promise.resolve({ data: [], error: null }),
-    session.isLoggedIn
-      ? getMyOpenReportedWineIds()
-      : Promise.resolve({ wineIds: [] as string[] }),
+    getMyOpenReportedWineIds(),
   ])
 
   const error = winesError ?? reviewsResult.error

@@ -20,9 +20,7 @@ export default async function SharePage({ params }: SharePageProps) {
       slug,
       viewerUserId: session.isLoggedIn ? session.userId : null,
     }),
-    session.isLoggedIn
-      ? getMyOpenReportedWineIds()
-      : Promise.resolve({ wineIds: [] as string[] }),
+    getMyOpenReportedWineIds(),
   ])
 
   if (!data) {

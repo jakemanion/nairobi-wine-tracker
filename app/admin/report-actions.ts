@@ -17,6 +17,7 @@ const REPORT_SELECT = `
   wine_id,
   store_listing_id,
   user_id,
+  guest_key,
   issue_type,
   description,
   status,
@@ -32,7 +33,8 @@ function mapReport(row: Record<string, unknown>): WineReportRecord {
     id: String(row.id),
     wine_id: row.wine_id != null ? String(row.wine_id) : null,
     store_listing_id: row.store_listing_id != null ? String(row.store_listing_id) : null,
-    user_id: String(row.user_id),
+    user_id: row.user_id != null ? String(row.user_id) : null,
+    guest_key: row.guest_key != null ? String(row.guest_key) : null,
     issue_type: row.issue_type as WineReportRecord['issue_type'],
     description: row.description != null ? String(row.description) : null,
     status: row.status as WineReportRecord['status'],
@@ -42,6 +44,16 @@ function mapReport(row: Record<string, unknown>): WineReportRecord {
     resolved_by: row.resolved_by != null ? String(row.resolved_by) : null,
     resolution_note: row.resolution_note != null ? String(row.resolution_note) : null,
   }
+}
+
+function reporterLabel(
+  profile: { display_name: string | null; username: string | null } | null | undefined,
+  userId: string | null,
+): string | null {
+  if (profile?.display_name) return profile.display_name
+  if (profile?.username) return profile.username
+  if (!userId) return 'Guest'
+  return null
 }
 
 export type ListAdminWineReportsFilters = {
@@ -202,7 +214,7 @@ export async function listAdminWineReports(
 
     const reports: WineReportAdminRow[] = rows.map((row) => {
       const base = mapReport(row)
-      const profile = profilesById.get(base.user_id)
+      const profile = base.user_id ? profilesById.get(base.user_id) : null
       const resolver = base.resolved_by ? profilesById.get(base.resolved_by) : null
       const wine = base.wine_id ? winesById.get(base.wine_id) : null
       const listing = base.store_listing_id ? listingsById.get(base.store_listing_id) : null
@@ -210,7 +222,7 @@ export async function listAdminWineReports(
 
       return {
         ...base,
-        reporter_display_name: profile?.display_name ?? profile?.username ?? null,
+        reporter_display_name: reporterLabel(profile, base.user_id),
         reporter_email: null,
         wine_producer: wine?.producer ?? snapshot?.producer ?? null,
         wine_name: wine?.wine_name ?? snapshot?.wine_name ?? null,
@@ -254,11 +266,13 @@ export async function getAdminWineReport(
 
     const base = mapReport(data as Record<string, unknown>)
     const [profileResult, wineResult, listingResult, resolverResult] = await Promise.all([
-      supabase
-        .from('profiles')
-        .select('id, display_name, username')
-        .eq('id', base.user_id)
-        .maybeSingle(),
+      base.user_id
+        ? supabase
+            .from('profiles')
+            .select('id, display_name, username')
+            .eq('id', base.user_id)
+            .maybeSingle()
+        : Promise.resolve({ data: null }),
       base.wine_id
         ? supabase
             .from('wines')
@@ -291,16 +305,21 @@ export async function getAdminWineReport(
 
     const stores = listingResult.data?.stores as { name?: string | null } | null
     const snapshot = base.listing_snapshot
+    const profile = profileResult.data
+      ? {
+          display_name:
+            profileResult.data.display_name != null
+              ? String(profileResult.data.display_name)
+              : null,
+          username:
+            profileResult.data.username != null ? String(profileResult.data.username) : null,
+        }
+      : null
 
     return {
       report: {
         ...base,
-        reporter_display_name:
-          profileResult.data?.display_name != null
-            ? String(profileResult.data.display_name)
-            : profileResult.data?.username != null
-              ? String(profileResult.data.username)
-              : null,
+        reporter_display_name: reporterLabel(profile, base.user_id),
         reporter_email: null,
         wine_producer:
           wineResult.data?.producer != null

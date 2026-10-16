@@ -344,7 +344,7 @@ export function AdminReportsPanel() {
                         {WINE_REPORT_ISSUE_LABELS[report.issue_type] ?? report.issue_type}
                       </td>
                       <td style={tdStyle}>{previewText(report.description)}</td>
-                      <td style={tdStyle}>{report.reporter_display_name ?? 'User'}</td>
+                      <td style={tdStyle}>{report.reporter_display_name ?? 'Guest'}</td>
                       <td style={tdStyle}>{formatDate(report.created_at)}</td>
                       <td style={tdStyle}>
                         <StatusBadge status={report.status} />
@@ -386,7 +386,7 @@ export function AdminReportsPanel() {
                 {selected.description?.trim() || '—'}
               </DetailRow>
               <DetailRow label="Reporter">
-                {selected.reporter_display_name ?? selected.user_id}
+                {selected.reporter_display_name ?? selected.user_id ?? 'Guest'}
               </DetailRow>
               <DetailRow label="Submitted">{formatDate(selected.created_at)}</DetailRow>
               <DetailRow label="Store">{selected.store_name ?? '—'}</DetailRow>
