@@ -17,6 +17,7 @@ import {
 import { InstantTooltip } from '@/components/preview/instant-tooltip'
 import { PreviewShortlistButton } from '@/components/preview/preview-shortlist-button'
 import { PreviewTriedStatusPicker } from '@/components/preview/preview-tried-status-picker'
+import { useNotifyMyWineMark } from '@/components/preview/my-wine-mark-toast'
 import { ReviewOnTick } from '@/components/preview/review-on-tick'
 import { UsageTipTarget } from '@/components/preview/usage-tip-target'
 import { usePreviewTheme } from '@/components/preview/preview-theme-context'
@@ -554,7 +555,9 @@ export function PreviewWineCard({
   hasOpenReport = false,
 }: PreviewWineCardProps) {
   const { colors, mode, visualStyle } = usePreviewTheme()
+  const notifyMark = useNotifyMyWineMark()
   const { ref: cardRef, near: interactiveReady } = useNearViewport(imagePriority)
+  const wineMarkName = `${wine.producer} ${wine.name}`.trim() || wine.name
   const wishlist = normalizeWishlist(review?.wishlist)
   const triedStatus = normalizeTriedStatus(review?.tried_status)
   const shortlisted = review?.shortlist === 1
@@ -688,6 +691,13 @@ export function PreviewWineCard({
     }
 
     onReviewChange(result.review)
+    notifyMark({
+      wineId: wine.id,
+      wineName: wineMarkName,
+      previousReview,
+      nextReview: result.review,
+      markingLabel: next ? 'Ignored' : undefined,
+    })
   }
 
   return (
@@ -1013,6 +1023,7 @@ export function PreviewWineCard({
                 />
                 <PreviewWishlistPicker
                   wineId={wine.id}
+                  wineName={wineMarkName}
                   userId={userId}
                   review={review}
                   labelColor={panelText.label}
@@ -1039,6 +1050,7 @@ export function PreviewWineCard({
                 />
                 <PreviewTriedStatusPicker
                   wineId={wine.id}
+                  wineName={wineMarkName}
                   userId={userId}
                   review={review}
                   panelTint={panelTint}
@@ -1081,6 +1093,7 @@ export function PreviewWineCard({
                   <UsageTipTarget tipId="wishlist-button">
                     <PreviewWishlistPicker
                       wineId={wine.id}
+                      wineName={wineMarkName}
                       userId={userId}
                       review={review}
                       labelColor={panelText.label}
@@ -1167,6 +1180,7 @@ export function PreviewWineCard({
                   <UsageTipTarget tipId="tried-button">
                     <PreviewTriedStatusPicker
                       wineId={wine.id}
+                      wineName={wineMarkName}
                       userId={userId}
                       review={review}
                       panelTint={panelTint}

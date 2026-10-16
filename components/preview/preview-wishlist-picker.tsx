@@ -6,12 +6,14 @@ import type { CSSProperties } from 'react'
 import type { WineReview } from '@/components/wine-table'
 import { InstantTooltip } from '@/components/preview/instant-tooltip'
 import { ReviewOnTick } from '@/components/preview/review-on-tick'
+import { useNotifyMyWineMark } from '@/components/preview/my-wine-mark-toast'
 import { saveReviewWishlistField, type WishlistValue } from '@/lib/reviews'
 import type { PreviewThemeMode, PanelTint, PreviewVisualStyle } from '@/lib/preview/preview-colors'
 import { usePreviewTheme } from '@/components/preview/preview-theme-context'
 
 type PreviewWishlistPickerProps = {
   wineId: string
+  wineName: string
   userId: string
   review?: WineReview | null
   labelColor?: string
@@ -99,6 +101,7 @@ function buildOptimisticReview(
 
 export function PreviewWishlistPicker({
   wineId,
+  wineName,
   userId,
   review,
   labelColor,
@@ -108,6 +111,7 @@ export function PreviewWishlistPicker({
   onReviewChange,
 }: PreviewWishlistPickerProps) {
   const { colors, visualStyle } = usePreviewTheme()
+  const notifyMark = useNotifyMyWineMark()
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const value = normalizeWishlist(review?.wishlist)
@@ -145,6 +149,13 @@ export function PreviewWishlistPicker({
     }
 
     onReviewChange(result.review)
+    notifyMark({
+      wineId,
+      wineName,
+      previousReview,
+      nextReview: result.review,
+      markingLabel: next === 1 ? 'Bookmarked' : undefined,
+    })
   }
 
   const borderColor = trialStyle

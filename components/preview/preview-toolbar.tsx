@@ -13,6 +13,10 @@ import {
   type RegionFilterGroup,
   type WineFilters,
 } from '@/lib/wine-filters'
+import {
+  MyWineMarkToastView,
+  useMyWineMarkToast,
+} from '@/components/preview/my-wine-mark-toast'
 import { buildListStateSummaryParts } from '@/lib/preview/list-state-summary'
 
 type PreviewToolbarProps = {
@@ -53,9 +57,11 @@ export function PreviewToolbar({
   onSearchChange,
 }: PreviewToolbarProps) {
   const { colors, visualStyle } = usePreviewTheme()
+  const markToast = useMyWineMarkToast()
   const [filtersVisible, setFiltersVisible] = useState(true)
   const [mobileTabsOpen, setMobileTabsOpen] = useState(false)
   const toolsActive = activeFilterCount > 0
+  const showMarkToast = Boolean(markToast?.toast)
   const summaryParts = buildListStateSummaryParts({
     filters,
     resultCount,
@@ -199,19 +205,27 @@ export function PreviewToolbar({
             onSecondarySortChange={onSecondarySortChange}
           />
         </div>
-        <p
-          className="m-0 min-w-0 self-center text-center"
-          title={summaryText}
-          style={{
-            color: colors.summaryText,
-            fontFamily: 'var(--font-dm-sans), sans-serif',
-            fontSize: 10,
-            lineHeight: 1.2,
-            overflowWrap: 'anywhere',
-          }}
-        >
-          {summaryContent}
-        </p>
+        <div className="relative min-w-0 self-center justify-self-center w-full">
+          <p
+            className="m-0 min-w-0 text-center"
+            title={summaryText}
+            style={{
+              color: colors.summaryText,
+              fontFamily: 'var(--font-dm-sans), sans-serif',
+              fontSize: 10,
+              lineHeight: 1.2,
+              overflowWrap: 'anywhere',
+              visibility: showMarkToast ? 'hidden' : 'visible',
+            }}
+          >
+            {summaryContent}
+          </p>
+          {showMarkToast ? (
+            <div className="absolute inset-0 z-10 flex items-center justify-center">
+              <MyWineMarkToastView className="w-full max-w-lg" />
+            </div>
+          ) : null}
+        </div>
         <button
           type="button"
           aria-expanded={filtersVisible}

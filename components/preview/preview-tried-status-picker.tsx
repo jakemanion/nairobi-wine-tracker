@@ -11,10 +11,12 @@ import {
 import { ReviewOnTick } from '@/components/preview/review-on-tick'
 import { usePreviewTheme } from '@/components/preview/preview-theme-context'
 import type { PanelTint } from '@/lib/preview/preview-colors'
+import { useNotifyMyWineMark } from '@/components/preview/my-wine-mark-toast'
 import { saveReviewTriedStatusField, type TriedStatusValue } from '@/lib/reviews'
 
 type PreviewTriedStatusPickerProps = {
   wineId: string
+  wineName: string
   userId: string
   review?: WineReview | null
   panelTint?: PanelTint
@@ -57,6 +59,7 @@ function buildOptimisticReview(
 
 export function PreviewTriedStatusPicker({
   wineId,
+  wineName,
   userId,
   review,
   panelTint = 'none',
@@ -65,6 +68,7 @@ export function PreviewTriedStatusPicker({
   onReviewChange,
 }: PreviewTriedStatusPickerProps) {
   const { colors, visualStyle } = usePreviewTheme()
+  const notifyMark = useNotifyMyWineMark()
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const value = normalizeTriedStatus(review?.tried_status)
@@ -98,6 +102,14 @@ export function PreviewTriedStatusPicker({
     }
 
     onReviewChange(result.review)
+    notifyMark({
+      wineId,
+      wineName,
+      previousReview,
+      nextReview: result.review,
+      markingLabel:
+        toggle === 1 ? 'Buy again' : toggle === 2 ? "Don't buy again" : undefined,
+    })
   }
 
   const upActive = value === 1

@@ -9,6 +9,10 @@ import { AdminVersionBadge } from '@/components/preview/admin-version-badge'
 import { PreviewToolbar } from '@/components/preview/preview-toolbar'
 import { PreviewLegalMenu } from '@/components/preview/preview-legal-menu'
 import { PreviewMobileListFooter } from '@/components/preview/preview-mobile-list-footer'
+import {
+  MobileMyWineMarkToastSlot,
+  MyWineMarkToastProvider,
+} from '@/components/preview/my-wine-mark-toast'
 import { PreviewUserMenu } from '@/components/preview/preview-user-menu'
 import { PreviewVirtualWineList } from '@/components/preview/preview-virtual-wine-list'
 import { ShareListsModal } from '@/components/preview/share-lists-modal'
@@ -114,8 +118,7 @@ export function PreviewWineList({
     secondarySort.dir,
   ].join('|')
 
-  return (
-    <UsageTipsProvider>
+  const listBody = (
       <div
       className="min-h-screen flex flex-col"
       data-visual-style={visualStyle}
@@ -233,6 +236,8 @@ export function PreviewWineList({
             onSearchChange={setSearchQuery}
           />
         </div>
+
+        <MobileMyWineMarkToastSlot maxWidth={PREVIEW_CONTENT_MAX_WIDTH} />
       </div>
 
       <main
@@ -270,9 +275,24 @@ export function PreviewWineList({
       ) : null}
       <SiteFooter colors={colors} />
       </div>
+  )
+
+  return (
+    <UsageTipsProvider>
       {isLoggedIn ? (
-        <ShareListsModal open={shareOpen} onClose={() => setShareOpen(false)} />
-      ) : null}
+        <MyWineMarkToastProvider
+          userId={userId}
+          filters={filters}
+          onReviewRestored={(wineId, review) =>
+            setWines((current) => updateWineReview(current, wineId, review))
+          }
+        >
+          {listBody}
+          <ShareListsModal open={shareOpen} onClose={() => setShareOpen(false)} />
+        </MyWineMarkToastProvider>
+      ) : (
+        listBody
+      )}
     </UsageTipsProvider>
   )
 }
