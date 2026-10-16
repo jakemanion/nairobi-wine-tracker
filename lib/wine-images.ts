@@ -65,6 +65,13 @@ export function isHostedWineImagesEnabled(): boolean {
   return process.env.NEXT_PUBLIC_USE_HOSTED_WINE_IMAGES !== 'false'
 }
 
+export type WineDisplayImageSource = 'hosted' | 'store'
+
+export type WineDisplayImageInfo = {
+  url: string
+  source: WineDisplayImageSource
+}
+
 /**
  * Public UI: prefer hosted Storage image when available; otherwise retailer URL.
  * Wine visibility on the site is controlled separately by `wines.show_on_site`.
@@ -74,11 +81,25 @@ export function resolveWineDisplayImage(
     store_listings?: Array<ListingImageSource> | null
   },
 ): string | null {
+  return resolveWineDisplayImageInfo(wine)?.url ?? null
+}
+
+/**
+ * Same resolution as {@link resolveWineDisplayImage}, plus which source won.
+ * Admin uses `source === 'store'` to flag retailer fallbacks that may include badges.
+ */
+export function resolveWineDisplayImageInfo(
+  wine: WineImageSource & {
+    store_listings?: Array<ListingImageSource> | null
+  },
+): WineDisplayImageInfo | null {
   if (isHostedWineImagesEnabled()) {
     const hosted = resolveWineHostedImageUrl(wine)
-    if (hosted) return hosted
+    if (hosted) return { url: hosted, source: 'hosted' }
   }
-  return firstListingImageUrl(wine.store_listings)
+  const store = firstListingImageUrl(wine.store_listings)
+  if (store) return { url: store, source: 'store' }
+  return null
 }
 
 /**
@@ -87,4 +108,13 @@ export function resolveWineDisplayImage(
  */
 export function resolveWineAdminImage(wine: WineImageSource): string | null {
   return resolveWineHostedImageUrl(wine)
+}
+
+/** True when the public site would show a retailer image (not a hosted upload). */
+export function wineUsesStoreDisplayImage(
+  wine: WineImageSource & {
+    store_listings?: Array<ListingImageSource> | null
+  },
+): boolean {
+  return resolveWineDisplayImageInfo(wine)?.source === 'store'
 }

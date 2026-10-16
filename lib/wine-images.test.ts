@@ -5,8 +5,10 @@ import {
   resolveListingImageUrl,
   resolveWineAdminImage,
   resolveWineDisplayImage,
+  resolveWineDisplayImageInfo,
   resolveWineHostedImageUrl,
   wineImageStoragePath,
+  wineUsesStoreDisplayImage,
 } from '@/lib/wine-images'
 
 const ORIGINAL_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -95,6 +97,46 @@ describe('resolveWineDisplayImage', () => {
         store_listings: [{ image_url: 'https://retailer.example/a.jpg' }],
       }),
     ).toBe('https://retailer.example/a.jpg')
+  })
+
+  it('reports store source when falling back', () => {
+    expect(
+      resolveWineDisplayImageInfo({
+        hosted_image_path: null,
+        image_migration_status: null,
+        store_listings: [{ image_url: 'https://retailer.example/a.jpg' }],
+      }),
+    ).toEqual({
+      url: 'https://retailer.example/a.jpg',
+      source: 'store',
+    })
+    expect(
+      wineUsesStoreDisplayImage({
+        hosted_image_path: null,
+        store_listings: [{ image_url: 'https://retailer.example/a.jpg' }],
+      }),
+    ).toBe(true)
+  })
+
+  it('reports hosted source when migrated', () => {
+    process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://example.supabase.co'
+    expect(
+      resolveWineDisplayImageInfo({
+        hosted_image_path: 'w1/original.jpg',
+        image_migration_status: 'success',
+        store_listings: [{ image_url: 'https://retailer.example/a.jpg' }],
+      }),
+    ).toEqual({
+      url: 'https://example.supabase.co/storage/v1/object/public/wine-images/w1/original.jpg',
+      source: 'hosted',
+    })
+    expect(
+      wineUsesStoreDisplayImage({
+        hosted_image_path: 'w1/original.jpg',
+        image_migration_status: 'success',
+        store_listings: [{ image_url: 'https://retailer.example/a.jpg' }],
+      }),
+    ).toBe(false)
   })
 
   it('honors kill switch NEXT_PUBLIC_USE_HOSTED_WINE_IMAGES=false', () => {

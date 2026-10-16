@@ -103,6 +103,9 @@ type ListingThumbnailProps = {
   alt: string
   size?: ThumbnailSize
   showHoverPreview?: boolean
+  /** Override the thumbnail frame border (e.g. bright red for store-image fallbacks). */
+  frameColor?: string
+  title?: string
   onLoadStateChange?: (state: { loaded: boolean; failed: boolean }) => void
 }
 
@@ -111,6 +114,8 @@ export function ListingThumbnail({
   alt,
   size = 'default',
   showHoverPreview = true,
+  frameColor,
+  title,
   onLoadStateChange,
 }: ListingThumbnailProps) {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -173,7 +178,13 @@ export function ListingThumbnail({
         <button
           type="button"
           aria-label={`Preview image for ${alt}`}
-          style={styles.button}
+          title={title}
+          style={{
+            ...styles.button,
+            ...(frameColor
+              ? { border: `2px solid ${frameColor}`, background: '#fff5f5' }
+              : null),
+          }}
           onClick={(event) => event.stopPropagation()}
           onMouseEnter={showHoverPreview ? showPreview : undefined}
           onMouseMove={showHoverPreview ? showPreview : undefined}

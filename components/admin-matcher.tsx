@@ -13,7 +13,11 @@ import {
 } from 'react'
 import { EditableTextCell } from '@/components/editable-text-cell'
 import { ListingThumbnail } from '@/components/listing-thumbnail'
-import { resolveListingImageUrl, resolveWineAdminImage } from '@/lib/wine-images'
+import {
+  resolveListingImageUrl,
+  resolveWineDisplayImageInfo,
+  wineUsesStoreDisplayImage,
+} from '@/lib/wine-images'
 import {
   adminClearStoreListingMatch,
   adminCreateStoreListingFromImport,
@@ -856,6 +860,7 @@ export function AdminMatcher({
   const [unmatchedOnly, setUnmatchedOnly] = useState(false)
   const [unmatchedImportsOnly, setUnmatchedImportsOnly] = useState(false)
   const [unverifiedOnly, setUnverifiedOnly] = useState(false)
+  const [storeImagesOnly, setStoreImagesOnly] = useState(false)
   const [hideCompletedImports, setHideCompletedImports] = useState(false)
   const [importsPanelCollapsed, setImportsPanelCollapsed] = useState(false)
   const [storePanelCollapsed, setStorePanelCollapsed] = useState(false)
@@ -917,10 +922,36 @@ export function AdminMatcher({
     return { verified, unverified: wines.length - verified }
   }, [wines])
 
-  const visibleWines = useMemo(
-    () => (unverifiedOnly ? wines.filter((wine) => !isPerfectMatch(wine)) : wines),
-    [unverifiedOnly, wines],
-  )
+  const storeImageWineCount = useMemo(() => {
+    let count = 0
+    for (const wine of wines) {
+      if (
+        wineUsesStoreDisplayImage({
+          ...wine,
+          store_listings: listingsByWineId.get(wine.id) ?? [],
+        })
+      ) {
+        count += 1
+      }
+    }
+    return count
+  }, [listingsByWineId, wines])
+
+  const visibleWines = useMemo(() => {
+    let rows = wines
+    if (unverifiedOnly) {
+      rows = rows.filter((wine) => !isPerfectMatch(wine))
+    }
+    if (storeImagesOnly) {
+      rows = rows.filter((wine) =>
+        wineUsesStoreDisplayImage({
+          ...wine,
+          store_listings: listingsByWineId.get(wine.id) ?? [],
+        }),
+      )
+    }
+    return rows
+  }, [listingsByWineId, storeImagesOnly, unverifiedOnly, wines])
 
   function toggleStoreCollapsed(storeName: string) {
     setCollapsedStores((current) => {
@@ -2525,9 +2556,11 @@ export function AdminMatcher({
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
                 <span style={{ fontWeight: 600 }}>
                   Canonical wines (
-                  {unverifiedOnly
-                    ? `${visibleWines.length} unverified`
-                    : wines.length}
+                  {storeImagesOnly
+                    ? `${visibleWines.length} store images`
+                    : unverifiedOnly
+                      ? `${visibleWines.length} unverified`
+                      : wines.length}
                   )
                 </span>
                 <label
@@ -2547,6 +2580,25 @@ export function AdminMatcher({
                     onChange={(event) => setUnverifiedOnly(event.target.checked)}
                   />
                   Unverified only ({vivinoVerificationCounts.unverified})
+                </label>
+                <label
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 5,
+                    fontSize: 12,
+                    color: storeImageWineCount > 0 ? '#c62828' : '#555',
+                    cursor: 'pointer',
+                    userSelect: 'none',
+                  }}
+                  title="Wines shown with a store listing image (may include shop badges)"
+                >
+                  <input
+                    type="checkbox"
+                    checked={storeImagesOnly}
+                    onChange={(event) => setStoreImagesOnly(event.target.checked)}
+                  />
+                  Store images ({storeImageWineCount})
                 </label>
                 {importsPanelCollapsed ? (
                   <button
@@ -2649,7 +2701,11 @@ export function AdminMatcher({
           <div ref={canonicalScrollRef} style={scrollStyle}>
             {visibleWines.length === 0 ? (
               <p style={{ color: '#888', fontSize: 12, margin: 0 }}>
-                {unverifiedOnly ? 'No unverified wines.' : 'No wines yet.'}
+                {storeImagesOnly
+                  ? 'No wines using store listing images.'
+                  : unverifiedOnly
+                    ? 'No unverified wines.'
+                    : 'No wines yet.'}
               </p>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -2961,13 +3017,17 @@ function CanonicalWineFields({
   )
 }
 
+const STORE_IMAGE_FRAME_COLOR = '#FF1744'
+
 function CanonicalWineImageControls({
   wine,
+  matchedListings,
   busy,
   onSetShowOnSite,
   onUploadImage,
 }: {
   wine: WineRecord
+  matchedListings: StoreListingRecord[]
   busy: boolean
   onSetShowOnSite: (
     wine: WineRecord,
@@ -2980,6 +3040,11 @@ function CanonicalWineImageControls({
   const [imageError, setImageError] = useState<string | null>(null)
   const showOnSite = Boolean(wine.show_on_site)
   const disabled = busy || imageBusy
+  const displayImage = resolveWineDisplayImageInfo({
+    ...wine,
+    store_listings: matchedListings,
+  })
+  const usesStoreImage = displayImage?.source === 'store'
 
   async function handleToggle(event: ChangeEvent<HTMLInputElement>) {
     event.stopPropagation()
@@ -3015,7 +3080,31 @@ function CanonicalWineImageControls({
         minWidth: 72,
       }}
     >
-      <ListingThumbnail imageUrl={resolveWineAdminImage(wine)} alt={formatWineLabel(wine)} />
+      <ListingThumbnail
+        imageUrl={displayImage?.url}
+        alt={formatWineLabel(wine)}
+        frameColor={usesStoreImage ? STORE_IMAGE_FRAME_COLOR : undefined}
+        title={
+          usesStoreImage
+            ? 'Using a store listing image (may include shop badges) — upload a hosted image to replace it'
+            : displayImage
+              ? 'Hosted wine image'
+              : undefined
+        }
+      />
+      {usesStoreImage ? (
+        <span
+          style={{
+            fontSize: 9,
+            fontWeight: 700,
+            color: STORE_IMAGE_FRAME_COLOR,
+            letterSpacing: '0.02em',
+            lineHeight: 1.1,
+          }}
+        >
+          STORE IMG
+        </span>
+      ) : null}
       <label
         title={
           showOnSite
@@ -3150,6 +3239,7 @@ function CanonicalWineRow({
   const imageControls = (
     <CanonicalWineImageControls
       wine={wine}
+      matchedListings={matchedListings}
       busy={busy}
       onSetShowOnSite={onSetShowOnSite}
       onUploadImage={onUploadImage}
