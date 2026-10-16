@@ -895,7 +895,7 @@ export function PreviewWineCard({
               </div>
             ) : null}
 
-            <div className="flex flex-wrap gap-x-3 gap-y-0.5">
+            <div className="flex min-w-0 flex-nowrap items-baseline gap-x-3 overflow-x-auto">
               {wine.prices.length > 0 ? (
                 wine.prices.map((listing) => {
                   const isLowest = minPrice != null && listing.price === minPrice
@@ -923,7 +923,7 @@ export function PreviewWineCard({
                         href={listing.url}
                         target="_blank"
                         rel="noreferrer"
-                        className="text-[11px] no-underline hover:underline underline-offset-2"
+                        className="shrink-0 whitespace-nowrap text-[11px] no-underline hover:underline underline-offset-2"
                         style={{ fontFamily: 'var(--font-dm-sans), sans-serif' }}
                       >
                         {content}
@@ -934,7 +934,7 @@ export function PreviewWineCard({
                   return (
                     <span
                       key={listing.shop}
-                      className="text-[11px]"
+                      className="shrink-0 whitespace-nowrap text-[11px]"
                       style={{ fontFamily: 'var(--font-dm-sans), sans-serif' }}
                     >
                       {content}
