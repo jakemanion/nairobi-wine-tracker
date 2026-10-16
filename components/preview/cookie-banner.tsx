@@ -31,9 +31,8 @@ export function CookieBanner({ userId = null }: CookieBannerProps) {
   function accept() {
     writeAnalyticsConsent('granted')
     setConsent('granted')
-    if (ensurePostHogInitialized() && userId) {
-      identifyRegisteredUser(userId)
-    }
+    if (!ensurePostHogInitialized()) return
+    if (userId) identifyRegisteredUser(userId)
   }
 
   function decline() {

@@ -25,4 +25,6 @@ if (!projectToken || !posthogHost) {
   })
   posthog.register({ is_logged_in: false })
   markPostHogInitialized()
+  // Ensure the landing page is counted when consent was already stored.
+  posthog.capture('$pageview')
 }

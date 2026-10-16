@@ -33,6 +33,8 @@ export function ensurePostHogInitialized(): boolean {
   posthog.init(projectToken, {
     api_host: posthogHost,
     defaults: '2026-01-30',
+    // history_change covers App Router navigations; we capture the current page
+    // manually because init often runs after the first load (cookie consent).
     capture_pageview: 'history_change',
     capture_pageleave: true,
     capture_exceptions: true,
@@ -42,6 +44,7 @@ export function ensurePostHogInitialized(): boolean {
   })
   posthog.register({ is_logged_in: false })
   posthogInitialized = true
+  posthog.capture('$pageview')
   return true
 }
 
