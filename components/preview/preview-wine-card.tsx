@@ -809,9 +809,10 @@ export function PreviewWineCard({
 
           {/* Row 2 on mobile: wine info. */}
           <div
-            className={`flex-1 min-w-0 flex flex-col gap-[4.5px] pt-0.5 sm:gap-1.5 ${
+            className={`flex min-w-0 flex-1 flex-col gap-[4.5px] pt-0.5 sm:min-w-0 sm:gap-1.5 ${
               isAdmin ? 'sm:pr-[7.5rem]' : 'sm:pr-14'
             }`}
+            style={{ minWidth: 0 }}
           >
             <p
               className="text-[8px] font-semibold uppercase tracking-[0.14em] leading-none sm:text-[9px]"
@@ -895,9 +896,12 @@ export function PreviewWineCard({
               </div>
             ) : null}
 
-            <div className="flex min-w-0 flex-nowrap items-baseline gap-x-3 overflow-x-auto">
+            <p
+              className="m-0 min-w-0 max-w-full overflow-x-auto whitespace-nowrap text-[11px] leading-snug"
+              style={{ fontFamily: 'var(--font-dm-sans), sans-serif' }}
+            >
               {wine.prices.length > 0 ? (
-                wine.prices.map((listing) => {
+                wine.prices.map((listing, index) => {
                   const isLowest = minPrice != null && listing.price === minPrice
                   const content = (
                     <>
@@ -916,37 +920,30 @@ export function PreviewWineCard({
                     </>
                   )
 
-                  if (listing.url) {
-                    return (
-                      <a
-                        key={listing.shop}
-                        href={listing.url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="shrink-0 whitespace-nowrap text-[11px] no-underline hover:underline underline-offset-2"
-                        style={{ fontFamily: 'var(--font-dm-sans), sans-serif' }}
-                      >
-                        {content}
-                      </a>
-                    )
-                  }
-
                   return (
-                    <span
-                      key={listing.shop}
-                      className="shrink-0 whitespace-nowrap text-[11px]"
-                      style={{ fontFamily: 'var(--font-dm-sans), sans-serif' }}
-                    >
-                      {content}
+                    <span key={listing.shop}>
+                      {index > 0 ? (
+                        <span aria-hidden className="inline-block" style={{ width: 12 }} />
+                      ) : null}
+                      {listing.url ? (
+                        <a
+                          href={listing.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="whitespace-nowrap no-underline hover:underline underline-offset-2"
+                        >
+                          {content}
+                        </a>
+                      ) : (
+                        <span className="whitespace-nowrap">{content}</span>
+                      )}
                     </span>
                   )
                 })
               ) : (
-                <span className="text-[11px]" style={{ color: infoMuted }}>
-                  No listings
-                </span>
+                <span style={{ color: infoMuted }}>No listings</span>
               )}
-            </div>
+            </p>
           </div>
         </div>
         </div>
