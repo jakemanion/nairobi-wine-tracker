@@ -816,7 +816,9 @@ export function PreviewToolbarQuickFilters({
   filterSummaryTitle,
 }: PreviewToolbarQuickFiltersProps) {
   const priceMaxBound = priceBounds?.max ?? 10000
-  const [activeTab, setActiveTab] = useState<FilterTabId>('shops')
+  const [activeTab, setActiveTab] = useState<FilterTabId>(
+    isLoggedIn ? 'my-wines' : 'shops',
+  )
 
   const selectedCountries = selectedCountriesFromRegionFilters(filters.regions)
   const allShopsEnabled = filters.disabledStores.length === 0
@@ -885,11 +887,11 @@ export function PreviewToolbarQuickFilters({
   }
 
   const tabs: Array<{ id: FilterTabId; label: string; desktopOnly?: boolean }> = [
+    // My wines is leftmost + default on desktop; mobile uses the footer instead.
+    ...(isLoggedIn ? [{ id: 'my-wines' as const, label: 'My wines', desktopOnly: true }] : []),
     { id: 'shops', label: 'Shops' },
     { id: 'price', label: 'Price' },
     { id: 'wine', label: 'Wine' },
-    // My wines lives in the mobile footer; keep the tab on desktop only.
-    ...(isLoggedIn ? [{ id: 'my-wines' as const, label: 'My wines', desktopOnly: true }] : []),
   ]
 
   return (
