@@ -50,6 +50,10 @@ import {
 } from '@/lib/store-listing-match-suggestions'
 import { type StoreListingField, type StoreListingImportRecord, type StoreListingRecord } from '@/lib/store-listings'
 import { formatStoreUrlDirectory, formatVivinoProductName } from '@/lib/url-display'
+import {
+  countLikelyDuplicateWines,
+  findLikelyDuplicateWineIds,
+} from '@/lib/wine-duplicate-candidates'
 import { suggestWineMatches } from '@/lib/wine-match-suggestions'
 import {
   formatWineLabel,
@@ -861,6 +865,7 @@ export function AdminMatcher({
   const [unmatchedImportsOnly, setUnmatchedImportsOnly] = useState(false)
   const [unverifiedOnly, setUnverifiedOnly] = useState(false)
   const [storeImagesOnly, setStoreImagesOnly] = useState(false)
+  const [likelyDuplicatesOnly, setLikelyDuplicatesOnly] = useState(false)
   const [hideCompletedImports, setHideCompletedImports] = useState(false)
   const [importsPanelCollapsed, setImportsPanelCollapsed] = useState(false)
   const [storePanelCollapsed, setStorePanelCollapsed] = useState(false)
@@ -937,6 +942,12 @@ export function AdminMatcher({
     return count
   }, [listingsByWineId, wines])
 
+  const likelyDuplicateWineIds = useMemo(() => findLikelyDuplicateWineIds(wines), [wines])
+  const likelyDuplicateWineCount = useMemo(
+    () => countLikelyDuplicateWines(wines),
+    [wines],
+  )
+
   const visibleWines = useMemo(() => {
     let rows = wines
     if (unverifiedOnly) {
@@ -950,8 +961,27 @@ export function AdminMatcher({
         }),
       )
     }
+    if (likelyDuplicatesOnly) {
+      rows = rows.filter((wine) => likelyDuplicateWineIds.has(wine.id))
+      rows = [...rows].sort((a, b) => {
+        const nameA = (a.wine_name ?? '').trim().toLowerCase()
+        const nameB = (b.wine_name ?? '').trim().toLowerCase()
+        if (nameA !== nameB) return nameA.localeCompare(nameB)
+        const producerA = (a.producer ?? '').trim().toLowerCase()
+        const producerB = (b.producer ?? '').trim().toLowerCase()
+        if (producerA !== producerB) return producerA.localeCompare(producerB)
+        return a.id.localeCompare(b.id)
+      })
+    }
     return rows
-  }, [listingsByWineId, storeImagesOnly, unverifiedOnly, wines])
+  }, [
+    likelyDuplicateWineIds,
+    likelyDuplicatesOnly,
+    listingsByWineId,
+    storeImagesOnly,
+    unverifiedOnly,
+    wines,
+  ])
 
   function toggleStoreCollapsed(storeName: string) {
     setCollapsedStores((current) => {
@@ -2556,11 +2586,13 @@ export function AdminMatcher({
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
                 <span style={{ fontWeight: 600 }}>
                   Canonical wines (
-                  {storeImagesOnly
-                    ? `${visibleWines.length} store images`
-                    : unverifiedOnly
-                      ? `${visibleWines.length} unverified`
-                      : wines.length}
+                  {likelyDuplicatesOnly
+                    ? `${visibleWines.length} likely duplicates`
+                    : storeImagesOnly
+                      ? `${visibleWines.length} store images`
+                      : unverifiedOnly
+                        ? `${visibleWines.length} unverified`
+                        : wines.length}
                   )
                 </span>
                 <label
@@ -2599,6 +2631,25 @@ export function AdminMatcher({
                     onChange={(event) => setStoreImagesOnly(event.target.checked)}
                   />
                   Store images ({storeImageWineCount})
+                </label>
+                <label
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 5,
+                    fontSize: 12,
+                    color: likelyDuplicateWineCount > 0 ? '#c62828' : '#555',
+                    cursor: 'pointer',
+                    userSelect: 'none',
+                  }}
+                  title="Wines that share a wine name with another canonical wine (vintage ignored)"
+                >
+                  <input
+                    type="checkbox"
+                    checked={likelyDuplicatesOnly}
+                    onChange={(event) => setLikelyDuplicatesOnly(event.target.checked)}
+                  />
+                  Likely duplicates ({likelyDuplicateWineCount})
                 </label>
                 {importsPanelCollapsed ? (
                   <button
@@ -2701,11 +2752,13 @@ export function AdminMatcher({
           <div ref={canonicalScrollRef} style={scrollStyle}>
             {visibleWines.length === 0 ? (
               <p style={{ color: '#888', fontSize: 12, margin: 0 }}>
-                {storeImagesOnly
-                  ? 'No wines using store listing images.'
-                  : unverifiedOnly
-                    ? 'No unverified wines.'
-                    : 'No wines yet.'}
+                {likelyDuplicatesOnly
+                  ? 'No likely duplicate wines (shared wine names).'
+                  : storeImagesOnly
+                    ? 'No wines using store listing images.'
+                    : unverifiedOnly
+                      ? 'No unverified wines.'
+                      : 'No wines yet.'}
               </p>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
