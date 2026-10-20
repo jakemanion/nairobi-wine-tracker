@@ -31,15 +31,21 @@ import {
   computeListPriceBounds,
   countActiveFilters,
   EMPTY_WINE_FILTERS,
-  filterWines,
   type WineFilters,
 } from '@/lib/wine-filters'
 import { toPreviewWineCard } from '@/lib/preview/wine-card-model'
-import { createWineSearchIndex, hasActiveWineSearch, searchWinesFromIndex } from '@/lib/wine-search'
+import { selectWinesForList } from '@/lib/wine-list-query'
+import {
+  createWineSearchIndex,
+  hasActiveWineSearch,
+  normalizeSearchText,
+} from '@/lib/wine-search'
 
 type DisplayWineRow = WineRow & { valueScore: number | null }
 
 const PREVIEW_CONTENT_MAX_WIDTH = '54.625rem'
+/** Matches analytics debounce; filters clear only when this applied search updates. */
+const SEARCH_APPLY_DEBOUNCE_MS = 600
 
 type PreviewWineListProps = {
   wines: WineRow[]
@@ -79,42 +85,51 @@ export function PreviewWineList({
   const reportedWineIdSet = useMemo(() => new Set(reportedWineIds), [reportedWineIds])
   const [filters, setFilters] = useState<WineFilters>(EMPTY_WINE_FILTERS)
   const [searchQuery, setSearchQuery] = useState('')
+  const [appliedSearchQuery, setAppliedSearchQuery] = useState('')
   const [primarySort, setPrimarySort] = useState<SortCriterion>({ key: 'value_score', dir: 'desc' })
   const [secondarySort, setSecondarySort] = useState<SortCriterion>({ key: 'none', dir: 'asc' })
   const [shareOpen, setShareOpen] = useState(false)
-  const searchTrackTimer = useRef<number | null>(null)
+  const appliedSearchNormalizedRef = useRef(normalizeSearchText(''))
   const filterOptions = useMemo(() => collectFilterOptions(wines), [wines])
   const priceBounds = useMemo(() => computeListPriceBounds(wines), [wines])
   const activeFilterCount = useMemo(() => countActiveFilters(filters), [filters])
 
-  const filtered = useMemo(() => filterWines(wines, filters), [wines, filters])
-  const searchIndex = useMemo(() => createWineSearchIndex(filtered), [filtered])
+  // Commit search after debounce (immediate when cleared). A new/cleared search resets filters
+  // in the same update so results never briefly apply old filters to the new query.
+  useEffect(() => {
+    const delay = searchQuery.trim() === '' ? 0 : SEARCH_APPLY_DEBOUNCE_MS
+    const timer = window.setTimeout(() => {
+      const normalized = normalizeSearchText(searchQuery)
+      if (normalized !== appliedSearchNormalizedRef.current) {
+        appliedSearchNormalizedRef.current = normalized
+        setFilters(EMPTY_WINE_FILTERS)
+      }
+      setAppliedSearchQuery((current) => (current === searchQuery ? current : searchQuery))
+    }, delay)
+    return () => window.clearTimeout(timer)
+  }, [searchQuery])
 
-  const searched = useMemo(() => {
-    if (!hasActiveWineSearch(searchQuery)) return filtered
-    return searchWinesFromIndex(searchIndex, searchQuery)
-  }, [filtered, searchIndex, searchQuery])
+  const searchIndex = useMemo(() => createWineSearchIndex(wines), [wines])
+
+  const filtered = useMemo(
+    () => selectWinesForList(wines, appliedSearchQuery, filters, searchIndex),
+    [appliedSearchQuery, filters, searchIndex, wines],
+  )
 
   const sorted = useMemo(() => {
-    if (hasActiveWineSearch(searchQuery)) return searched
-    return sortWines(searched, primarySort, secondarySort)
-  }, [searched, primarySort, secondarySort, searchQuery])
+    if (hasActiveWineSearch(appliedSearchQuery)) return filtered
+    return sortWines(filtered, primarySort, secondarySort)
+  }, [appliedSearchQuery, filtered, primarySort, secondarySort])
 
   const previewWines = useMemo(() => sorted.map(toPreviewWineCard), [sorted])
 
   useEffect(() => {
-    if (searchTrackTimer.current != null) window.clearTimeout(searchTrackTimer.current)
-    if (!hasActiveWineSearch(searchQuery)) return
-    searchTrackTimer.current = window.setTimeout(() => {
-      trackEvent('wine_searched', {
-        result_count: searched.length,
-        query_length: searchQuery.trim().length,
-      })
-    }, 600)
-    return () => {
-      if (searchTrackTimer.current != null) window.clearTimeout(searchTrackTimer.current)
-    }
-  }, [searchQuery, searched.length])
+    if (!hasActiveWineSearch(appliedSearchQuery)) return
+    trackEvent('wine_searched', {
+      result_count: filtered.length,
+      query_length: appliedSearchQuery.trim().length,
+    })
+  }, [appliedSearchQuery, filtered.length])
 
   function handleFiltersChange(next: WineFilters) {
     setFilters(next)
@@ -151,7 +166,7 @@ export function PreviewWineList({
 
   const listGapPx = visualStyle === 'trial' ? 20 : 10
   const listResetKey = [
-    searchQuery,
+    appliedSearchQuery,
     JSON.stringify(filters),
     primarySort.key,
     primarySort.dir,
