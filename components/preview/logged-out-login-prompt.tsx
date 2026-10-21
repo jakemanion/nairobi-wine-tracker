@@ -1,9 +1,9 @@
 'use client'
 
 import Link from 'next/link'
+import { BRAND_GREEN } from '@/lib/preview/preview-colors'
 
-export const LOGIN_PROMPT_MESSAGE =
-  'Login or register for free to save and share your bookmarks'
+export const LOGIN_PROMPT_MESSAGE = 'Log in or register to bookmark and more!'
 
 export function LoggedOutLoginPromptOverlay() {
   return (
@@ -14,12 +14,12 @@ export function LoggedOutLoginPromptOverlay() {
     >
       <div
         className="absolute inset-0 rounded-lg"
-        style={{ background: 'rgba(0, 0, 0, 0.55)' }}
+        style={{ background: 'rgba(255, 255, 255, 0.82)' }}
       />
       <div className="relative z-10 flex flex-col items-center gap-2.5">
         <p
           className="text-[11px] font-medium leading-snug m-0"
-          style={{ color: '#F5F2EC', fontFamily: 'var(--font-dm-sans), sans-serif' }}
+          style={{ color: '#111120', fontFamily: 'var(--font-dm-sans), sans-serif' }}
         >
           {LOGIN_PROMPT_MESSAGE}
         </p>
@@ -28,8 +28,8 @@ export function LoggedOutLoginPromptOverlay() {
             href="/login?next=%2F"
             className="text-[11px] px-3 py-1.5 rounded-lg no-underline"
             style={{
-              background: '#C93048',
-              border: '1px solid #C93048',
+              background: BRAND_GREEN,
+              border: `1px solid ${BRAND_GREEN}`,
               color: '#FFFFFF',
               fontFamily: 'var(--font-dm-sans), sans-serif',
             }}
@@ -40,9 +40,9 @@ export function LoggedOutLoginPromptOverlay() {
             href="/register"
             className="text-[11px] px-3 py-1.5 rounded-lg no-underline"
             style={{
-              background: 'rgba(255, 255, 255, 0.12)',
-              border: '1px solid rgba(255, 255, 255, 0.35)',
-              color: '#F5F2EC',
+              background: BRAND_GREEN,
+              border: `1px solid ${BRAND_GREEN}`,
+              color: '#FFFFFF',
               fontFamily: 'var(--font-dm-sans), sans-serif',
             }}
           >

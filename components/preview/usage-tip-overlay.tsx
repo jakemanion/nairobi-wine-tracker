@@ -4,6 +4,7 @@ import { useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { Lightbulb } from 'lucide-react'
 import type { CSSProperties } from 'react'
+import { BRAND_GREEN } from '@/lib/preview/preview-colors'
 
 export type UsageTipPlacement = 'bottom-left-of-cursor' | 'above-anchor'
 
@@ -16,6 +17,10 @@ const TIP_WIDTH = 220
 const VIEWPORT_PAD = 12
 const CURSOR_GAP = 12
 const TIP_ESTIMATED_HEIGHT = 132
+const TIP_PANEL_BG = '#ffffff'
+const TIP_PANEL_BORDER = '#E4E4EE'
+const TIP_HEADING = '#111120'
+const TIP_BODY = '#7878A0'
 
 type PlacedUsageTip = {
   left: number
@@ -48,7 +53,7 @@ export function placeUsageTipPanel(
         top: '100%',
         borderLeft: '6px solid transparent',
         borderRight: '6px solid transparent',
-        borderTop: '7px solid #3A3848',
+        borderTop: `7px solid ${TIP_PANEL_BG}`,
       },
     }
   }
@@ -73,7 +78,7 @@ export function placeUsageTipPanel(
       top: -7,
       borderLeft: '6px solid transparent',
       borderRight: '6px solid transparent',
-      borderBottom: '7px solid #3A3848',
+      borderBottom: `7px solid ${TIP_PANEL_BG}`,
     },
   }
 }
@@ -124,9 +129,9 @@ export function UsageTipOverlay({
         top: placed.top,
         transform: panelTransform,
         zIndex: 10001,
-        background: '#111218',
-        border: '1px solid #3A3848',
-        boxShadow: '0 8px 24px rgba(0,0,0,0.45)',
+        background: TIP_PANEL_BG,
+        border: `1px solid ${TIP_PANEL_BORDER}`,
+        boxShadow: '0 4px 16px rgba(30, 56, 40, 0.12)',
       }}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
@@ -135,18 +140,18 @@ export function UsageTipOverlay({
       <Lightbulb
         className="absolute top-2 right-2 w-3.5 h-3.5"
         strokeWidth={2}
-        style={{ color: '#E8C840' }}
+        style={{ color: BRAND_GREEN }}
         aria-hidden
       />
       <p
         className="m-0 text-[11px] font-semibold text-center px-4"
-        style={{ color: '#F5F2EC', fontFamily: 'var(--font-dm-sans), sans-serif' }}
+        style={{ color: TIP_HEADING, fontFamily: 'var(--font-dm-sans), sans-serif' }}
       >
         {heading}
       </p>
       <p
         className="m-0 mt-1.5 text-[10px] leading-snug text-center px-1"
-        style={{ color: '#D0CED4', fontFamily: 'var(--font-dm-sans), sans-serif' }}
+        style={{ color: TIP_BODY, fontFamily: 'var(--font-dm-sans), sans-serif' }}
       >
         {body}
       </p>
@@ -154,8 +159,8 @@ export function UsageTipOverlay({
         type="button"
         className="mt-2.5 text-[10px] px-2.5 py-1 rounded-md"
         style={{
-          background: '#C93048',
-          border: '1px solid #C93048',
+          background: BRAND_GREEN,
+          border: `1px solid ${BRAND_GREEN}`,
           color: '#FFFFFF',
           fontFamily: 'var(--font-dm-sans), sans-serif',
           cursor: 'pointer',
