@@ -1,6 +1,6 @@
 # Terms of Service
 
-**Last updated:** 17 July 2026
+**Last updated:** 21 October 2026
 
 These Terms of Service (“Terms”) govern your access to and use of **WineDiviner: Nairobi** (the “Service”). By accessing or using the Service, creating an account, or clicking to accept these Terms, you agree to be bound by them.
 
@@ -101,7 +101,11 @@ We may update these Terms from time to time. We will update the “Last updated�
 
 These Terms are governed by the laws of Kenya, without regard to conflict-of-law principles, unless mandatory consumer protections in your country of residence require otherwise.
 
-## 14. Contact
+## 14. Privacy and cookies
+
+Your use of the Service is also subject to our [Privacy Policy](/privacy) and [Cookie Policy](/cookies), which explain how we collect and use personal data, including optional product analytics (PostHog) when you consent.
+
+## 15. Contact
 
 Questions about these Terms:
 

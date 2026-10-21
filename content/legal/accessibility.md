@@ -1,6 +1,6 @@
 # Accessibility Statement
 
-**Last updated:** 17 July 2026
+**Last updated:** 21 October 2026
 
 **WineDiviner: Nairobi** is committed to making our website usable by as many people as possible, including people with disabilities.
 
@@ -39,7 +39,7 @@ You may currently experience barriers in areas such as:
 - Complex filter controls and custom dropdowns
 - Image-heavy wine cards or bottle previews
 - Dense information layouts on smaller screens
-- Overlay dialogs (for example share lists or age verification)
+- Overlay dialogs (for example share lists, age verification, the welcome panel, or the cookie and analytics consent banner)
 - Third-party embedded content or outbound retailer pages beyond our control
 
 We intend to improve these areas over time.
@@ -73,4 +73,4 @@ If you are not satisfied with our response, you may have rights to raise concern
 
 ## 8. Preparation of this statement
 
-This statement was prepared on 17 July 2026 based on an internal review of the Service’s main user flows.
+This statement was prepared on 21 October 2026 based on an internal review of the Service’s main user flows.

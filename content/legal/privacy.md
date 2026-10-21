@@ -1,6 +1,6 @@
 # Privacy Policy
 
-**Last updated:** 17 July 2026
+**Last updated:** 21 October 2026
 
 This Privacy Policy explains how **WineDiviner: Nairobi** (“WineDiviner”, “we”, “us”, or “our”) collects, uses, and protects information when you use our website and related services (the “Service”).
 
@@ -48,6 +48,7 @@ We use information to:
 - Provide, maintain, and improve the Service
 - Authenticate accounts and keep them secure
 - Save your wine preferences and shared lists
+- Understand how the Service is used (optional product analytics via PostHog, only if you consent)
 - Respond to support requests
 - Detect abuse, fraud, or technical issues
 - Comply with applicable law
@@ -61,7 +62,7 @@ Where data-protection laws require a legal basis, we generally process personal 
 - Perform our contract with you (providing the Service)
 - Pursue legitimate interests (security, product improvement, preventing misuse)
 - Comply with legal obligations
-- Obtain your consent where required (for example, optional communications)
+- Obtain your consent where required (for example, optional product analytics via PostHog, and optional communications)
 
 ## 5. Sharing of information
 
@@ -84,6 +85,9 @@ We use essential cookies and similar storage (including browser local storage) t
 - Keep you signed in
 - Remember age-gate confirmation
 - Remember certain interface preferences (such as usage tips)
+- Remember whether you accepted or declined optional analytics
+
+If you choose to accept analytics, we also load **PostHog** (EU Cloud) cookies and local storage for optional product analytics. Analytics is off unless you opt in.
 
 See our [Cookie Policy](/cookies) for more detail.
 

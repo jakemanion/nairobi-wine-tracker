@@ -1,6 +1,6 @@
 # Cookie Policy
 
-**Last updated:** 16 October 2026
+**Last updated:** 21 October 2026
 
 This Cookie Policy explains how **WineDiviner: Nairobi** (“WineDiviner”, “we”, “us”, or “our”) uses cookies and similar technologies on the Service.
 
@@ -19,6 +19,7 @@ WineDiviner currently uses cookies and local storage primarily for **essential**
 | Authentication / session cookies | Keep you signed in securely via our auth provider | Session or provider-defined |
 | Age-gate confirmation (local storage) | Remember that you confirmed you are of legal drinking age | Until cleared by you or your browser |
 | Analytics consent choice (local storage) | Remember whether you accepted or declined optional analytics | Until cleared by you or your browser |
+| PostHog analytics cookies / local storage | Product analytics (page views, feature usage, error reporting) after you accept analytics | Until cleared by you or your browser, or as defined by PostHog |
 | Usage tips preference (local storage) | Remember whether you want interface tips shown | Until cleared by you or your browser |
 | Welcome banner preference (local storage) | Remember if you dismissed the welcome message | Until cleared by you or your browser |
 
