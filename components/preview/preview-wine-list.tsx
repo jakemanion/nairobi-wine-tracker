@@ -18,7 +18,6 @@ import { PreviewVirtualWineList } from '@/components/preview/preview-virtual-win
 import { ShareListsModal } from '@/components/preview/share-lists-modal'
 import { UsageTipsProvider } from '@/components/preview/usage-tips-context'
 import { UsageTipsToggle } from '@/components/preview/usage-tips-toggle'
-import { WelcomePanel } from '@/components/preview/welcome-panel'
 import { usePreviewTheme } from '@/components/preview/preview-theme-context'
 import { SiteFooter } from '@/components/site-footer'
 import type { SortCriterion } from '@/components/wine-filter-panel'
@@ -300,7 +299,6 @@ export function PreviewWineList({
         className="mx-auto flex w-full flex-1 flex-col py-5 pl-7 pr-3 sm:pl-10 sm:pr-6"
         style={{ maxWidth: PREVIEW_CONTENT_MAX_WIDTH, gap: listGapPx }}
       >
-        <WelcomePanel />
         {previewWines.length === 0 ? (
           <p className="text-center text-sm py-12" style={{ color: colors.emptyText }}>
             No wines match your search or filters.

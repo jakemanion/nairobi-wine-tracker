@@ -5,6 +5,7 @@ import { identifyRegisteredUser, resetAnalyticsIdentity } from '@/lib/analytics'
 import { BRAND_GREEN } from '@/lib/preview/preview-colors'
 
 export const AGE_GATE_STORAGE_KEY = 'wine-diviner-age-confirmed'
+export const AGE_GATE_CONFIRMED_EVENT = 'wine-diviner-age-confirmed'
 
 type AuthenticatedPostHogIdentityProps = {
   userId: string | null
@@ -62,6 +63,7 @@ export function AgeGate() {
       // Ignore storage write errors and continue for this session.
     }
     setConfirmed(true)
+    window.dispatchEvent(new Event(AGE_GATE_CONFIRMED_EVENT))
   }
 
   function declineAge() {

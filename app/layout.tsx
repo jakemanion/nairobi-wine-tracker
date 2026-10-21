@@ -2,6 +2,7 @@ import { DM_Sans, Playfair_Display } from 'next/font/google'
 import type { Metadata } from 'next'
 import { AgeGate, AuthenticatedPostHogIdentity } from '@/components/preview/age-gate'
 import { CookieBanner } from '@/components/preview/cookie-banner'
+import { WelcomePanel } from '@/components/preview/welcome-panel'
 import { getPreviewSession } from '@/lib/auth/preview-session'
 import './globals.css'
 
@@ -31,6 +32,7 @@ export default async function RootLayout({
       <body className="min-h-full flex flex-col">
         <AuthenticatedPostHogIdentity userId={session.userId} />
         <AgeGate />
+        <WelcomePanel />
         <CookieBanner userId={session.userId} />
         {children}
       </body>
