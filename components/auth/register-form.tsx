@@ -195,7 +195,7 @@ export function RegisterForm() {
           className="text-xs"
           style={{ color: colors.muted, fontFamily: 'var(--font-dm-sans), sans-serif' }}
         >
-          Did not receive an email? Check spam, or confirm that email sign-up is enabled in Supabase.
+          Check spam.
         </p>
       ) : (
         <p
