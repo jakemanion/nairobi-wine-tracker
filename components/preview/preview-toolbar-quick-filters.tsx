@@ -319,16 +319,18 @@ function colourToggleStyle(colors: PreviewColors, selected: boolean): CSSPropert
   }
 }
 
-function ColourStyleToggles({
+export function ColourStyleToggles({
   colors,
   styles,
   filters,
   onChange,
+  label = 'Type:',
 }: {
   colors: PreviewColors
   styles: string[]
   filters: WineFilters
   onChange: (styles: string[]) => void
+  label?: string
 }) {
   const orderedStyles = sortStylesForDisplay(styles)
   const selectedSet = new Set(filters.styles)
@@ -347,7 +349,7 @@ function ColourStyleToggles({
     <div
       className="flex flex-nowrap items-center gap-1.5 sm:flex-wrap"
       role="group"
-      aria-label="Wine type"
+      aria-label={label.replace(/:$/, '') || 'Wine type'}
     >
       <span
         className="flex-none"
@@ -359,7 +361,7 @@ function ColourStyleToggles({
           fontWeight: 600,
         }}
       >
-        Type:
+        {label}
       </span>
       {orderedStyles.map((style) => {
         const selected = selectedSet.has(style)
@@ -434,20 +436,22 @@ function ShopToggles({
   )
 }
 
-function BestUnderToggles({
+export function BestUnderToggles({
   colors,
   selectedPrice,
   onSelect,
+  label = 'Best bottles under...:',
 }: {
   colors: PreviewColors
   selectedPrice: string
   onSelect: (price: number | null) => void
+  label?: string
 }) {
   return (
     <div
       className="flex flex-nowrap items-center gap-1.5 sm:flex-wrap"
       role="group"
-      aria-label="Best bottles under"
+      aria-label={label.replace(/:$/, '') || 'Best bottles under'}
     >
       <span
         className="flex-none"
@@ -459,7 +463,7 @@ function BestUnderToggles({
           fontWeight: 600,
         }}
       >
-        Best bottles under...:
+        {label}
       </span>
       {BEST_UNDER_PRICE_PRESETS.map((price) => {
         const selected = selectedPrice === String(price)

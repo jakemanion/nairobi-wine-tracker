@@ -24,6 +24,8 @@ export type UsageTipContent = {
 
 export const USAGE_TIPS_STORAGE_KEY = 'wine-diviner-usage-tips-enabled'
 export const WELCOME_DISMISSED_STORAGE_KEY = 'wine-diviner-welcome-dismissed'
+export const WELCOME_DISMISSED_EVENT = 'wine-diviner-welcome-dismissed'
+export const GETTING_STARTED_DISMISSED_STORAGE_KEY = 'wine-diviner-getting-started-dismissed'
 
 export const USAGE_TIPS: Record<UsageTipId, UsageTipContent> = {
   'wishlist-button': {

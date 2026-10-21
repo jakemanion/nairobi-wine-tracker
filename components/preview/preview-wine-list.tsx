@@ -16,6 +16,7 @@ import {
 import { PreviewUserMenu } from '@/components/preview/preview-user-menu'
 import { PreviewVirtualWineList } from '@/components/preview/preview-virtual-wine-list'
 import { ShareListsModal } from '@/components/preview/share-lists-modal'
+import { GettingStartedOnboarding } from '@/components/preview/getting-started-onboarding'
 import { UsageTipsProvider } from '@/components/preview/usage-tips-context'
 import { UsageTipsToggle } from '@/components/preview/usage-tips-toggle'
 import { usePreviewTheme } from '@/components/preview/preview-theme-context'
@@ -327,6 +328,14 @@ export function PreviewWineList({
           isLoggedIn
         />
       ) : null}
+      <GettingStartedOnboarding
+        filters={filters}
+        onFiltersChange={handleFiltersChange}
+        styles={filterOptions.styles}
+        primarySort={primarySort}
+        onPrimarySortChange={handlePrimarySortChange}
+        onSecondarySortChange={setSecondarySort}
+      />
       <SiteFooter colors={colors} />
       </div>
   )

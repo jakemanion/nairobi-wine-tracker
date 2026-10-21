@@ -3,7 +3,10 @@
 import { useEffect, useState } from 'react'
 import { AGE_GATE_CONFIRMED_EVENT, AGE_GATE_STORAGE_KEY } from '@/components/preview/age-gate'
 import { BRAND_GREEN } from '@/lib/preview/preview-colors'
-import { WELCOME_DISMISSED_STORAGE_KEY } from '@/lib/preview/usage-tips'
+import {
+  WELCOME_DISMISSED_EVENT,
+  WELCOME_DISMISSED_STORAGE_KEY,
+} from '@/lib/preview/usage-tips'
 
 function shouldShowWelcome(): boolean {
   try {
@@ -37,6 +40,7 @@ export function WelcomePanel() {
       // Ignore storage write errors and continue for this session.
     }
     setVisible(false)
+    window.dispatchEvent(new Event(WELCOME_DISMISSED_EVENT))
   }
 
   if (!ready || !visible) return null
