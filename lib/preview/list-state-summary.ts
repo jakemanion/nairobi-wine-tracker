@@ -62,6 +62,7 @@ export function buildListStateSummaryParts({
   grapeCount = 0,
   countryCount = 0,
   includeMyWines = false,
+  searchQuery = '',
 }: {
   filters: WineFilters
   resultCount: number
@@ -69,12 +70,21 @@ export function buildListStateSummaryParts({
   grapeCount?: number
   countryCount?: number
   includeMyWines?: boolean
+  searchQuery?: string
 }): string[] {
+  const trimmedSearch = searchQuery.trim()
   const parts: string[] = [
     `Showing ${resultCount} bottle${resultCount === 1 ? '' : 's'}`,
+  ]
+
+  if (trimmedSearch) {
+    parts.push(`Search term: [${trimmedSearch}]`)
+  }
+
+  parts.push(
     `Type: ${typeSummary(filters)}`,
     `Shops: ${shopsSummary(filters, storeCount)}`,
-  ]
+  )
 
   const priceMax = filters.priceMax.trim()
   if (priceMax) {

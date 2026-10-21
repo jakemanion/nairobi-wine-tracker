@@ -69,6 +69,7 @@ export function PreviewToolbar({
     grapeCount: filterOptions.grapes.length,
     countryCount: filterOptions.countries.length,
     includeMyWines: isLoggedIn,
+    searchQuery,
   })
   const summaryText = summaryParts.join(' · ')
 
