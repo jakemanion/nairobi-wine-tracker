@@ -110,6 +110,4 @@ Your use of the Service is also subject to our [Privacy Policy](/privacy) and [C
 Questions about these Terms:
 
 **WineDiviner: Nairobi**  
-Email: legal@winediviner.example
-
-Replace this contact address with your live support email before public launch.
+Email: cheers@winediviner.com

@@ -55,7 +55,7 @@ Assistive technology support may vary depending on browser and operating system 
 If you find an accessibility barrier, please tell us:
 
 **WineDiviner: Nairobi**  
-Email: accessibility@winediviner.example
+Email: cheers@winediviner.com
 
 Please include:
 
@@ -64,8 +64,6 @@ Please include:
 - Your browser and assistive technology (if relevant)
 
 We will review feedback and aim to respond within a reasonable time.
-
-Replace this contact address with your live support email before public launch.
 
 ## 7. Formal complaints
 

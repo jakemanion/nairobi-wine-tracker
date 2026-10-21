@@ -60,6 +60,4 @@ We may update this Cookie Policy from time to time. The “Last updated” date 
 Questions about cookies:
 
 **WineDiviner: Nairobi**  
-Email: privacy@winediviner.example
-
-Replace this contact address with your live support email before public launch.
+Email: cheers@winediviner.com

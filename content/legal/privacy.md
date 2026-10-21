@@ -129,6 +129,4 @@ We may update this Privacy Policy from time to time. The “Last updated” date
 For privacy questions or requests, contact:
 
 **WineDiviner: Nairobi**  
-Email: privacy@winediviner.example
-
-Replace this contact address with your live support email before public launch.
+Email: cheers@winediviner.com
