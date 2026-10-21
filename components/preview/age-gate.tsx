@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { identifyRegisteredUser, resetAnalyticsIdentity } from '@/lib/analytics'
+import { BRAND_GREEN } from '@/lib/preview/preview-colors'
 
 export const AGE_GATE_STORAGE_KEY = 'wine-diviner-age-confirmed'
 
@@ -75,67 +76,71 @@ export function AgeGate() {
       role="dialog"
       aria-modal="true"
       aria-labelledby="age-gate-title"
-      style={{ background: 'rgba(8, 8, 12, 0.92)' }}
+      style={{ background: 'rgba(8, 8, 12, 0.45)' }}
     >
       <div
         className="w-full max-w-md rounded-xl px-5 py-6 text-center"
         style={{
-          background: '#1A1A22',
-          border: '1px solid #3A3848',
-          boxShadow: '0 16px 48px rgba(0,0,0,0.55)',
+          background: '#ffffff',
+          border: '1px solid #E4E4EE',
+          boxShadow: '0 16px 48px rgba(30, 56, 40, 0.18)',
         }}
       >
-        <p
+        <h2
           id="age-gate-title"
           className="m-0 text-lg font-semibold"
-          style={{ color: '#F5F2EC', fontFamily: 'var(--font-playfair), serif' }}
+          style={{ color: '#111120', fontFamily: 'var(--font-dm-sans), sans-serif' }}
         >
-          Age verification
+          Welcome to WineDiviner
+        </h2>
+        <p
+          className="m-0 mt-2 text-[13px] leading-relaxed"
+          style={{ color: '#111120', fontFamily: 'var(--font-dm-sans), sans-serif' }}
+        >
+          Find the best wine for your budget.
         </p>
         <p
-          className="m-0 mt-3 text-[13px] leading-relaxed"
-          style={{ color: '#D0CED4', fontFamily: 'var(--font-dm-sans), sans-serif' }}
+          className="m-0 mt-4 text-[13px] font-semibold leading-relaxed"
+          style={{ color: '#111120', fontFamily: 'var(--font-dm-sans), sans-serif' }}
         >
-          You must be of legal drinking age in your country of residence to enter this website. Are
-          you of legal drinking age?
-        </p>
-        <p
-          className="m-0 mt-2 text-[11px] leading-relaxed"
-          style={{ color: '#9A98A8', fontFamily: 'var(--font-dm-sans), sans-serif' }}
-        >
-          By entering, you confirm that you are legally permitted to purchase and consume alcohol
-          where you live.
+          Are you of legal drinking age in your country of residence?
         </p>
         <div className="mt-5 flex items-center justify-center gap-2.5">
           <button
             type="button"
             className="min-w-[7rem] rounded-lg px-4 py-2 text-[13px] font-medium"
             style={{
-              background: '#C93048',
-              border: '1px solid #C93048',
+              background: BRAND_GREEN,
+              border: `1px solid ${BRAND_GREEN}`,
               color: '#FFFFFF',
               fontFamily: 'var(--font-dm-sans), sans-serif',
               cursor: 'pointer',
             }}
             onClick={confirmAge}
           >
-            Yes
+            Yes, I am
           </button>
           <button
             type="button"
             className="min-w-[7rem] rounded-lg px-4 py-2 text-[13px] font-medium"
             style={{
-              background: '#1E1E26',
-              border: '1px solid #3A3848',
-              color: '#C8C4D0',
+              background: BRAND_GREEN,
+              border: `1px solid ${BRAND_GREEN}`,
+              color: '#FFFFFF',
               fontFamily: 'var(--font-dm-sans), sans-serif',
               cursor: 'pointer',
             }}
             onClick={declineAge}
           >
-            No
+            No, I am not
           </button>
         </div>
+        <p
+          className="m-0 mt-4 text-[12px] italic leading-relaxed"
+          style={{ color: '#7878A0', fontFamily: 'var(--font-dm-sans), sans-serif' }}
+        >
+          Please drink responsibly.
+        </p>
       </div>
     </div>
   )
