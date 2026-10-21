@@ -4,12 +4,22 @@ export type SignUpResult =
   | { status: 'success'; needsEmailConfirmation: boolean; email: string; userId: string }
   | { status: 'error'; message: string }
 
-export async function signUpWithEmail(email: string, password: string): Promise<SignUpResult> {
+export async function signUpWithEmail(
+  email: string,
+  password: string,
+  options?: { newsletterOptIn?: boolean },
+): Promise<SignUpResult> {
   const trimmedEmail = email.trim()
+  const newsletterOptIn = Boolean(options?.newsletterOptIn)
 
   const { data, error } = await supabase.auth.signUp({
     email: trimmedEmail,
     password,
+    options: {
+      data: {
+        newsletter_opt_in: newsletterOptIn,
+      },
+    },
   })
 
   if (error) {

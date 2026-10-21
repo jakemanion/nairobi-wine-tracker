@@ -18,6 +18,7 @@ When you create an account, we collect:
 - Email address
 - Authentication credentials (handled by our authentication provider; we do not store your raw password)
 - Optional profile details such as display name or username
+- Whether you opted in to occasional product updates and marketing email (and when you did)
 
 ### 2.2 Personal wine preferences
 If you use personal features, we may store:
@@ -49,11 +50,14 @@ We use information to:
 - Authenticate accounts and keep them secure
 - Save your wine preferences and shared lists
 - Understand how the Service is used (optional product analytics via PostHog, only if you consent)
+- Send occasional product updates and marketing email **only if** you opt in at registration (or later)
 - Respond to support requests
 - Detect abuse, fraud, or technical issues
 - Comply with applicable law
 
 We do **not** sell your personal information.
+
+Transactional emails needed to run your account (for example email confirmation or password reset) are separate from marketing and do not require newsletter opt-in.
 
 ## 4. Legal bases (where applicable)
 
@@ -62,17 +66,17 @@ Where data-protection laws require a legal basis, we generally process personal 
 - Perform our contract with you (providing the Service)
 - Pursue legitimate interests (security, product improvement, preventing misuse)
 - Comply with legal obligations
-- Obtain your consent where required (for example, optional product analytics via PostHog, and optional communications)
+- Obtain your consent where required (for example, optional product analytics via PostHog, and optional product updates / marketing email)
 
 ## 5. Sharing of information
 
 We may share information with:
 
-- **Service providers** that help us operate the Service (for example hosting, authentication, database, and product analytics providers such as Supabase and PostHog)
+- **Service providers** that help us operate the Service (for example hosting, authentication, database, product analytics, and — when we send opted-in marketing — an email delivery provider)
 - **Professional advisers** or authorities when required by law
 - **Other users**, only when you intentionally create a public shared list. Shared lists are designed to show curated wine catalogue information, not your private notes or ratings
 
-We require processors to protect personal data appropriately.
+We require processors to protect personal data appropriately. We will not send marketing email to you unless you have opted in.
 
 ## 6. Shared lists
 
@@ -114,7 +118,7 @@ Depending on your location, you may have rights to:
 - Export data in a portable format
 - Withdraw consent where processing is based on consent
 
-To exercise these rights, contact us using the details below.
+To withdraw marketing email consent, email **cheers@winediviner.com** (or use an unsubscribe link once we start sending newsletters). To exercise other rights, contact us using the details below.
 
 ## 12. Children’s privacy
 

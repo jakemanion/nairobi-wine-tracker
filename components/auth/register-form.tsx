@@ -18,6 +18,7 @@ export function RegisterForm() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [newsletterOptIn, setNewsletterOptIn] = useState(false)
   const [status, setStatus] = useState<FormStatus>('idle')
   const [message, setMessage] = useState<string | null>(null)
   const [needsEmailConfirmation, setNeedsEmailConfirmation] = useState(false)
@@ -35,7 +36,7 @@ export function RegisterForm() {
     setStatus('loading')
     setMessage(null)
 
-    const result = await signUpWithEmail(email, password)
+    const result = await signUpWithEmail(email, password, { newsletterOptIn })
 
     if (result.status === 'error') {
       setStatus('error')
@@ -46,6 +47,7 @@ export function RegisterForm() {
     identifyRegisteredUser(result.userId)
     trackEvent('user_signed_up', {
       requires_email_confirmation: result.needsEmailConfirmation,
+      newsletter_opted_in: newsletterOptIn,
     })
 
     setNeedsEmailConfirmation(result.needsEmailConfirmation)
@@ -172,6 +174,24 @@ export function RegisterForm() {
 
       {!isSuccess ? (
         <>
+          <label
+            htmlFor="register-newsletter"
+            className="flex items-start gap-2.5 cursor-pointer"
+            style={{ fontFamily: 'var(--font-dm-sans), sans-serif' }}
+          >
+            <input
+              id="register-newsletter"
+              type="checkbox"
+              checked={newsletterOptIn}
+              disabled={isLoading}
+              onChange={(event) => setNewsletterOptIn(event.target.checked)}
+              className="mt-0.5 h-4 w-4 shrink-0 rounded"
+              style={{ accentColor: accent, cursor: isLoading ? 'wait' : 'pointer' }}
+            />
+            <span className="text-[12px] leading-snug" style={{ color: colors.surfaceTitle }}>
+              I&apos;m happy to receive occasional product updates and marketing via email
+            </span>
+          </label>
           <LegalAgreementNotice mutedColor={colors.muted} accentColor={accent} />
           <button
             type="submit"
