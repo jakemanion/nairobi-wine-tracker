@@ -59,10 +59,10 @@ export function WelcomePanel() {
       >
         <h2
           id="welcome-panel-title"
-          className="m-0 text-xl font-semibold leading-snug"
+          className="m-0 text-center text-xl font-semibold leading-snug"
           style={{ color: '#111120', fontFamily: 'var(--font-dm-sans), sans-serif' }}
         >
-          Find the best wine for your budget.
+          Find the best wine for your budget
         </h2>
         <p
           className="m-0 mt-3 text-[13px] leading-relaxed"
@@ -76,24 +76,25 @@ export function WelcomePanel() {
           style={{ color: '#111120', fontFamily: 'var(--font-dm-sans), sans-serif' }}
         >
           <li>
-            <strong>Know what&apos;s worth buying.</strong> Discover the quality and price of over
-            1,000 wines sold in Nairobi.
+            <strong style={{ color: BRAND_GREEN }}>Know what&apos;s worth buying:</strong> Discover
+            the quality and price of over 1,000 wines sold in Nairobi.
           </li>
           <li>
-            <strong>Know where to buy.</strong> Find the shops stocking the bottles you want.
+            <strong style={{ color: BRAND_GREEN }}>Know where to buy:</strong> Find the shops
+            stocking the bottles you want.
           </li>
           <li>
-            <strong>Find your perfect bottle.</strong> Filter by price, quality, grape, country and
-            more to find exactly what you fancy.
+            <strong style={{ color: BRAND_GREEN }}>Find your perfect bottle:</strong> Filter by
+            price, quality, grape, country and more to find exactly what you fancy.
           </li>
           <li>
-            <strong>Remember your favourites.</strong> Bookmark bottles to try, track wines
-            you&apos;d buy again, hide the ones you&apos;d rather forget, and share your
-            discoveries.
+            <strong style={{ color: BRAND_GREEN }}>Remember your favourites:</strong> Bookmark
+            bottles to try, track wines you&apos;d buy again, hide the ones you&apos;d rather
+            forget, and share your discoveries.
           </li>
         </ul>
         <h3
-          className="m-0 mt-5 text-[15px] font-semibold"
+          className="m-0 mt-5 text-center text-[15px] font-semibold"
           style={{ color: '#111120', fontFamily: 'var(--font-dm-sans), sans-serif' }}
         >
           Ready to find your next favourite?
