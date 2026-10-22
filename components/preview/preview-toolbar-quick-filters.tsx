@@ -325,12 +325,14 @@ export function ColourStyleToggles({
   filters,
   onChange,
   label = 'Type:',
+  labelAbove = false,
 }: {
   colors: PreviewColors
   styles: string[]
   filters: WineFilters
   onChange: (styles: string[]) => void
   label?: string
+  labelAbove?: boolean
 }) {
   const orderedStyles = sortStylesForDisplay(styles)
   const selectedSet = new Set(filters.styles)
@@ -345,50 +347,65 @@ export function ColourStyleToggles({
     onChange(next.length === styles.length ? [] : next)
   }
 
+  const labelEl = (
+    <span
+      className="flex-none"
+      style={{
+        fontSize: CONTROL_FONT_SIZE,
+        lineHeight: 1.2,
+        color: colors.buttonText,
+        fontFamily: 'var(--font-dm-sans), sans-serif',
+        fontWeight: 600,
+      }}
+    >
+      {label}
+    </span>
+  )
+
+  const buttons = orderedStyles.map((style) => {
+    const selected = selectedSet.has(style)
+    const ribbon = styleRibbonStyle(style)
+    return (
+      <button
+        key={style}
+        type="button"
+        aria-pressed={selected}
+        style={colourToggleStyle(colors, selected)}
+        onClick={() => toggleColour(style)}
+      >
+        <span
+          aria-hidden
+          style={{
+            width: 7,
+            height: 7,
+            borderRadius: '50%',
+            background: ribbon?.background ?? '#8F1A2B',
+            border: '1px solid rgba(0,0,0,0.12)',
+            flexShrink: 0,
+          }}
+        />
+        {style}
+      </button>
+    )
+  })
+
+  if (labelAbove) {
+    return (
+      <div className="flex flex-col items-start gap-2" role="group" aria-label={label || 'Wine type'}>
+        {labelEl}
+        <div className="flex flex-wrap items-center gap-1.5">{buttons}</div>
+      </div>
+    )
+  }
+
   return (
     <div
       className="flex flex-nowrap items-center gap-1.5 sm:flex-wrap"
       role="group"
       aria-label={label.replace(/:$/, '') || 'Wine type'}
     >
-      <span
-        className="flex-none"
-        style={{
-          fontSize: CONTROL_FONT_SIZE,
-          lineHeight: 1.2,
-          color: colors.buttonText,
-          fontFamily: 'var(--font-dm-sans), sans-serif',
-          fontWeight: 600,
-        }}
-      >
-        {label}
-      </span>
-      {orderedStyles.map((style) => {
-        const selected = selectedSet.has(style)
-        const ribbon = styleRibbonStyle(style)
-        return (
-          <button
-            key={style}
-            type="button"
-            aria-pressed={selected}
-            style={colourToggleStyle(colors, selected)}
-            onClick={() => toggleColour(style)}
-          >
-            <span
-              aria-hidden
-              style={{
-                width: 7,
-                height: 7,
-                borderRadius: '50%',
-                background: ribbon?.background ?? '#8F1A2B',
-                border: '1px solid rgba(0,0,0,0.12)',
-                flexShrink: 0,
-              }}
-            />
-            {style}
-          </button>
-        )
-      })}
+      {labelEl}
+      {buttons}
     </div>
   )
 }
@@ -441,44 +458,65 @@ export function BestUnderToggles({
   selectedPrice,
   onSelect,
   label = 'Best bottles under...:',
+  labelAbove = false,
 }: {
   colors: PreviewColors
   selectedPrice: string
   onSelect: (price: number | null) => void
   label?: string
+  labelAbove?: boolean
 }) {
+  const labelEl = (
+    <span
+      className="flex-none"
+      style={{
+        fontSize: CONTROL_FONT_SIZE,
+        lineHeight: 1.2,
+        color: colors.buttonText,
+        fontFamily: 'var(--font-dm-sans), sans-serif',
+        fontWeight: 600,
+      }}
+    >
+      {label}
+    </span>
+  )
+
+  const buttons = BEST_UNDER_PRICE_PRESETS.map((price) => {
+    const selected = selectedPrice === String(price)
+    return (
+      <button
+        key={price}
+        type="button"
+        aria-pressed={selected}
+        style={colourToggleStyle(colors, selected)}
+        onClick={() => onSelect(selected ? null : price)}
+      >
+        {price.toLocaleString()} KSH
+      </button>
+    )
+  })
+
+  if (labelAbove) {
+    return (
+      <div
+        className="flex flex-col items-start gap-2"
+        role="group"
+        aria-label={label || 'Best bottles under'}
+      >
+        {labelEl}
+        <div className="flex flex-wrap items-center gap-1.5">{buttons}</div>
+      </div>
+    )
+  }
+
   return (
     <div
       className="flex flex-nowrap items-center gap-1.5 sm:flex-wrap"
       role="group"
       aria-label={label.replace(/:$/, '') || 'Best bottles under'}
     >
-      <span
-        className="flex-none"
-        style={{
-          fontSize: CONTROL_FONT_SIZE,
-          lineHeight: 1.2,
-          color: colors.buttonText,
-          fontFamily: 'var(--font-dm-sans), sans-serif',
-          fontWeight: 600,
-        }}
-      >
-        {label}
-      </span>
-      {BEST_UNDER_PRICE_PRESETS.map((price) => {
-        const selected = selectedPrice === String(price)
-        return (
-          <button
-            key={price}
-            type="button"
-            aria-pressed={selected}
-            style={colourToggleStyle(colors, selected)}
-            onClick={() => onSelect(selected ? null : price)}
-          >
-            {price.toLocaleString()} KSH
-          </button>
-        )
-      })}
+      {labelEl}
+      {buttons}
     </div>
   )
 }

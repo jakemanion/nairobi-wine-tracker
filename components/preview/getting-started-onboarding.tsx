@@ -181,7 +181,7 @@ export function GettingStartedOnboarding({
         <h2
           id="getting-started-filters-title"
           className="m-0 text-center text-xl font-semibold leading-snug"
-          style={{ color: '#111120', fontFamily: 'var(--font-dm-sans), sans-serif' }}
+          style={{ color: BRAND_GREEN, fontFamily: 'var(--font-dm-sans), sans-serif' }}
         >
           Getting started
         </h2>
@@ -197,13 +197,15 @@ export function GettingStartedOnboarding({
             colors={colors}
             styles={styles}
             filters={filters}
-            label="Wine colour:"
+            label="What type of wine are you looking for?"
+            labelAbove
             onChange={(next) => onFiltersChange({ ...filters, styles: next })}
           />
           <BestUnderToggles
             colors={colors}
             selectedPrice={bestUnderValue}
-            label="Price:"
+            label="How much are you happy to spend for a great bottle?"
+            labelAbove
             onSelect={applyBestUnder}
           />
         </div>
