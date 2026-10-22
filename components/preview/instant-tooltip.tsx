@@ -15,6 +15,8 @@ import { createPortal } from 'react-dom'
 
 const TOOLTIP_GAP_PX = 6
 
+type TooltipPlacement = 'top' | 'bottom'
+
 const tooltipStyle: CSSProperties = {
   position: 'fixed',
   padding: '4px 8px',
@@ -29,7 +31,6 @@ const tooltipStyle: CSSProperties = {
   border: '1px solid #E4E4EE',
   fontFamily: 'var(--font-dm-sans), sans-serif',
   boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
-  transform: 'translate(-50%, -100%)',
 }
 
 type InstantTooltipProps = {
@@ -42,9 +43,16 @@ type InstantTooltipProps = {
     onBlur?: (event: FocusEvent) => void
   }>
   className?: string
+  /** Prefer `bottom` for header controls so the tooltip stays on-screen. */
+  placement?: TooltipPlacement
 }
 
-export function InstantTooltip({ label, children, className }: InstantTooltipProps) {
+export function InstantTooltip({
+  label,
+  children,
+  className,
+  placement = 'top',
+}: InstantTooltipProps) {
   const [visible, setVisible] = useState(false)
   const [position, setPosition] = useState({ top: 0, left: 0 })
   const [mounted, setMounted] = useState(false)
@@ -56,10 +64,10 @@ export function InstantTooltip({ label, children, className }: InstantTooltipPro
 
     const rect = anchor.getBoundingClientRect()
     setPosition({
-      top: rect.top - TOOLTIP_GAP_PX,
+      top: placement === 'bottom' ? rect.bottom + TOOLTIP_GAP_PX : rect.top - TOOLTIP_GAP_PX,
       left: rect.left + rect.width / 2,
     })
-  }, [])
+  }, [placement])
 
   useEffect(() => {
     setMounted(true)
@@ -118,6 +126,8 @@ export function InstantTooltip({ label, children, className }: InstantTooltipPro
                 ...tooltipStyle,
                 top: position.top,
                 left: position.left,
+                transform:
+                  placement === 'bottom' ? 'translate(-50%, 0)' : 'translate(-50%, -100%)',
               }}
             >
               {label}

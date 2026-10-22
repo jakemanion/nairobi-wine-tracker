@@ -142,12 +142,15 @@ export function SharedWineList({
               </div>
               <div className="flex items-center gap-2 flex-shrink-0">
                 {isLoggedIn ? (
-                  <PreviewUserMenu
-                    colors={colors}
-                    theme={colors.headerNavTheme}
-                    userName={userName}
-                    userEmail={userEmail}
-                  />
+                  <>
+                    <UsageTipsToggle colors={colors} />
+                    <PreviewUserMenu
+                      colors={colors}
+                      theme={colors.headerNavTheme}
+                      userName={userName}
+                      userEmail={userEmail}
+                    />
+                  </>
                 ) : (
                   <>
                     <UsageTipsToggle colors={colors} />

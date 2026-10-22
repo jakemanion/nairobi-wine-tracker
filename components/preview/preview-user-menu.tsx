@@ -28,7 +28,10 @@ export function PreviewUserMenu({
 
   return (
     <div className="relative group/user-menu">
-      <InstantTooltip label={userName && userEmail ? `${userName} · ${userEmail}` : accountLabel}>
+      <InstantTooltip
+        placement="bottom"
+        label={userName && userEmail ? `${userName} · ${userEmail}` : accountLabel}
+      >
         <button
           type="button"
           aria-label={`Open account menu for ${accountLabel}`}

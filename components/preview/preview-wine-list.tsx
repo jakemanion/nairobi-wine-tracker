@@ -17,6 +17,7 @@ import { PreviewUserMenu } from '@/components/preview/preview-user-menu'
 import { PreviewVirtualWineList } from '@/components/preview/preview-virtual-wine-list'
 import { ShareListsModal } from '@/components/preview/share-lists-modal'
 import { GettingStartedOnboarding } from '@/components/preview/getting-started-onboarding'
+import { InstantTooltip } from '@/components/preview/instant-tooltip'
 import { UsageTipsProvider } from '@/components/preview/usage-tips-context'
 import { UsageTipsToggle } from '@/components/preview/usage-tips-toggle'
 import { usePreviewTheme } from '@/components/preview/preview-theme-context'
@@ -239,21 +240,23 @@ export function PreviewWineList({
             <div className="flex flex-shrink-0 items-center gap-2">
               {isLoggedIn ? (
                 <>
-                  <button
-                    type="button"
-                    aria-label="Share your list"
-                    title="Share your list"
-                    className="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full"
-                    style={{
-                      background: visualStyle === 'trial' ? '#FFFFFF' : colors.headerAccent,
-                      border: `1px solid ${colors.buttonBorder}`,
-                      color: visualStyle === 'trial' ? colors.headerTitle : '#FFFFFF',
-                      cursor: 'pointer',
-                    }}
-                    onClick={() => setShareOpen(true)}
-                  >
-                    <Share2 size={15} strokeWidth={2} fill="none" />
-                  </button>
+                  <UsageTipsToggle colors={colors} />
+                  <InstantTooltip label="Share your lists!" placement="bottom">
+                    <button
+                      type="button"
+                      aria-label="Share your lists!"
+                      className="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full"
+                      style={{
+                        background: visualStyle === 'trial' ? '#FFFFFF' : colors.headerAccent,
+                        border: `1px solid ${colors.buttonBorder}`,
+                        color: visualStyle === 'trial' ? colors.headerTitle : '#FFFFFF',
+                        cursor: 'pointer',
+                      }}
+                      onClick={() => setShareOpen(true)}
+                    >
+                      <Share2 size={15} strokeWidth={2} fill="none" />
+                    </button>
+                  </InstantTooltip>
                   <PreviewUserMenu
                     colors={colors}
                     theme={colors.headerNavTheme}
