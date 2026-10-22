@@ -9,6 +9,10 @@ import { AdminVersionBadge } from '@/components/preview/admin-version-badge'
 import { PreviewToolbar } from '@/components/preview/preview-toolbar'
 import { PreviewMobileListFooter } from '@/components/preview/preview-mobile-list-footer'
 import {
+  LoginPromptToastProvider,
+  MobileLoginPromptToastSlot,
+} from '@/components/preview/logged-out-login-prompt'
+import {
   MobileMyWineMarkToastSlot,
   MyWineMarkToastProvider,
 } from '@/components/preview/my-wine-mark-toast'
@@ -295,6 +299,9 @@ export function PreviewWineList({
         </div>
 
         <MobileMyWineMarkToastSlot maxWidth={PREVIEW_CONTENT_MAX_WIDTH} />
+        {!isLoggedIn ? (
+          <MobileLoginPromptToastSlot maxWidth={PREVIEW_CONTENT_MAX_WIDTH} />
+        ) : null}
       </div>
 
       <main
@@ -355,7 +362,7 @@ export function PreviewWineList({
           <ShareListsModal open={shareOpen} onClose={() => setShareOpen(false)} />
         </MyWineMarkToastProvider>
       ) : (
-        listBody
+        <LoginPromptToastProvider>{listBody}</LoginPromptToastProvider>
       )}
     </UsageTipsProvider>
   )

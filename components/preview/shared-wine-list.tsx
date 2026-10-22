@@ -7,6 +7,10 @@ import { BrandLogo } from '@/components/brand-logo'
 import { LoginNavLink } from '@/components/auth/login-nav-link'
 import { RegisterNavLink } from '@/components/auth/register-nav-link'
 import { AdminVersionBadge } from '@/components/preview/admin-version-badge'
+import {
+  LoginPromptToastProvider,
+  MobileLoginPromptToastSlot,
+} from '@/components/preview/logged-out-login-prompt'
 import { PreviewUserMenu } from '@/components/preview/preview-user-menu'
 import { PreviewVirtualWineList } from '@/components/preview/preview-virtual-wine-list'
 import { UsageTipsProvider } from '@/components/preview/usage-tips-context'
@@ -79,8 +83,7 @@ export function SharedWineList({
 
   const listGapPx = visualStyle === 'trial' ? 20 : 10
 
-  return (
-    <UsageTipsProvider>
+  const listBody = (
       <div className="min-h-screen flex flex-col" data-visual-style={visualStyle} style={{ background: colors.pageBg }}>
         <div
           className="sticky top-0 z-50"
@@ -161,6 +164,9 @@ export function SharedWineList({
               </div>
             </div>
           </header>
+          {!isLoggedIn ? (
+            <MobileLoginPromptToastSlot maxWidth={PREVIEW_CONTENT_MAX_WIDTH} />
+          ) : null}
         </div>
 
         <main
@@ -233,6 +239,11 @@ export function SharedWineList({
         </main>
         <SiteFooter colors={colors} />
       </div>
+  )
+
+  return (
+    <UsageTipsProvider>
+      {isLoggedIn ? listBody : <LoginPromptToastProvider>{listBody}</LoginPromptToastProvider>}
     </UsageTipsProvider>
   )
 }
