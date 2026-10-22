@@ -91,16 +91,10 @@ export function AgeGate() {
         <h2
           id="age-gate-title"
           className="m-0 text-lg font-semibold"
-          style={{ color: '#111120', fontFamily: 'var(--font-dm-sans), sans-serif' }}
+          style={{ color: BRAND_GREEN, fontFamily: 'var(--font-dm-sans), sans-serif' }}
         >
-          Welcome to WineDiviner: Nairobi!
+          Welcome to WineDiviner: Nairobi
         </h2>
-        <p
-          className="m-0 mt-2 text-[13px] leading-relaxed"
-          style={{ color: '#111120', fontFamily: 'var(--font-dm-sans), sans-serif' }}
-        >
-          Helping you find the best bottles for your budget.
-        </p>
         <p
           className="m-0 mt-4 text-[13px] font-semibold leading-relaxed"
           style={{ color: '#111120', fontFamily: 'var(--font-dm-sans), sans-serif' }}
