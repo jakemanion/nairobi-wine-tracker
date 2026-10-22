@@ -7,6 +7,7 @@ import { LoginNavLink } from '@/components/auth/login-nav-link'
 import { RegisterNavLink } from '@/components/auth/register-nav-link'
 import { AdminVersionBadge } from '@/components/preview/admin-version-badge'
 import { PreviewToolbar } from '@/components/preview/preview-toolbar'
+import { MobileLegalButton } from '@/components/preview/mobile-legal-button'
 import { PreviewMobileListFooter } from '@/components/preview/preview-mobile-list-footer'
 import {
   LoginPromptToastProvider,
@@ -336,6 +337,10 @@ export function PreviewWineList({
           isLoggedIn
         />
       ) : null}
+      <MobileLegalButton
+        colors={colors}
+        bottomOffsetPx={isLoggedIn ? 100 : 12}
+      />
       <GettingStartedOnboarding
         filters={filters}
         onFiltersChange={handleFiltersChange}
@@ -344,7 +349,7 @@ export function PreviewWineList({
         onPrimarySortChange={handlePrimarySortChange}
         onSecondarySortChange={setSecondarySort}
       />
-      <SiteFooter colors={colors} hideOnMobile={isLoggedIn} />
+      <SiteFooter colors={colors} />
       </div>
   )
 

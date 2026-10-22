@@ -11,6 +11,7 @@ import {
   LoginPromptToastProvider,
   MobileLoginPromptToastSlot,
 } from '@/components/preview/logged-out-login-prompt'
+import { MobileLegalButton } from '@/components/preview/mobile-legal-button'
 import { PreviewUserMenu } from '@/components/preview/preview-user-menu'
 import { PreviewVirtualWineList } from '@/components/preview/preview-virtual-wine-list'
 import { UsageTipsProvider } from '@/components/preview/usage-tips-context'
@@ -237,6 +238,7 @@ export function SharedWineList({
             />
           )}
         </main>
+        <MobileLegalButton colors={colors} />
         <SiteFooter colors={colors} />
       </div>
   )
