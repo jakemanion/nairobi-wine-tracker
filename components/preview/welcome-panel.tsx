@@ -64,16 +64,16 @@ export function WelcomePanel() {
         <h2
           id="welcome-panel-title"
           className="m-0 text-center text-xl font-semibold leading-snug"
-          style={{ color: '#111120', fontFamily: 'var(--font-dm-sans), sans-serif' }}
+          style={{ color: BRAND_GREEN, fontFamily: 'var(--font-dm-sans), sans-serif' }}
         >
-          Find the best wine for your budget
+          Find the best bottle for your budget
         </h2>
         <p
           className="m-0 mt-3 text-[13px] leading-relaxed"
           style={{ color: '#111120', fontFamily: 'var(--font-dm-sans), sans-serif' }}
         >
-          <strong>Don&apos;t waste good money on bad wine.</strong> WineDiviner helps you find the
-          best bottles for your money, whatever you want to spend.
+          <strong>Don&apos;t waste good money on bad wine.</strong> WineDiviner: Nairobi helps you
+          find the best bottles for your money, whatever you want to spend.
         </p>
         <ul
           className="m-0 mt-4 list-disc space-y-2.5 pl-5 text-[13px] leading-relaxed"
@@ -92,9 +92,10 @@ export function WelcomePanel() {
             price, quality, grape, country and more to find exactly what you fancy.
           </li>
           <li>
-            <strong style={{ color: BRAND_GREEN }}>Remember your favourites:</strong> Bookmark
-            bottles to try, track wines you&apos;d buy again, hide the ones you&apos;d rather
-            forget, and share your discoveries.
+            <strong style={{ color: BRAND_GREEN }}>Remember your favourites:</strong>
+            {' '}
+            Bookmark bottles to try, track wines you&apos;d buy again, hide the ones you&apos;d
+            rather forget, and share your discoveries.
           </li>
         </ul>
         <h3
