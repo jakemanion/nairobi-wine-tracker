@@ -15,11 +15,17 @@ export const LEGAL_LINKS = [
 type SiteFooterProps = {
   className?: string
   colors?: PreviewColors
+  /** When true (default), hide on small screens — use header/account menus for legal there. */
+  hideOnMobile?: boolean
 }
 
-export function SiteFooter({ className = '', colors = fallbackColors }: SiteFooterProps) {
+export function SiteFooter({
+  className = '',
+  colors = fallbackColors,
+  hideOnMobile = true,
+}: SiteFooterProps) {
   return (
-    <div className={`max-sm:hidden ${className}`}>
+    <div className={`${hideOnMobile ? 'max-sm:hidden' : ''} ${className}`}>
       {/* Reserves space so fixed footer does not cover page content */}
       <div className="h-10 shrink-0" aria-hidden />
       <footer

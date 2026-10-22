@@ -7,7 +7,6 @@ import { LoginNavLink } from '@/components/auth/login-nav-link'
 import { RegisterNavLink } from '@/components/auth/register-nav-link'
 import { AdminVersionBadge } from '@/components/preview/admin-version-badge'
 import { PreviewToolbar } from '@/components/preview/preview-toolbar'
-import { PreviewLegalMenu } from '@/components/preview/preview-legal-menu'
 import { PreviewMobileListFooter } from '@/components/preview/preview-mobile-list-footer'
 import {
   MobileMyWineMarkToastSlot,
@@ -237,7 +236,7 @@ export function PreviewWineList({
                 onChange={(event) => setSearchQuery(event.target.value)}
               />
             </div>
-            <div className="flex flex-shrink-0 items-center gap-2">
+            <div className="flex flex-shrink-0 items-center gap-1.5 sm:gap-2">
               {isLoggedIn ? (
                 <>
                   <UsageTipsToggle colors={colors} />
@@ -267,7 +266,6 @@ export function PreviewWineList({
               ) : (
                 <>
                   <UsageTipsToggle colors={colors} />
-                  <PreviewLegalMenu colors={colors} />
                   <LoginNavLink theme={colors.headerNavTheme} nextPath="/" />
                   <RegisterNavLink theme={colors.headerNavTheme} />
                 </>
@@ -339,7 +337,7 @@ export function PreviewWineList({
         onPrimarySortChange={handlePrimarySortChange}
         onSecondarySortChange={setSecondarySort}
       />
-      <SiteFooter colors={colors} />
+      <SiteFooter colors={colors} hideOnMobile={isLoggedIn} />
       </div>
   )
 

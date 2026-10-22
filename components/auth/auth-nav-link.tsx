@@ -21,7 +21,7 @@ export function AuthNavLink({
   return (
     <Link
       href={href}
-      className={`flex items-center text-xs px-3 py-2 rounded-lg flex-shrink-0 no-underline ${className}`}
+      className={`inline-flex flex-shrink-0 items-center rounded-lg px-2 py-1.5 text-[11px] no-underline sm:px-3 sm:py-2 sm:text-xs ${className}`}
       style={{
         background: isDark ? '#1E1E26' : '#fff',
         border: `1px solid ${isDark ? '#3A3848' : '#ccc'}`,
