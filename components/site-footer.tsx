@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { BrandLogo } from '@/components/brand-logo'
-import { FeedbackEntry } from '@/components/preview/feedback-entry'
+import { FooterFeedbackLink } from '@/components/preview/footer-feedback-link'
 import { getPreviewColors, type PreviewColors } from '@/lib/preview/preview-colors'
 
 const fallbackColors = getPreviewColors('dark')
@@ -64,21 +64,7 @@ export function SiteFooter({
                 </li>
               ))}
               <li>
-                <FeedbackEntry colors={colors}>
-                  {(openFeedback) => (
-                    <button
-                      type="button"
-                      onClick={openFeedback}
-                      className="text-[11px] no-underline hover:underline underline-offset-2 bg-transparent p-0 border-0 cursor-pointer"
-                      style={{
-                        color: colors.headerAccent,
-                        fontFamily: 'var(--font-dm-sans), sans-serif',
-                      }}
-                    >
-                      Feedback
-                    </button>
-                  )}
-                </FeedbackEntry>
+                <FooterFeedbackLink colors={colors} />
               </li>
             </ul>
           </nav>
