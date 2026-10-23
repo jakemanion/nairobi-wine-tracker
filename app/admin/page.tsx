@@ -150,6 +150,9 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
                 </span>
               ) : null}
             </Link>
+            <Link href="/admin/feedback" style={{ color: '#0a7', textDecoration: 'none' }}>
+              Feedback
+            </Link>
           </nav>
         </div>
         <Link href="/" style={{ color: '#0a7', textDecoration: 'none', fontSize: 14 }}>

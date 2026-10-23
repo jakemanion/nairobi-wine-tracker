@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
+import { FeedbackEntry } from '@/components/preview/feedback-entry'
 import { LEGAL_LINKS } from '@/components/site-footer'
 import type { PreviewColors } from '@/lib/preview/preview-colors'
 
@@ -11,7 +12,7 @@ type MobileLegalButtonProps = {
   bottomOffsetPx?: number
 }
 
-/** Fixed bottom-left Legal control for small screens (footer legal links are desktop-only). */
+/** Fixed bottom-left Legal + Feedback controls for small screens. */
 export function MobileLegalButton({
   colors,
   bottomOffsetPx = 12,
@@ -40,16 +41,25 @@ export function MobileLegalButton({
     }
   }, [open])
 
+  const cornerButtonStyle = {
+    background: colors.toolbarBg,
+    border: `1px solid ${colors.toolbarBorder}`,
+    color: colors.buttonText,
+    fontFamily: 'var(--font-dm-sans), sans-serif',
+    cursor: 'pointer' as const,
+    boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+  }
+
   return (
     <div
       ref={rootRef}
-      className="fixed left-3 z-50 flex flex-col items-start sm:hidden"
+      className="fixed left-3 z-50 flex flex-col items-start gap-1.5 sm:hidden"
       style={{ bottom: bottomOffsetPx }}
     >
       {open ? (
         <nav
           aria-label="Legal"
-          className="mb-2 flex min-w-[11rem] flex-col gap-1 p-2.5"
+          className="mb-0.5 flex min-w-[11rem] flex-col gap-1 p-2.5"
           style={{
             background: colors.toolbarBg,
             border: `1px solid ${colors.toolbarBorder}`,
@@ -79,17 +89,22 @@ export function MobileLegalButton({
         aria-haspopup="menu"
         onClick={() => setOpen((current) => !current)}
         className="rounded-md px-2.5 py-1 text-[11px] font-semibold"
-        style={{
-          background: colors.toolbarBg,
-          border: `1px solid ${colors.toolbarBorder}`,
-          color: colors.buttonText,
-          fontFamily: 'var(--font-dm-sans), sans-serif',
-          cursor: 'pointer',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
-        }}
+        style={cornerButtonStyle}
       >
         Legal
       </button>
+      <FeedbackEntry colors={colors}>
+        {(openFeedback) => (
+          <button
+            type="button"
+            onClick={openFeedback}
+            className="rounded-md px-2.5 py-1 text-[11px] font-semibold"
+            style={cornerButtonStyle}
+          >
+            Feedback
+          </button>
+        )}
+      </FeedbackEntry>
     </div>
   )
 }
