@@ -21,8 +21,8 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 
   return (
     <AuthScreen
-      heading="Log in"
-      description="Access your bookmarks, ratings, and shortlist."
+      heading="Log in to WineDiviner: Nairobi"
+      description="Access your bookmarks, buy agains, and more!"
     >
       <LoginForm nextPath={nextPath} initialError={initialError} />
     </AuthScreen>

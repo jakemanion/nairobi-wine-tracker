@@ -939,7 +939,8 @@ export function PreviewToolbarQuickFilters({
   return (
     <div className="flex w-full flex-col items-stretch sm:flex-row sm:flex-wrap">
       <div className="min-w-0 flex-1 max-sm:overflow-x-auto max-sm:overscroll-x-contain sm:p-2">
-        <div className="flex max-sm:w-max max-sm:flex-row max-sm:items-center max-sm:gap-3 sm:min-w-0 sm:w-full sm:flex-col sm:items-start sm:gap-1.5">
+        {/* Mobile: Type + Best under stacked; both rows share one horizontal scroll. */}
+        <div className="flex w-max flex-col items-start gap-1.5 sm:min-w-0 sm:w-full">
           <UsageTipTarget tipId="type-filter" className="flex-none">
             <ColourStyleToggles
               colors={colors}
