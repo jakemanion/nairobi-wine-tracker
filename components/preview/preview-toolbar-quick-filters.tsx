@@ -64,10 +64,12 @@ type FilterTabId = 'shops' | 'price' | 'wine' | 'my-wines'
 
 const CONTROL_HEIGHT = 22
 const CONTROL_FONT_SIZE = 10
+/** Resolves via `.preview-filter-panel-shell` (22px desktop, +25% on mobile). */
+const FILTER_BAR_CONTROL_HEIGHT = 'var(--preview-filter-bar-control-height, 22px)'
 
 function chipStyle(colors: PreviewColors, active: boolean): CSSProperties {
   return {
-    height: CONTROL_HEIGHT,
+    height: FILTER_BAR_CONTROL_HEIGHT,
     padding: '0 7px',
     fontSize: CONTROL_FONT_SIZE,
     lineHeight: 1.2,
@@ -196,7 +198,7 @@ function filterSelectStyle(colors: PreviewColors, active: boolean): CSSPropertie
   return {
     display: 'block',
     alignSelf: 'center',
-    height: CONTROL_HEIGHT,
+    height: FILTER_BAR_CONTROL_HEIGHT,
     fontSize: CONTROL_FONT_SIZE,
     lineHeight: 1.2,
     padding: '0 22px 0 8px',
@@ -300,12 +302,17 @@ function filterTabStyle(
   }
 }
 
-function colourToggleStyle(colors: PreviewColors, selected: boolean): CSSProperties {
+function colourToggleStyle(
+  colors: PreviewColors,
+  selected: boolean,
+  /** Filter-bar Type / Best under use the responsive CSS var; shops keep fixed height. */
+  height: number | string = CONTROL_HEIGHT,
+): CSSProperties {
   return {
     display: 'inline-flex',
     alignItems: 'center',
     gap: 5,
-    height: CONTROL_HEIGHT,
+    height,
     padding: '0 8px',
     fontSize: CONTROL_FONT_SIZE,
     lineHeight: 1.2,
@@ -370,7 +377,7 @@ export function ColourStyleToggles({
         key={style}
         type="button"
         aria-pressed={selected}
-        style={colourToggleStyle(colors, selected)}
+        style={colourToggleStyle(colors, selected, FILTER_BAR_CONTROL_HEIGHT)}
         onClick={() => toggleColour(style)}
       >
         <span
@@ -488,7 +495,7 @@ export function BestUnderToggles({
         key={price}
         type="button"
         aria-pressed={selected}
-        style={colourToggleStyle(colors, selected)}
+        style={colourToggleStyle(colors, selected, FILTER_BAR_CONTROL_HEIGHT)}
         onClick={() => onSelect(selected ? null : price)}
       >
         {price.toLocaleString()} KSH
@@ -528,7 +535,7 @@ const TAB_ICONS: Record<FilterTabId, LucideIcon> = {
   'my-wines': User,
 }
 
-export const FILTER_CONTROL_HEIGHT = CONTROL_HEIGHT
+export const FILTER_CONTROL_HEIGHT = FILTER_BAR_CONTROL_HEIGHT
 
 type MyWinesFilterBarProps = {
   colors: PreviewColors
@@ -824,7 +831,7 @@ export function PreviewSortBar({
             display: 'inline-flex',
             alignItems: 'center',
             justifyContent: 'center',
-            width: CONTROL_HEIGHT,
+            width: FILTER_BAR_CONTROL_HEIGHT,
             padding: 0,
           }}
           onClick={() => {
