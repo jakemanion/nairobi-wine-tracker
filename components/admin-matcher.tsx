@@ -632,10 +632,13 @@ const suggestionRowStyle: CSSProperties = {
   background: '#fff',
 }
 
-function formatVivinoSearchQuery(wine: Pick<WineRecord, 'producer' | 'wine_name'>): string {
-  const producer = (wine.producer ?? '').trim()
-  const wineName = (wine.wine_name ?? '').trim()
-  return `vivino ${producer} - ${wineName}`
+function formatCopyWineName(wine: Pick<WineRecord, 'wine_name'>): string {
+  return (wine.wine_name ?? '')
+    .trim()
+    .replace(/\b750\s*ml\b/gi, '')
+    .replace(/\bwine\b/gi, '')
+    .replace(/\s+/g, ' ')
+    .trim()
 }
 
 function CopyIcon() {
@@ -662,19 +665,21 @@ function CopyIcon() {
   )
 }
 
-function CopyVivinoSearchButton({ wine }: { wine: WineRecord }) {
-  const query = formatVivinoSearchQuery(wine)
+function CopyWineNameButton({ wine }: { wine: WineRecord }) {
+  const name = formatCopyWineName(wine)
 
   return (
     <button
       type="button"
-      title={`Copy search: ${query}`}
-      aria-label={`Copy Vivino search: ${query}`}
+      title={name ? `Copy name: ${name}` : 'Copy wine name'}
+      aria-label={name ? `Copy wine name: ${name}` : 'Copy wine name'}
+      disabled={!name}
       onClick={(event) => {
         event.stopPropagation()
-        void navigator.clipboard.writeText(query)
+        if (!name) return
+        void navigator.clipboard.writeText(name)
       }}
-      style={iconActionButtonStyle('default', true)}
+      style={iconActionButtonStyle('default', Boolean(name))}
     >
       <CopyIcon />
     </button>
@@ -3126,16 +3131,97 @@ function CanonicalWineImageControls({
       onKeyDown={(event) => event.stopPropagation()}
       style={{
         display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'flex-end',
-        gap: 3,
+        flexDirection: 'row',
+        alignItems: 'stretch',
+        alignSelf: 'stretch',
+        gap: 4,
         flexShrink: 0,
-        minWidth: 72,
+        marginLeft: 'auto',
       }}
     >
+      <span
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'flex-end',
+          justifyContent: 'flex-start',
+          gap: 3,
+          flexShrink: 0,
+          minWidth: 52,
+        }}
+      >
+        {usesStoreImage ? (
+          <span
+            style={{
+              fontSize: 9,
+              fontWeight: 700,
+              color: STORE_IMAGE_FRAME_COLOR,
+              letterSpacing: '0.02em',
+              lineHeight: 1.1,
+            }}
+          >
+            STORE IMG
+          </span>
+        ) : null}
+        <label
+          title={
+            showOnSite
+              ? 'Wine is visible on the public site (when verified)'
+              : 'Wine is hidden from the public site'
+          }
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 3,
+            fontSize: 10,
+            color: '#333',
+            cursor: disabled ? 'default' : 'pointer',
+            userSelect: 'none',
+          }}
+        >
+          <input
+            type="checkbox"
+            checked={showOnSite}
+            disabled={disabled}
+            onChange={(event) => void handleToggle(event)}
+            style={{ margin: 0 }}
+          />
+          Show
+        </label>
+        <button
+          type="button"
+          disabled={disabled}
+          title="Upload bottle image to Supabase Storage"
+          onClick={(event) => {
+            event.stopPropagation()
+            fileInputRef.current?.click()
+          }}
+          style={{
+            ...actionButtonStyle('default', !disabled),
+            padding: '1px 5px',
+            fontSize: 10,
+            lineHeight: 1.2,
+          }}
+        >
+          {imageBusy ? '…' : 'Upload'}
+        </button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/jpeg,image/jpg,image/png,image/webp,image/avif,.jpg,.jpeg,.png,.webp,.avif"
+          style={{ display: 'none' }}
+          onChange={(event) => void handleFileChange(event)}
+        />
+        {imageError ? (
+          <span style={{ fontSize: 9, color: '#a33', maxWidth: 90, textAlign: 'right' }}>
+            {imageError}
+          </span>
+        ) : null}
+      </span>
       <ListingThumbnail
         imageUrl={displayImage?.url}
         alt={formatWineLabel(wine)}
+        size="fill"
         frameColor={usesStoreImage ? STORE_IMAGE_FRAME_COLOR : undefined}
         title={
           usesStoreImage
@@ -3145,73 +3231,6 @@ function CanonicalWineImageControls({
               : undefined
         }
       />
-      {usesStoreImage ? (
-        <span
-          style={{
-            fontSize: 9,
-            fontWeight: 700,
-            color: STORE_IMAGE_FRAME_COLOR,
-            letterSpacing: '0.02em',
-            lineHeight: 1.1,
-          }}
-        >
-          STORE IMG
-        </span>
-      ) : null}
-      <label
-        title={
-          showOnSite
-            ? 'Wine is visible on the public site (when verified)'
-            : 'Wine is hidden from the public site'
-        }
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: 3,
-          fontSize: 10,
-          color: '#333',
-          cursor: disabled ? 'default' : 'pointer',
-          userSelect: 'none',
-        }}
-      >
-        <input
-          type="checkbox"
-          checked={showOnSite}
-          disabled={disabled}
-          onChange={(event) => void handleToggle(event)}
-          style={{ margin: 0 }}
-        />
-        Show
-      </label>
-      <button
-        type="button"
-        disabled={disabled}
-        title="Upload bottle image to Supabase Storage"
-        onClick={(event) => {
-          event.stopPropagation()
-          fileInputRef.current?.click()
-        }}
-        style={{
-          ...actionButtonStyle('default', !disabled),
-          padding: '1px 5px',
-          fontSize: 10,
-          lineHeight: 1.2,
-        }}
-      >
-        {imageBusy ? '…' : 'Upload'}
-      </button>
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/jpeg,image/jpg,image/png,image/webp,image/avif,.jpg,.jpeg,.png,.webp,.avif"
-        style={{ display: 'none' }}
-        onChange={(event) => void handleFileChange(event)}
-      />
-      {imageError ? (
-        <span style={{ fontSize: 9, color: '#a33', maxWidth: 90, textAlign: 'right' }}>
-          {imageError}
-        </span>
-      ) : null}
     </span>
   )
 }
@@ -3282,7 +3301,7 @@ function CanonicalWineRow({
     <span style={rowActionsColumnStyle}>
       <span style={rowActionsStyle}>
         <OpenReportFlag count={openReportCount} kind="wine" />
-        <CopyVivinoSearchButton wine={wine} />
+        <CopyWineNameButton wine={wine} />
         {deleteAction}
       </span>
       <VerifiedButton enabled={!busy} onClick={onVerify} />

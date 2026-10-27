@@ -14,6 +14,8 @@ import { firstListingImageUrl as resolveFirstListingImageUrl } from '@/lib/wine-
 const THUMB_DIMENSIONS = {
   default: { width: 28, minHeight: 28, maxImageHeight: 48 },
   large: { width: 56, minHeight: 56, maxImageHeight: 96 },
+  /** Stretch to the full height of the parent row (no max height cap). */
+  fill: { width: 40, minHeight: 28, maxImageHeight: null },
 } as const
 
 const PREVIEW_MAX_WIDTH = 280
@@ -71,7 +73,7 @@ function thumbStyles(size: ThumbnailSize) {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      marginLeft: 4,
+      marginLeft: size === 'fill' ? 0 : 4,
       minHeight: dims.minHeight,
     } satisfies CSSProperties,
     button: {
@@ -92,7 +94,7 @@ function thumbStyles(size: ThumbnailSize) {
       display: 'block',
       width: '100%',
       height: '100%',
-      maxHeight: dims.maxImageHeight,
+      ...(dims.maxImageHeight != null ? { maxHeight: dims.maxImageHeight } : null),
       objectFit: 'contain',
     } satisfies CSSProperties,
   }
