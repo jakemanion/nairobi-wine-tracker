@@ -48,6 +48,9 @@ export default async function AdminReportsPage() {
             <Link href="/admin" style={{ color: '#0a7', textDecoration: 'none' }}>
               Matcher
             </Link>
+            <Link href="/admin/pipeline" style={{ color: '#0a7', textDecoration: 'none' }}>
+              Pipeline
+            </Link>
             <span style={{ color: '#333', fontWeight: 600 }}>Reports</span>
             <Link href="/admin/feedback" style={{ color: '#0a7', textDecoration: 'none' }}>
               Feedback

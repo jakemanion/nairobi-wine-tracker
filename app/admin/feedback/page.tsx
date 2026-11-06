@@ -51,6 +51,9 @@ export default async function AdminFeedbackPage() {
             <Link href="/admin" style={{ color: '#0a7', textDecoration: 'none' }}>
               Matcher
             </Link>
+            <Link href="/admin/pipeline" style={{ color: '#0a7', textDecoration: 'none' }}>
+              Pipeline
+            </Link>
             <Link href="/admin/reports" style={{ color: '#0a7', textDecoration: 'none' }}>
               Reports
             </Link>

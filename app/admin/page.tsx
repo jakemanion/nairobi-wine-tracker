@@ -142,6 +142,9 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
           <span style={{ color: '#666', fontSize: 12 }}>Match listings to wines</span>
           <nav style={{ display: 'flex', gap: 10, marginLeft: 8, fontSize: 13 }}>
             <span style={{ color: '#333', fontWeight: 600 }}>Matcher</span>
+            <Link href="/admin/pipeline" style={{ color: '#0a7', textDecoration: 'none' }}>
+              Pipeline
+            </Link>
             <Link href="/admin/reports" style={{ color: '#0a7', textDecoration: 'none' }}>
               Reports
               {(openReportCounts.totalOpen ?? 0) > 0 ? (
