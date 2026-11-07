@@ -10,9 +10,11 @@
     "test:watch": "vitest",
     "scrape:carrefour": "tsx scripts/scrape-carrefour.ts",
     "migrate:images": "tsx scripts/migrate-wine-images.ts",
+    "download:images": "tsx scripts/download-wine-images.ts",
     "upload:images": "tsx scripts/upload-local-wine-images.ts",
     "enrich": "tsx src/index.ts",
-    "enrich:first": "tsx src/first-run.ts"
+    "enrich:first": "tsx src/first-run.ts",
+    "enrich:overnight": "tsx src/overnight-run.ts"
   },
   "dependencies": {
     "@opentelemetry/api-logs": "^0.223.0",

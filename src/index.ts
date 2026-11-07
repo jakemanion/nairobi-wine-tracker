@@ -16,6 +16,15 @@ async function main() {
   const supabase = createSupabaseClient(config)
   const repository = new WineRepository(supabase)
   const serpApi = new SerpApiService(config)
+  serpApi.setRateWaitHandler(({ waitMs, used, max }) => {
+    const waitSec = Math.ceil(waitMs / 1000)
+    logger.info('serp rate limit pause', {
+      waitSeconds: waitSec,
+      usedInWindow: used,
+      maxPerHour: max,
+      message: `Hit ${used}/${max} Serp searches in the last hour; waiting ~${waitSec}s before continuing`,
+    })
+  })
   const vivinoScraper = new VivinoScraperService(config)
   const pipeline = new EnrichBatchPipeline(
     config,
@@ -39,6 +48,7 @@ async function main() {
     vivinoFetchMode: config.vivinoFetchMode,
     requestDelayMs: [config.requestDelayMinMs, config.requestDelayMaxMs],
     maxBatches: config.maxBatches,
+    serpMaxPerHour: config.serpMaxPerHour,
   })
 
   if (pendingCount === 0) {

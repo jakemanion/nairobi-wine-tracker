@@ -6,6 +6,7 @@
  *   1. CSV manifest rows: filename + store_listing_id (+ optional source_image_url)
  *   2. Filename stem equal to store_listings.id (UUID) when no manifest row
  *   3. Optional --match-url-basename: unique basename match against store_listings.image_url
+ *      (exact basename first, then same stem with a different extension)
  *
  * Never maps a filename to a wine id. Never creates wines. Unmatched / ambiguous
  * files are reported only.
@@ -19,6 +20,8 @@
  * Usage (PowerShell):
  *   npx tsx scripts/upload-local-wine-images.ts --dir="D:\images" --dry-run --max=5
  *   npx tsx scripts/upload-local-wine-images.ts --dir="D:\images" --manifest=.\manifest.csv --dry-run
+ *   npx tsx scripts/upload-local-wine-images.ts --dir="D:\images" --overwrite-if-newer
+ *   npx tsx scripts/upload-local-wine-images.ts --dir="D:\images" --manifest=.\manifest.csv --changed-only
  *   npx tsx scripts/upload-local-wine-images.ts --generate-manifest=.\manifest-template.csv
  *   npm run upload:images -- --dir="D:\images" --dry-run --max=5
  *
@@ -26,6 +29,7 @@
  * Apply supabase/migrations/012_wine_hosted_images.sql (and 013/014) before uploading.
  */
 
+import { createHash } from 'node:crypto'
 import { createWriteStream } from 'node:fs'
 import { mkdir, readdir, readFile, stat } from 'node:fs/promises'
 import { basename, dirname, extname, isAbsolute, join, resolve } from 'node:path'
@@ -54,13 +58,35 @@ type CliOptions = {
   manifestPath: string | null
   generateManifestPath: string | null
   reportPath: string | null
+  statePath: string | null
   dryRun: boolean
   max: number | null
   concurrency: number
   force: boolean
   matchUrlBasename: boolean
   overwriteStorage: boolean
+  overwriteIfNewer: boolean
+  changedOnly: boolean
   recursive: boolean
+  /** Populated in main when --changed-only is set. */
+  downloadStateByFilename: Map<string, DownloadStateEntry> | null
+}
+
+type DownloadStateEntry = {
+  filename: string
+  store_listing_id: string
+  wine_id: string
+  source_image_url: string
+  sha256: string
+  bytes: number
+  downloaded_at: string
+}
+
+type DownloadStateFile = {
+  version: 1
+  dir: string
+  created_at: string
+  files: DownloadStateEntry[]
 }
 
 type ManifestRow = {
@@ -85,6 +111,7 @@ type WineRow = {
   hosted_image_path: string | null
   image_migration_status: string | null
   image_source_listing_id: string | null
+  image_migrated_at: string | null
 }
 
 type Outcome =
@@ -122,12 +149,15 @@ function parseArgs(argv: string[]): CliOptions {
   let manifestPath: string | null = null
   let generateManifestPath: string | null = null
   let reportPath: string | null = null
+  let statePath: string | null = null
   let dryRun = false
   let max: number | null = null
   let concurrency = 2
   let force = false
   let matchUrlBasename = false
   let overwriteStorage = false
+  let overwriteIfNewer = false
+  let changedOnly = false
   let recursive = true
 
   for (const arg of argv) {
@@ -145,6 +175,14 @@ function parseArgs(argv: string[]): CliOptions {
     }
     if (arg === '--overwrite-storage') {
       overwriteStorage = true
+      continue
+    }
+    if (arg === '--overwrite-if-newer') {
+      overwriteIfNewer = true
+      continue
+    }
+    if (arg === '--changed-only') {
+      changedOnly = true
       continue
     }
     if (arg === '--recursive') {
@@ -175,6 +213,10 @@ function parseArgs(argv: string[]): CliOptions {
       reportPath = arg.slice('--report='.length).trim() || null
       continue
     }
+    if (arg.startsWith('--state=')) {
+      statePath = arg.slice('--state='.length).trim() || null
+      continue
+    }
     if (arg.startsWith('--max=')) {
       const value = Number.parseInt(arg.slice('--max='.length), 10)
       if (!Number.isFinite(value) || value < 1) {
@@ -199,13 +241,17 @@ function parseArgs(argv: string[]): CliOptions {
     manifestPath,
     generateManifestPath,
     reportPath,
+    statePath,
     dryRun,
     max,
     concurrency,
     force,
     matchUrlBasename,
     overwriteStorage,
+    overwriteIfNewer,
+    changedOnly,
     recursive,
+    downloadStateByFilename: null,
   }
 }
 
@@ -217,16 +263,59 @@ Matching uses store_listings.id (never wine id filenames). Prefer a CSV manifest
 Options:
   --dir=PATH                 Local folder of images (jpg/jpeg/png/webp/avif)
   --manifest=PATH            CSV with filename,store_listing_id[,source_image_url]
-  --match-url-basename       If no listing id, match unique image_url basename
+  --match-url-basename       If no listing id, match unique image_url basename (stem ok if ext differs)
   --generate-manifest=PATH   Write a template CSV from DB (no upload)
+  --state=PATH               download-state.json path (default: --dir/download-state.json)
+  --changed-only             Upload only files whose sha256 differs from download-state.json (upserts)
   --dry-run                  Validate/match only; no upload or DB writes
   --max=N                    Process at most N image files
   --concurrency=N            Parallel uploads (default 2)
   --force                    Re-process wines already marked success
   --overwrite-storage        Allow replacing an existing storage object
+  --overwrite-if-newer       Re-upload only when local mtime is newer than image_migrated_at (upserts those)
   --no-recursive             Do not scan subfolders (default scans recursively)
   --report=PATH              CSV report path (default tmp/local-image-upload-report.csv)
 `)
+}
+
+function sha256Hex(bytes: Uint8Array): string {
+  return createHash('sha256').update(bytes).digest('hex')
+}
+
+async function loadDownloadState(stateAbs: string): Promise<Map<string, DownloadStateEntry>> {
+  let raw: unknown
+  try {
+    raw = JSON.parse(await readFile(stateAbs, 'utf8'))
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
+    throw new Error(
+      `Failed to read download state at ${stateAbs}: ${message}. ` +
+        'Run npm run download:images first, or pass --state=PATH.',
+    )
+  }
+
+  const file = raw as DownloadStateFile
+  if (file?.version !== 1 || !Array.isArray(file.files)) {
+    throw new Error(
+      `Invalid download-state.json at ${stateAbs} (expected version 1 with files[]). ` +
+        'Re-run npm run download:images to regenerate it.',
+    )
+  }
+
+  const byFilename = new Map<string, DownloadStateEntry>()
+  for (const entry of file.files) {
+    if (!entry?.filename || !entry.sha256) continue
+    byFilename.set(basename(entry.filename), entry)
+  }
+  return byFilename
+}
+
+/** True when local file should replace an existing hosted image under --overwrite-if-newer. */
+function isLocalFileNewerThanMigrated(mtimeMs: number, migratedAt: string | null): boolean {
+  if (!migratedAt) return true
+  const migratedMs = Date.parse(migratedAt)
+  if (!Number.isFinite(migratedMs)) return true
+  return mtimeMs > migratedMs
 }
 
 function createServiceClient(): SupabaseClient {
@@ -429,6 +518,14 @@ function urlBasename(url: string | null | undefined): string | null {
   }
 }
 
+/** Filename without extension (`photo.webp` → `photo`). */
+function fileStem(name: string): string {
+  const ext = extname(name)
+  if (!ext) return name
+  return name.slice(0, name.length - ext.length)
+}
+
+
 async function fetchAllListings(client: SupabaseClient): Promise<ListingRow[]> {
   const pageSize = 500
   const rows: ListingRow[] = []
@@ -464,7 +561,7 @@ async function fetchWinesByIds(client: SupabaseClient, ids: string[]): Promise<M
     const { data, error } = await client
       .from('wines')
       .select(
-        'id, producer, wine_name, hosted_image_path, image_migration_status, image_source_listing_id',
+        'id, producer, wine_name, hosted_image_path, image_migration_status, image_source_listing_id, image_migrated_at',
       )
       .in('id', chunk)
 
@@ -534,20 +631,28 @@ function buildWorkItems(
   manifestByFilename: Map<string, ManifestRow[]>,
   listingsById: Map<string, ListingRow>,
   listingsByUrlBasename: Map<string, ListingRow[]>,
+  listingsByUrlStem: Map<string, ListingRow[]>,
   options: CliOptions,
 ): WorkItem[] {
   const items: WorkItem[] = []
   const pathsByBasename = new Map<string, string[]>()
+  const pathsByStem = new Map<string, string[]>()
   for (const absolutePath of localFiles) {
     const name = basename(absolutePath)
-    const list = pathsByBasename.get(name) ?? []
-    list.push(absolutePath)
-    pathsByBasename.set(name, list)
+    const stem = fileStem(name)
+    const byName = pathsByBasename.get(name) ?? []
+    byName.push(absolutePath)
+    pathsByBasename.set(name, byName)
+    if (stem) {
+      const byStem = pathsByStem.get(stem) ?? []
+      byStem.push(absolutePath)
+      pathsByStem.set(stem, byStem)
+    }
   }
 
   for (const absolutePath of localFiles) {
     const filename = basename(absolutePath)
-    const stem = filename.slice(0, filename.length - extname(filename).length)
+    const stem = fileStem(filename)
     const duplicateLocals = pathsByBasename.get(filename) ?? [absolutePath]
     if (duplicateLocals.length > 1) {
       items.push({
@@ -562,7 +667,24 @@ function buildWorkItems(
       continue
     }
 
-    const manifestRows = manifestByFilename.get(filename) ?? manifestByFilename.get(stem) ?? []
+    const stemLocals = stem ? (pathsByStem.get(stem) ?? [absolutePath]) : [absolutePath]
+    if (stemLocals.length > 1) {
+      items.push({
+        filename,
+        absolutePath,
+        storeListingId: null,
+        sourceImageUrl: null,
+        matchMethod: 'none',
+        preOutcome: 'ambiguous',
+        preReason: `Duplicate local stem "${stem}" (${stemLocals.length} files with different extensions); keep one filetype`,
+      })
+      continue
+    }
+
+    const manifestRows = uniqueManifestRows([
+      ...(manifestByFilename.get(filename) ?? []),
+      ...(stem ? (manifestByFilename.get(stem) ?? []) : []),
+    ])
 
     if (manifestRows.length > 1) {
       items.push({
@@ -613,7 +735,12 @@ function buildWorkItems(
     }
 
     if (options.matchUrlBasename) {
-      const matches = listingsByUrlBasename.get(filename) ?? []
+      const exactMatches = listingsByUrlBasename.get(filename) ?? []
+      const stemMatches =
+        exactMatches.length === 0 && stem
+          ? (listingsByUrlStem.get(stem) ?? [])
+          : []
+      const matches = exactMatches.length > 0 ? exactMatches : stemMatches
       if (matches.length === 1) {
         items.push({
           filename,
@@ -632,7 +759,9 @@ function buildWorkItems(
           sourceImageUrl: null,
           matchMethod: 'none',
           preOutcome: 'ambiguous',
-          preReason: `Ambiguous image_url basename match (${matches.length} listings)`,
+          preReason: exactMatches.length > 1
+            ? `Ambiguous image_url basename match (${matches.length} listings)`
+            : `Ambiguous image_url stem match "${stem}" (${matches.length} listings; different extensions share this name)`,
         })
         continue
       }
@@ -652,6 +781,18 @@ function buildWorkItems(
   }
 
   return items
+}
+
+function uniqueManifestRows(rows: ManifestRow[]): ManifestRow[] {
+  const seen = new Set<string>()
+  const out: ManifestRow[] = []
+  for (const row of rows) {
+    const key = `${row.line}:${row.filename}:${row.storeListingId}`
+    if (seen.has(key)) continue
+    seen.add(key)
+    out.push(row)
+  }
+  return out
 }
 
 async function objectExists(client: SupabaseClient, path: string): Promise<boolean> {
@@ -779,22 +920,6 @@ async function processItem(
     }
   }
 
-  if (
-    !options.force &&
-    wine.image_migration_status === 'success' &&
-    wine.hosted_image_path
-  ) {
-    return {
-      ...baseReport,
-      store_listing_id: listing.id,
-      wine_id: wine.id,
-      source_image_url: sourceImageUrl,
-      storage_path: wine.hosted_image_path,
-      outcome: 'skipped',
-      reason: 'Wine already has hosted image (use --force to re-process; storage not overwritten by default)',
-    }
-  }
-
   let fileStat
   try {
     fileStat = await stat(item.absolutePath)
@@ -833,7 +958,70 @@ async function processItem(
     }
   }
 
+  const localIsNewer = isLocalFileNewerThanMigrated(fileStat.mtimeMs, wine.image_migrated_at)
+  const alreadyHosted =
+    wine.image_migration_status === 'success' && Boolean(wine.hosted_image_path)
+
+  if (alreadyHosted) {
+    if (options.overwriteIfNewer) {
+      if (!localIsNewer) {
+        return {
+          ...baseReport,
+          store_listing_id: listing.id,
+          wine_id: wine.id,
+          source_image_url: sourceImageUrl,
+          storage_path: wine.hosted_image_path ?? '',
+          outcome: 'skipped',
+          reason: `Local file not newer than image_migrated_at (${wine.image_migrated_at ?? 'null'})`,
+          bytes: String(fileStat.size),
+        }
+      }
+    } else if (options.changedOnly) {
+      // Proceed; unchanged files are skipped after the sha256 check below.
+    } else if (!options.force) {
+      return {
+        ...baseReport,
+        store_listing_id: listing.id,
+        wine_id: wine.id,
+        source_image_url: sourceImageUrl,
+        storage_path: wine.hosted_image_path ?? '',
+        outcome: 'skipped',
+        reason:
+          'Wine already has hosted image (use --force, --overwrite-if-newer, or --changed-only; storage not overwritten by default)',
+      }
+    }
+  }
+
   const bytes = new Uint8Array(await readFile(item.absolutePath))
+
+  if (options.changedOnly) {
+    const state = options.downloadStateByFilename
+    if (!state) {
+      throw new Error('Internal error: --changed-only requires download state')
+    }
+    const baseline = state.get(item.filename)
+    if (baseline) {
+      const hash = sha256Hex(bytes)
+      if (hash === baseline.sha256) {
+        return {
+          ...baseReport,
+          store_listing_id: listing.id,
+          wine_id: wine.id,
+          source_image_url: sourceImageUrl,
+          storage_path: wine.hosted_image_path ?? '',
+          outcome: 'skipped',
+          reason: 'Unchanged vs download-state.json sha256',
+          bytes: String(bytes.length),
+        }
+      }
+    }
+  }
+
+  const allowUpsert =
+    options.overwriteStorage ||
+    (options.overwriteIfNewer && localIsNewer) ||
+    options.changedOnly
+
   const validated = validateLocalImageBytes(bytes)
   if (!validated.ok) {
     await markWineStatus(
@@ -860,6 +1048,7 @@ async function processItem(
   const storagePath = wineImageStoragePath(wine.id, validated.format.extension)
 
   if (options.dryRun) {
+    const overwriteNote = allowUpsert ? '; would upsert storage' : ''
     return {
       ...baseReport,
       store_listing_id: listing.id,
@@ -867,14 +1056,14 @@ async function processItem(
       source_image_url: sourceImageUrl,
       storage_path: storagePath,
       outcome: 'success',
-      reason: `dry-run ok via ${item.matchMethod}; would upload ${validated.format.mime}`,
+      reason: `dry-run ok via ${item.matchMethod}; would upload ${validated.format.mime}${overwriteNote}`,
       bytes: String(bytes.length),
       mime: validated.format.mime,
     }
   }
 
   const exists = await objectExists(client, storagePath)
-  if (exists && !options.overwriteStorage) {
+  if (exists && !allowUpsert) {
     await markWineStatus(
       client,
       wine.id,
@@ -899,11 +1088,16 @@ async function processItem(
     }
   }
 
+  const previousPath =
+    wine.hosted_image_path && wine.hosted_image_path !== storagePath
+      ? wine.hosted_image_path
+      : null
+
   const { error: uploadError } = await client.storage
     .from(WINE_IMAGES_BUCKET)
     .upload(storagePath, bytes, {
       contentType: validated.format.mime,
-      upsert: options.overwriteStorage,
+      upsert: allowUpsert,
       cacheControl: '31536000',
     })
 
@@ -911,7 +1105,7 @@ async function processItem(
     const message = uploadError.message ?? String(uploadError)
     const alreadyExists = /already exists|Duplicate|resource already exists/i.test(message)
 
-    if (alreadyExists && !options.overwriteStorage) {
+    if (alreadyExists && !allowUpsert) {
       await markWineStatus(
         client,
         wine.id,
@@ -972,6 +1166,21 @@ async function processItem(
     false,
   )
 
+  // Drop the previous original.* when the filetype (extension) changed.
+  if (previousPath) {
+    const { error: removeError } = await client.storage
+      .from(WINE_IMAGES_BUCKET)
+      .remove([previousPath])
+    if (removeError) {
+      log('warn', 'uploaded new original but failed to remove previous storage object', {
+        wineId: wine.id,
+        previousPath,
+        storagePath,
+        error: removeError.message,
+      })
+    }
+  }
+
   return {
     ...baseReport,
     store_listing_id: listing.id,
@@ -979,7 +1188,11 @@ async function processItem(
     source_image_url: sourceImageUrl,
     storage_path: storagePath,
     outcome: 'success',
-    reason: `uploaded via ${item.matchMethod}`,
+    reason: allowUpsert
+      ? previousPath
+        ? `uploaded via ${item.matchMethod} (upsert; replaced ${basename(previousPath)})`
+        : `uploaded via ${item.matchMethod} (upsert)`
+      : `uploaded via ${item.matchMethod}`,
     bytes: String(bytes.length),
     mime: validated.format.mime,
   }
@@ -1015,6 +1228,19 @@ async function main() {
     throw new Error(`Not a directory: ${imageDir}`)
   }
 
+  if (options.changedOnly) {
+    const stateAbs = options.statePath
+      ? isAbsolute(options.statePath)
+        ? options.statePath
+        : resolve(process.cwd(), options.statePath)
+      : join(imageDir, 'download-state.json')
+    options.downloadStateByFilename = await loadDownloadState(stateAbs)
+    log('info', 'loaded download state for --changed-only', {
+      path: stateAbs,
+      files: options.downloadStateByFilename.size,
+    })
+  }
+
   log('info', 'checking storage bucket', { bucket: WINE_IMAGES_BUCKET })
   await ensureBucketOrExplain(client)
   log('info', 'storage bucket ok', { bucket: WINE_IMAGES_BUCKET })
@@ -1032,6 +1258,8 @@ async function main() {
     force: options.force,
     matchUrlBasename: options.matchUrlBasename,
     overwriteStorage: options.overwriteStorage,
+    overwriteIfNewer: options.overwriteIfNewer,
+    changedOnly: options.changedOnly,
     recursive: options.recursive,
     bucket: WINE_IMAGES_BUCKET,
     maxImageBytes: MAX_IMAGE_BYTES,
@@ -1064,12 +1292,19 @@ async function main() {
   log('info', 'store_listings loaded', { count: listings.length })
   const listingsById = new Map(listings.map((l) => [l.id, l]))
   const listingsByUrlBasename = new Map<string, ListingRow[]>()
+  const listingsByUrlStem = new Map<string, ListingRow[]>()
   for (const listing of listings) {
     const name = urlBasename(listing.image_url)
     if (!name) continue
-    const list = listingsByUrlBasename.get(name) ?? []
-    list.push(listing)
-    listingsByUrlBasename.set(name, list)
+    const byName = listingsByUrlBasename.get(name) ?? []
+    byName.push(listing)
+    listingsByUrlBasename.set(name, byName)
+    const stem = fileStem(name)
+    if (stem) {
+      const byStem = listingsByUrlStem.get(stem) ?? []
+      byStem.push(listing)
+      listingsByUrlStem.set(stem, byStem)
+    }
   }
 
   const manifestByFilename = new Map<string, ManifestRow[]>()
@@ -1084,7 +1319,7 @@ async function main() {
       const list = manifestByFilename.get(key) ?? []
       list.push(row)
       manifestByFilename.set(key, list)
-      const stem = key.slice(0, key.length - extname(key).length)
+      const stem = fileStem(key)
       if (stem && stem !== key) {
         const stemList = manifestByFilename.get(stem) ?? []
         stemList.push(row)
@@ -1099,6 +1334,7 @@ async function main() {
     manifestByFilename,
     listingsById,
     listingsByUrlBasename,
+    listingsByUrlStem,
     options,
   )
   log('info', 'work items ready', { count: workItems.length })

@@ -355,6 +355,12 @@ const perfectMatchRowStyle = {
   borderWidth: 2,
 }
 
+/** Confidence 100 + hosted image + at least one store product URL. */
+const siteReadyRowStyle = {
+  borderColor: '#1a9f5c',
+  borderWidth: 2,
+}
+
 function wineMatchConfidence(wine: WineRecord): number | null {
   const value = wine.vivino_match_confidence
   if (value == null) return null
@@ -364,6 +370,20 @@ function wineMatchConfidence(wine: WineRecord): number | null {
 
 function isPerfectMatch(wine: WineRecord): boolean {
   return wineMatchConfidence(wine) === 100
+}
+
+function hasHostedWineImage(wine: WineRecord): boolean {
+  return (
+    wine.image_migration_status === 'success' && Boolean(wine.hosted_image_path?.trim())
+  )
+}
+
+function hasStoreProductUrl(listings: StoreListingRecord[]): boolean {
+  return listings.some((listing) => Boolean(sanitizeHttpUrl(listing.store_product_url)))
+}
+
+function isSiteReadyWine(wine: WineRecord, matchedListings: StoreListingRecord[]): boolean {
+  return isPerfectMatch(wine) && hasHostedWineImage(wine) && hasStoreProductUrl(matchedListings)
 }
 
 const rowStyle = {
@@ -2977,11 +2997,20 @@ function WineInlineField({
   )
 }
 
-function wineRowStyle(wine: WineRecord, isSelected: boolean): CSSProperties {
+function wineRowStyle(
+  wine: WineRecord,
+  isSelected: boolean,
+  matchedListings: StoreListingRecord[],
+): CSSProperties {
+  const siteReady = isSiteReadyWine(wine, matchedListings)
   return {
     ...rowStyle,
     ...(isSelected ? selectedRowStyle : {}),
-    ...(isPerfectMatch(wine) ? perfectMatchRowStyle : {}),
+    ...(siteReady
+      ? siteReadyRowStyle
+      : isPerfectMatch(wine)
+        ? perfectMatchRowStyle
+        : {}),
   }
 }
 
@@ -3327,7 +3356,7 @@ function CanonicalWineRow({
         onClick={onSelect}
         onKeyDown={(event) => handleRowKeyDown(event, onSelect)}
         style={{
-          ...wineRowStyle(wine, isSelected),
+          ...wineRowStyle(wine, isSelected, matchedListings),
           ...suggestionRowStyle,
         }}
       >
@@ -3350,7 +3379,7 @@ function CanonicalWineRow({
       tabIndex={0}
       onClick={onSelect}
       onKeyDown={(event) => handleRowKeyDown(event, onSelect)}
-      style={wineRowStyle(wine, isSelected)}
+      style={wineRowStyle(wine, isSelected, matchedListings)}
     >
       {radio}
       <div style={inlineLineStyle}>

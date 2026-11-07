@@ -13,7 +13,25 @@ Upload bottle images you already downloaded (for example under `../downloads for
 | Migration status | `wines.image_migration_status` (`pending` / `success` / `failed` / `skipped`) |
 | Stable storage key | `{wine_id}/original.{ext}` |
 
-There is also `scripts/migrate-wine-images.ts`, which **downloads** from `store_listings.image_url`. This local uploader is for files already on disk.
+There is also `scripts/migrate-wine-images.ts`, which **downloads** from `store_listings.image_url` straight into Supabase (no local edit pass). For edit-then-upload, use `download:images` first (below).
+
+### Download → edit → reupload
+
+1. Download retailer images to disk for wines that still use a store-website image (writes `{store_listing_id}.{ext}`, `manifest.csv`, and `download-state.json`; does **not** touch Storage). Already-hosted wines are skipped unless you pass `--force`:
+
+   ```powershell
+   npm run download:images -- --dir="D:\wine-images"
+   ```
+
+2. Edit any images in that folder.
+
+3. Upload only files whose content changed vs the download baselines (upserts Storage):
+
+   ```powershell
+   npm run upload:images -- --dir="D:\wine-images" --manifest="D:\wine-images\manifest.csv" --changed-only
+   ```
+
+`--changed-only` requires `download-state.json` in `--dir` (or `--state=PATH`). Unchanged sha256 baselines are skipped; missing state file fails instead of uploading everything.
 
 ### Matching strategy (do not use wine ids as filenames)
 
@@ -23,7 +41,7 @@ Match in this order:
 
 1. **CSV manifest** — `filename` + `store_listing_id` (optional `source_image_url`)
 2. **Filename stem = `store_listings.id`** (UUID only)
-3. Optional **`--match-url-basename`** — unique basename of `store_listings.image_url`
+3. Optional **`--match-url-basename`** — unique basename of `store_listings.image_url` (stem match allowed if the extension differs, e.g. local `.webp` vs store `.avif`)
 
 Ambiguous or unmatched files are reported only. Listings without `wine_id` are unmatched (no wine is created).
 
@@ -93,9 +111,23 @@ npm run upload:images -- --dir="D:\wine-images" --manifest=".\tmp\manifest.csv" 
 
 # 5) Resume later — already-successful wines are skipped unless --force
 npm run upload:images -- --dir="D:\wine-images" --manifest=".\tmp\manifest.csv" --concurrency=2
+
+# 6) Re-upload only files edited since last migration (mtime > image_migrated_at)
+npm run upload:images -- --dir="D:\wine-images" --manifest=".\tmp\manifest.csv" --overwrite-if-newer --dry-run
+npm run upload:images -- --dir="D:\wine-images" --manifest=".\tmp\manifest.csv" --overwrite-if-newer
+
+# 7) Prefer this after download:images — re-upload only sha256-changed files
+npm run download:images -- --dir="D:\wine-images" --max=5
+# ...edit files...
+npm run upload:images -- --dir="D:\wine-images" --manifest="D:\wine-images\manifest.csv" --changed-only --dry-run
+npm run upload:images -- --dir="D:\wine-images" --manifest="D:\wine-images\manifest.csv" --changed-only
 ```
 
 `--dir` scans **recursively** by default (browser “Save page” puts images in a `*_files` subfolder). Use `--no-recursive` to limit to the top level.
+
+`--overwrite-if-newer` skips wines whose local file is not newer than `wines.image_migrated_at`, and upserts storage for those that are.
+
+`--changed-only` compares each file to `download-state.json` sha256 (from `download:images`) and upserts only changed files.
 
 Reports default to `tmp/local-image-upload-report-<timestamp>.csv` with outcomes: `success`, `failed`, `skipped`, `unmatched`, `ambiguous`.
 
@@ -126,6 +158,6 @@ Reports default to `tmp/local-image-upload-report-<timestamp>.csv` with outcomes
 ## Safety notes
 
 - Local files are never deleted.
-- Existing storage objects are not overwritten unless `--overwrite-storage`.
-- Successful wines are skipped on resume unless `--force`.
+- Existing storage objects are not overwritten unless `--overwrite-storage`, `--overwrite-if-newer` (for files newer than `image_migrated_at`), or `--changed-only` (for sha256 diffs vs download-state).
+- Successful wines are skipped on resume unless `--force`, `--overwrite-if-newer`, or `--changed-only`.
 - Service role key is used only by this Node script via `.env.local`.

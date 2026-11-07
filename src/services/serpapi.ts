@@ -6,6 +6,7 @@ import {
   diagnoseSerpNoResults,
   type SerpAttemptDiagnostic,
 } from '../utils/failureDiagnostics'
+import { SlidingWindowRateLimiter } from '../utils/rateLimit'
 import { withRetry } from '../utils/retry'
 import { buildSearchQueries } from '../utils/searchQuery'
 
@@ -110,7 +111,24 @@ type SerpSearchAttempt = {
 }
 
 export class SerpApiService {
-  constructor(private readonly config: EnrichmentConfig) {}
+  private readonly rateLimiter: SlidingWindowRateLimiter
+  private onRateWait:
+    | ((info: { waitMs: number; used: number; max: number }) => void)
+    | null = null
+
+  constructor(private readonly config: EnrichmentConfig) {
+    this.rateLimiter = new SlidingWindowRateLimiter(
+      config.serpMaxPerHour,
+      60 * 60 * 1000,
+    )
+  }
+
+  /** Optional hook so the pipeline can log when the hourly Serp cap forces a wait. */
+  setRateWaitHandler(
+    handler: ((info: { waitMs: number; used: number; max: number }) => void) | null,
+  ): void {
+    this.onRateWait = handler
+  }
 
   async findVivinoUrl(wine: {
     producer?: string | null
@@ -184,6 +202,10 @@ export class SerpApiService {
     try {
       const response = await withRetry(
         async () => {
+          await this.rateLimiter.acquire({
+            onWait: (info) => this.onRateWait?.(info),
+          })
+
           const { data } = await axios.get<SerpApiResponse>('https://serpapi.com/search.json', {
             params: {
               engine: 'google',

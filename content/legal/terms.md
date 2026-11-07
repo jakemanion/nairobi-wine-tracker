@@ -1,6 +1,6 @@
 # Terms of Service
 
-**Last updated:** 21 October 2026
+**Last updated:** 1 November 2026
 
 These Terms of Service (“Terms”) govern your access to and use of **WineDiviner: Nairobi** (the “Service”). By accessing or using the Service, creating an account, or clicking to accept these Terms, you agree to be bound by them.
 
@@ -49,9 +49,11 @@ You agree not to:
 
 ## 5. Wine information and third-party content
 
-Product details, store prices, availability, images, ratings, and links may come from third parties or public sources and can change without notice.
+Product details, store prices, availability, images, ratings, and links may come from third parties or public sources and can change without notice. Listings may also reflect our own curation, scoring, or editorial choices.
 
-We do **not** guarantee that any wine information is complete, accurate, current, or available for purchase. Always verify price and availability with the retailer before buying.
+We do **not** guarantee that any wine information is complete, accurate, current, or available for purchase. Mistakes can and do happen—for example, a wine may be listed with an incorrect or misleadingly high rating, description, price, or other attribute. You should not treat listings, ratings, or recommendations as guarantees of quality or value. Always verify price, availability, and suitability with the retailer (and your own judgement) before buying.
+
+You use the Service’s wine information at your own risk. We are not responsible for purchasing decisions or other consequences that result from relying on inaccurate, incomplete, or outdated listings.
 
 Third-party websites (including retailers and rating platforms) have their own terms and privacy policies. We are not responsible for those sites.
 

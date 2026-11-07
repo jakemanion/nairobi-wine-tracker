@@ -13,15 +13,10 @@
 ### Before launch (must)
 
 1. ~~**Fix or disable `/classic`**~~ — **Done (2026-10-07):** removed `/classic` route and classic-only UI; dropped `getCurrentUserId` / `DEFAULT_USER_ID`. Treat historical tasting notes on the admin account as potentially exposed.
-2. **Verify live RLS** on `wines`, `store_listings`, `store_listings_imports`, `stores`, `profiles` in Supabase Dashboard:
-   - Public catalog: SELECT for anon/authenticated as needed
-   - Writes: deny for anon/authenticated; admin via service role only
-   - Imports: no public access
-   - Profiles: users read/update own row only
-   - Then add matching migrations so config is in git
+2. ~~**Verify live RLS**~~ — **Done (2026-10-07):** catalog SELECT-only; imports deny-by-default (no policies); reviews trimmed to own-row authenticated only; profiles own-row read/update. Still worth adding matching migrations in git later.
 3. ~~**Sanitize redirects**~~ — **Done:** `lib/auth/safe-redirect.ts` used by login + `/auth/confirm` (reject `//`, schemes, query/hash).
 4. ~~**Allowlist URL schemes**~~ — **Done:** `lib/safe-http-url.ts` on admin writes + preview/admin render (`wine-card-model`, listing thumbnails, admin matcher). Classic `wine-table` UI removed earlier.
-5. **Enable MFA** on the admin Supabase account; use a strong unique password.
+5. ~~**Enable MFA**~~ — **Done (2026-10-07):** admin account has Google Authenticator + Microsoft Authenticator enrolled.
 
 ### Soon after / with launch hardening
 
@@ -209,12 +204,12 @@ Hardcoding the UUID in source identifies the high-value account if the repo is p
 | User isolation for notes/ratings/wishlist | Yes (with RLS as migrated) |
 | Admin cannot be self-granted from the browser | Yes |
 | Private data not leaked by public pages | Yes (`/classic` removed) |
-| Catalog write lockdown | **Verify live** |
-| Auth redirect safety | **No** |
+| Catalog write lockdown | Yes (verified live; migrations still nice-to-have) |
+| Auth redirect safety | Yes |
 | XSS basics for text UGC | Yes |
-| XSS basics for links | **No** |
+| XSS basics for links | Yes (http/https allowlist) |
 | Secrets hygiene (service role) | Yes |
-| Admin account hardening (MFA) | **No** |
+| Admin account hardening (MFA) | Yes (Google + Microsoft authenticators) |
 | Abuse controls | Partial (reports only) |
 
 **Bottom line:** Ship after fixing `/classic`, confirming catalog RLS (and locking it in migrations), hardening redirects/URLs, and turning on admin MFA. The core authorisation design for admin vs user is sound; the gaps are concrete bugs and missing DB lockdown evidence, not a broken privilege model.
@@ -224,7 +219,7 @@ Hardcoding the UUID in source identifies the high-value account if the repo is p
 ## Suggested first fix session
 
 1. ~~`/classic` (critical privacy)~~ — done (route removed)
-2. Redirect sanitisation (login + auth confirm)
-3. URL scheme allowlist
-4. Live Supabase RLS check + migrations
-5. Admin MFA in Supabase dashboard
+2. ~~Redirect sanitisation~~ — done
+3. ~~URL scheme allowlist~~ — done
+4. ~~Live Supabase RLS check~~ — done (git migrations still optional)
+5. ~~Admin MFA~~ — done (Google + Microsoft authenticators)

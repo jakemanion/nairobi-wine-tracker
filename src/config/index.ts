@@ -33,6 +33,8 @@ export type EnrichmentConfig = {
   onlyFullyMissingVivino: boolean
   vivinoFetchMode: VivinoFetchMode
   maxBatches: number | null
+  /** Max SerpAPI searches in any rolling hour (default 200). */
+  serpMaxPerHour: number
   logToFile: boolean
   logFilePath: string
   serpApiTimeoutMs: number
@@ -87,6 +89,8 @@ export function loadConfig(): EnrichmentConfig {
     onlyFullyMissingVivino: readBool('ENRICH_ONLY_FULLY_MISSING', false),
     vivinoFetchMode: readVivinoFetchMode(),
     maxBatches,
+    // Default 200/hour matches common SerpAPI hourly caps; leave headroom via env if needed.
+    serpMaxPerHour: readInt('ENRICH_SERP_MAX_PER_HOUR', 200, 1, 10_000),
     logToFile: readBool('ENRICH_LOG_TO_FILE', true),
     logFilePath: process.env.ENRICH_LOG_FILE ?? 'logs/vivino-enrichment.jsonl',
     serpApiTimeoutMs: readInt('ENRICH_SERPAPI_TIMEOUT_MS', 20_000, 5_000, 120_000),
