@@ -54,10 +54,15 @@ export function styleRibbonStyle(style: string | null | undefined): StyleRibbonS
   if (normalized === 'red' || normalized === 'sweet red') {
     return { label, variant: 'red', ...RED_RIBBON }
   }
-  if (normalized === 'white') {
+  if (normalized === 'white' || normalized === 'sweet white') {
     return { label, variant: 'white', ...PALE_YELLOW_RIBBON }
   }
-  if (normalized === 'rose' || normalized === 'rosé') {
+  if (
+    normalized === 'rose' ||
+    normalized === 'rosé' ||
+    normalized === 'sweet rose' ||
+    normalized === 'sweet rosé'
+  ) {
     return { label, variant: 'rose', ...PALE_PINK_RIBBON }
   }
   if (normalized === 'sparkling') {

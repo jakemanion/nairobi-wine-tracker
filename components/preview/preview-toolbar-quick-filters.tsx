@@ -113,7 +113,16 @@ const QUICK_SORT_OPTIONS: Array<{ key: SortFieldKey; label: string; dir: 'asc' |
 const GRAPE_FILTER_NONE = '__none__'
 const COUNTRY_FILTER_NONE = '__none__'
 
-const STYLE_DISPLAY_ORDER = ['Red', 'White', 'Rosé', 'Sparkling', 'Sweet Red', 'Desert Wine'] as const
+const STYLE_DISPLAY_ORDER = [
+  'Red',
+  'White',
+  'Rosé',
+  'Sparkling',
+  'Sweet Red',
+  'Sweet White',
+  'Sweet Rosé',
+  'Desert Wine',
+] as const
 
 function sortStylesForDisplay(styles: string[]): string[] {
   const orderIndex = new Map(
