@@ -2,10 +2,10 @@ import Link from 'next/link'
 import { AdminPipelinePanel } from '@/components/admin-pipeline-panel'
 import { getOpenReportCounts } from '@/app/admin/report-actions'
 import { ADMIN_UNAUTHORIZED_MESSAGE, getSessionUserId, isActorAdmin } from '@/lib/auth/admin'
+import { fetchAdminCatalog } from '@/lib/admin-catalog'
 import { toPipelineLineageSnapshot } from '@/lib/pipeline-lineage'
 import { createServerReadClient } from '@/lib/supabase-server'
 import { normalizeStoreListing, normalizeStoreListingImport } from '@/lib/store-listings'
-import type { WineRecord } from '@/lib/wines'
 
 export const dynamic = 'force-dynamic'
 
@@ -36,94 +36,16 @@ export default async function AdminPipelinePage() {
 
   const supabase = createServerReadClient()
 
-  const [
-    { data: imports, error: importsError },
-    { data: listings, error: listingsError },
-    { data: wines, error: winesError },
-    openReportCounts,
-  ] = await Promise.all([
-    supabase
-      .from('store_listings_imports')
-      .select(`
-          id,
-          store_id,
-          raw_title,
-          store_product_url,
-          image_url,
-          current_price_ksh,
-          in_stock,
-          producer,
-          vintage,
-          country,
-          region,
-          style,
-          grape_varieties,
-          status,
-          matched_store_listing_id,
-          stores (
-            id,
-            name
-          )
-        `)
-      .order('raw_title'),
-    supabase
-      .from('store_listings')
-      .select(`
-          id,
-          store_id,
-          raw_title,
-          store_product_url,
-          image_url,
-          current_price_ksh,
-          wine_id,
-          in_stock,
-          producer,
-          vintage,
-          country,
-          region,
-          style,
-          grape_varieties,
-          stores (
-            id,
-            name
-          ),
-          wines!wine_id (
-            id,
-            producer,
-            wine_name,
-            vintage
-          )
-        `)
-      .order('raw_title'),
-    supabase
-      .from('wines')
-      .select(`
-          id,
-          producer,
-          wine_name,
-          vintage,
-          country,
-          region,
-          grape_varieties,
-          style,
-          vivino_url,
-          vivino_rating,
-          vivino_match_confidence,
-          hosted_image_path,
-          image_migration_status,
-          image_source_listing_id,
-          show_on_site
-        `)
-      .order('producer')
-      .order('wine_name'),
+  const [catalog, openReportCounts] = await Promise.all([
+    fetchAdminCatalog(supabase),
     getOpenReportCounts(),
   ])
 
-  const error = importsError ?? listingsError ?? winesError
+  const { imports, listings, wines, error } = catalog
   const snapshot = toPipelineLineageSnapshot(
-    (imports ?? []).map(normalizeStoreListingImport),
-    (listings ?? []).map(normalizeStoreListing),
-    (wines ?? []) as WineRecord[],
+    imports.map(normalizeStoreListingImport),
+    listings.map(normalizeStoreListing),
+    wines,
   )
 
   return (
@@ -165,7 +87,7 @@ export default async function AdminPipelinePage() {
         </Link>
       </div>
 
-      {error && <p style={{ color: 'red' }}>Error: {error.message}</p>}
+      {error && <p style={{ color: 'red' }}>Error: {error}</p>}
 
       <div style={{ flex: 1, minHeight: 0, display: 'flex' }}>
         <AdminPipelinePanel snapshot={snapshot} />

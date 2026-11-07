@@ -5,7 +5,7 @@ import type { WineReview, WineRow } from '@/components/wine-table'
 import { getPreviewSession } from '@/lib/auth/preview-session'
 import { isAdminUserId } from '@/lib/user'
 import { getMyOpenReportedWineIds } from '@/lib/reports/report-actions'
-import { createServerReadClient } from '@/lib/supabase-server'
+import { createServerReadClient, fetchAllPaged } from '@/lib/supabase-server'
 
 export const dynamic = 'force-dynamic'
 
@@ -52,9 +52,10 @@ export default async function Home() {
   const session = await getPreviewSession()
   const supabase = createServerReadClient()
 
-  const winesQuery = supabase
-    .from('wines')
-    .select(`
+  const winesQuery = fetchAllPaged((from, to) =>
+    supabase
+      .from('wines')
+      .select(`
       id,
       producer,
       wine_name,
@@ -79,15 +80,18 @@ export default async function Home() {
         )
       )
     `)
-    .eq('vivino_match_confidence', 100)
-    .eq('show_on_site', true)
-    .order('producer')
-    .order('wine_name')
+      .eq('vivino_match_confidence', 100)
+      .eq('show_on_site', true)
+      .order('producer')
+      .order('wine_name')
+      .range(from, to),
+  )
 
   const reviewsQuery = session.isLoggedIn
-    ? supabase
-        .from('reviews')
-        .select(`
+    ? fetchAllPaged((from, to) =>
+        supabase
+          .from('reviews')
+          .select(`
           id,
           wine_id,
           overall_score,
@@ -100,12 +104,14 @@ export default async function Home() {
           tasting_notes,
           tasted_on
         `)
-        .eq('user_id', session.userId)
+          .eq('user_id', session.userId)
+          .range(from, to),
+      )
     : null
 
   const [{ data: wines, error: winesError }, reviewsResult, reportedResult] = await Promise.all([
     winesQuery,
-    reviewsQuery ?? Promise.resolve({ data: [], error: null }),
+    reviewsQuery ?? Promise.resolve({ data: [] as UserReview[], error: null }),
     getMyOpenReportedWineIds(),
   ])
 
