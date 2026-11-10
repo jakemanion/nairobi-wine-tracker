@@ -86,7 +86,7 @@ function chipStyle(colors: PreviewColors, active: boolean): CSSProperties {
 function isBestUnderActive(filters: WineFilters, primarySort: SortCriterion, price: number): boolean {
   return (
     filters.priceMax.trim() === String(price) &&
-    primarySort.key === 'vivino_rating' &&
+    primarySort.key === 'quality_rating' &&
     primarySort.dir === 'desc'
   )
 }
@@ -106,7 +106,7 @@ const QUICK_SORT_OPTIONS: Array<{ key: SortFieldKey; label: string; dir: 'asc' |
   { key: 'winery', label: 'Producer', dir: 'asc' },
   { key: 'wine_name', label: 'Name', dir: 'asc' },
   { key: 'store_prices', label: 'Price', dir: 'asc' },
-  { key: 'vivino_rating', label: 'Quality', dir: 'desc' },
+  { key: 'quality_rating', label: 'Quality', dir: 'desc' },
 ]
 
 /** Sentinel so an empty Grape/Country selection can mean "match nothing" (unlike [] = all). */
@@ -906,7 +906,7 @@ export function PreviewToolbarQuickFilters({
     }
 
     updateFilters({ priceMax: String(price) })
-    onPrimarySortChange({ key: 'vivino_rating', dir: 'desc' })
+    onPrimarySortChange({ key: 'quality_rating', dir: 'desc' })
     onSecondarySortChange({ key: 'none', dir: 'asc' })
   }
 

@@ -1,12 +1,18 @@
+import { effectiveQualityRating } from '@/lib/ratings/quality-rating'
+
+/**
+ * Value from site quality stars (0–5) and cheapest listing price (KES).
+ * Same curve as before, now anchored on internal quality instead of Vivino.
+ */
 export function calculateValueScore(
-  rating: number | null | undefined,
+  qualityRating: number | null | undefined,
   priceKES: number | null | undefined,
 ): number | null {
-  if (!rating || !priceKES || priceKES <= 0) {
+  if (!qualityRating || !priceKES || priceKES <= 0) {
     return null
   }
 
-  return Math.pow(10, rating - 4) / Math.sqrt(priceKES / 1000)
+  return Math.pow(10, qualityRating - 4) / Math.sqrt(priceKES / 1000)
 }
 
 export function parseWineRating(value: unknown): number | null {
@@ -38,10 +44,11 @@ export function minWinePriceKES(
 }
 
 export function withComputedValueScore<T extends {
-  vivino_rating?: string | number | null
+  quality_rating?: string | number | null
+  quality_rating_override?: string | number | null
   store_listings?: PriceListing[] | null
 }>(wine: T): T & { valueScore: number | null } {
-  const rating = parseWineRating(wine.vivino_rating)
+  const rating = effectiveQualityRating(wine)
   const priceKES = minWinePriceKES(wine.store_listings)
 
   return {
