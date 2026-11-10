@@ -30,12 +30,14 @@ import {
   adminMatchStoreListingToWine,
   adminMarkImportsDone,
   adminPromoteListingToCanonicalWine,
+  adminSetWineQualityOverride,
   adminSetWineShowOnSite,
   adminUpdateImportStatus,
   adminUpdateStoreListingField,
   adminUpdateWineField,
   adminUploadWineImage,
 } from '@/app/admin/actions'
+import { parseRatingNumber } from '@/lib/ratings/quality-rating'
 import {
   formatGrapeVarieties,
   parseGrapeVarietiesInput,
@@ -1560,6 +1562,27 @@ export function AdminMatcher({
     return { error: result.error }
   }
 
+  async function setWineQualityOverride(wine: WineRecord, value: string | null) {
+    const trimmed = value?.trim() ?? ''
+    let override: number | null = null
+    if (trimmed) {
+      const n = Number(trimmed)
+      if (!Number.isFinite(n)) {
+        return { error: 'Enter a valid override (0–5 in 0.25 steps), or clear to reset.' }
+      }
+      override = n
+    }
+
+    const result = await adminSetWineQualityOverride({
+      wineId: wine.id,
+      override,
+    })
+    if (result.wine) {
+      setWines((current) => updateWineInState(current, result.wine!))
+    }
+    return { error: result.error }
+  }
+
   async function uploadWineImage(wine: WineRecord, file: File) {
     const formData = new FormData()
     formData.set('file', file)
@@ -2765,6 +2788,7 @@ export function AdminMatcher({
                           void saveWineField(wine, 'vivino_match_confidence', '100')
                         }
                         onSave={saveWineField}
+                        onSetQualityOverride={setWineQualityOverride}
                         onSetShowOnSite={setWineShowOnSite}
                         onUploadImage={uploadWineImage}
                       />
@@ -2801,6 +2825,7 @@ export function AdminMatcher({
                     onDelete={() => void handleDeleteWine(wine)}
                     onVerify={() => void saveWineField(wine, 'vivino_match_confidence', '100')}
                     onSave={saveWineField}
+                    onSetQualityOverride={setWineQualityOverride}
                     onSetShowOnSite={setWineShowOnSite}
                     onUploadImage={uploadWineImage}
                   />
@@ -3059,6 +3084,7 @@ function CanonicalWineFields({
   wine,
   matchedListings,
   onSave,
+  onSetQualityOverride,
 }: {
   wine: WineRecord
   matchedListings: StoreListingRecord[]
@@ -3067,7 +3093,14 @@ function CanonicalWineFields({
     field: WineField,
     value: string | null,
   ) => Promise<{ error?: string }>
+  onSetQualityOverride: (
+    wine: WineRecord,
+    value: string | null,
+  ) => Promise<{ error?: string }>
 }) {
+  const calculated = parseRatingNumber(wine.quality_rating)
+  const override = parseRatingNumber(wine.quality_rating_override)
+
   return (
     <>
       <WineInlineField wine={wine} field="producer" onSave={onSave} />
@@ -3092,6 +3125,23 @@ function CanonicalWineFields({
       <VivinoUrlField wine={wine} onSave={onSave} />
       <Pipe />
       <WineInlineField wine={wine} field="vivino_rating" onSave={onSave} />
+      <Pipe />
+      <LabeledField label="Calculated">
+        <span style={{ fontSize: 11, color: '#333' }}>
+          {calculated == null ? '—' : String(calculated)}
+        </span>
+      </LabeledField>
+      <Pipe />
+      <LabeledField label="Override">
+        <EditableTextCell
+          label="Quality override"
+          inline
+          noTruncate
+          emptyDisplay="—"
+          value={override}
+          onSave={(next) => onSetQualityOverride(wine, next)}
+        />
+      </LabeledField>
       <Pipe />
       <WineInlineField wine={wine} field="vivino_match_confidence" onSave={onSave} />
       {matchedListings.length > 0 ? (
@@ -3277,6 +3327,7 @@ function CanonicalWineRow({
   onDelete,
   onVerify,
   onSave,
+  onSetQualityOverride,
   onSetShowOnSite,
   onUploadImage,
 }: {
@@ -3294,6 +3345,10 @@ function CanonicalWineRow({
   onSave: (
     wine: WineRecord,
     field: WineField,
+    value: string | null,
+  ) => Promise<{ error?: string }>
+  onSetQualityOverride: (
+    wine: WineRecord,
     value: string | null,
   ) => Promise<{ error?: string }>
   onSetShowOnSite: (
@@ -3363,7 +3418,12 @@ function CanonicalWineRow({
         {radio}
         <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
           <div style={inlineLineStyle}>
-            <CanonicalWineFields wine={wine} matchedListings={matchedListings} onSave={onSave} />
+            <CanonicalWineFields
+              wine={wine}
+              matchedListings={matchedListings}
+              onSave={onSave}
+              onSetQualityOverride={onSetQualityOverride}
+            />
           </div>
           {rowActions}
         </div>
@@ -3383,7 +3443,12 @@ function CanonicalWineRow({
     >
       {radio}
       <div style={inlineLineStyle}>
-        <CanonicalWineFields wine={wine} matchedListings={matchedListings} onSave={onSave} />
+        <CanonicalWineFields
+          wine={wine}
+          matchedListings={matchedListings}
+          onSave={onSave}
+          onSetQualityOverride={onSetQualityOverride}
+        />
       </div>
       {rowActions}
       {imageControls}

@@ -80,6 +80,9 @@ export default async function AdminPipelinePage() {
             <Link href="/admin/feedback" style={{ color: '#0a7', textDecoration: 'none' }}>
               Feedback
             </Link>
+            <Link href="/admin/ratings" style={{ color: '#0a7', textDecoration: 'none' }}>
+              Ratings
+            </Link>
           </nav>
         </div>
         <Link href="/" style={{ color: '#0a7', textDecoration: 'none', fontSize: 14 }}>

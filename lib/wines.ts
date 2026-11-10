@@ -21,6 +21,10 @@ export type WineRecord = {
   vivino_rating: string | number | null
   vivino_match_confidence: number | null
   vivino_enrichment_status: VivinoEnrichmentStatus | null
+  /** Lookup-derived site quality stars from vivino_rating. */
+  quality_rating?: number | string | null
+  /** Admin override; when set, site uses this instead of quality_rating. */
+  quality_rating_override?: number | string | null
   hosted_image_path?: string | null
   image_migration_status?: string | null
   image_source_listing_id?: string | null
@@ -52,6 +56,8 @@ const wineSelect = `
   vivino_rating,
   vivino_match_confidence,
   vivino_enrichment_status,
+  quality_rating,
+  quality_rating_override,
   hosted_image_path,
   image_migration_status,
   image_source_listing_id,

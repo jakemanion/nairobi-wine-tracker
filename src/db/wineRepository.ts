@@ -1,4 +1,9 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
+import {
+  loadLookupTable,
+  vivinoToQualityRating,
+  type VivinoStarLookupTable,
+} from '@/lib/ratings/quality-rating'
 
 export type VivinoEnrichmentStatus =
   | 'matched'
@@ -26,6 +31,7 @@ export type WineEnrichmentRecord = {
 export type WineEnrichmentUpdate = {
   vivino_url?: string | null
   vivino_rating?: string | number | null
+  quality_rating?: number | null
   vivino_review_count?: number | null
   country?: string | null
   region?: string | null
@@ -90,7 +96,15 @@ function applyPendingQuery<T extends { is: Function; or: Function }>(
 }
 
 export class WineRepository {
+  private lookupTable: VivinoStarLookupTable | null = null
+
   constructor(private readonly client: SupabaseClient) {}
+
+  async getLookupTable(): Promise<VivinoStarLookupTable> {
+    if (this.lookupTable) return this.lookupTable
+    this.lookupTable = await loadLookupTable(this.client)
+    return this.lookupTable
+  }
 
   async fetchPendingBatch(
     limit: number,
@@ -148,6 +162,7 @@ export class WineRepository {
     },
     confidence: number,
     status: VivinoEnrichmentStatus,
+    lookupTable?: VivinoStarLookupTable,
   ): WineEnrichmentUpdate {
     const update: WineEnrichmentUpdate = {
       vivino_last_checked: new Date().toISOString(),
@@ -160,6 +175,7 @@ export class WineRepository {
     }
     if (wine.vivino_rating == null && scraped.rating != null) {
       update.vivino_rating = scraped.rating
+      update.quality_rating = vivinoToQualityRating(scraped.rating, lookupTable)
     }
     if (wine.vivino_review_count == null && scraped.reviewCount != null) {
       update.vivino_review_count = scraped.reviewCount

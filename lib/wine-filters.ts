@@ -1,6 +1,6 @@
 import { minWinePriceKES } from '@/lib/calculate-value-score'
 import { listGrapeVarieties } from '@/lib/grape-varieties'
-import { vivinoToStarRating } from '@/lib/ratings/vivino-star-rating'
+import { effectiveQualityRating } from '@/lib/ratings/quality-rating'
 import type { WineRow } from '@/components/wine-table'
 
 export type WishlistFilterValue = 'unset' | 0 | 1
@@ -181,13 +181,6 @@ function parseBound(raw: string): number | null {
   const trimmed = raw.trim()
   if (!trimmed) return null
   const n = parseFloat(trimmed)
-  return Number.isFinite(n) ? n : null
-}
-
-function ratingNum(v: unknown): number | null {
-  if (v == null || v === '') return null
-  if (typeof v === 'number' && Number.isFinite(v)) return v
-  const n = parseFloat(String(v))
   return Number.isFinite(n) ? n : null
 }
 
@@ -422,8 +415,8 @@ export function filterWines<T extends WineRow>(wines: T[], filters: WineFilters)
     if (priceMin != null && (price == null || price < priceMin)) return false
     if (priceMax != null && (price == null || price > priceMax)) return false
 
-    // vivinoMin/Max store site star-rating thresholds (frontend mapping from Vivino)
-    const starRating = vivinoToStarRating(ratingNum(wine.vivino_rating))
+    // vivinoMin/Max store site quality-star thresholds (stored effective rating)
+    const starRating = effectiveQualityRating(wine)
     if (vivinoMin != null && (starRating == null || starRating < vivinoMin)) return false
     if (vivinoMax != null && (starRating == null || starRating > vivinoMax)) return false
 

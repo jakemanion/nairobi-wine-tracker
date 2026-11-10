@@ -1,5 +1,6 @@
 import type { SortCriterion, SortDir, SortFieldKey } from '@/components/wine-filter-panel'
 import { minWinePriceKES } from '@/lib/calculate-value-score'
+import { effectiveQualityRating } from '@/lib/ratings/quality-rating'
 
 export type WineReview = {
   id: string
@@ -27,6 +28,8 @@ export type WineRow = {
   style: string | null
   vivino_url: string | null
   vivino_rating: string | number | null
+  quality_rating?: number | string | null
+  quality_rating_override?: number | string | null
   hosted_image_path?: string | null
   image_migration_status?: string | null
   show_on_site?: boolean | null
@@ -132,8 +135,8 @@ function compareWineField(a: DisplayWineRow, b: DisplayWineRow, key: SortFieldKe
       return compareEmptyLast(!as, !bs, () => as.localeCompare(bs, undefined, { sensitivity: 'base' }))
     }
     case 'vivino_rating': {
-      const an = ratingNum(a.vivino_rating)
-      const bn = ratingNum(b.vivino_rating)
+      const an = effectiveQualityRating(a)
+      const bn = effectiveQualityRating(b)
       return compareEmptyLast(an == null, bn == null, () => (an as number) - (bn as number))
     }
     case 'value_score': {
@@ -188,7 +191,7 @@ function isSortFieldEmpty(wine: DisplayWineRow, key: SortFieldKey): boolean {
     case 'style':
       return !str(wine.style)
     case 'vivino_rating':
-      return ratingNum(wine.vivino_rating) == null
+      return effectiveQualityRating(wine) == null
     case 'value_score':
       return wine.valueScore == null
     case 'store_prices':

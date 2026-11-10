@@ -33,7 +33,7 @@ import {
   type PreviewColors,
   type PreviewVisualStyle,
 } from '@/lib/preview/preview-colors'
-import { formatStarRating, vivinoToStarRating } from '@/lib/ratings/vivino-star-rating'
+import { formatStarRating } from '@/lib/ratings/quality-rating'
 import { valueScoreToStarRating } from '@/lib/ratings/value-star-rating'
 import { trackEvent } from '@/lib/analytics'
 import { saveReviewField } from '@/lib/reviews'
@@ -253,16 +253,18 @@ function StarRatingMeter({
 
 function WineStarRating({
   vivinoRating,
+  qualityRating,
   vivinoUrl,
   valueScore,
   mutedColor,
 }: {
   vivinoRating: number | null
+  qualityRating: number | null
   vivinoUrl: string | null
   valueScore: number | null
   mutedColor: string
 }) {
-  const qualityStars = vivinoToStarRating(vivinoRating)
+  const qualityStars = qualityRating
   const valueStars = valueScoreToStarRating(valueScore)
   const hasVivino = vivinoRating != null
   const vivinoLabel = hasVivino ? `${vivinoRating.toFixed(1)} on Vivino` : 'Vivino'
@@ -819,6 +821,7 @@ export function PreviewWineCard({
           {/* Row 1 on mobile: ratings. Column on desktop. */}
           <WineStarRating
             vivinoRating={wine.vivinoRating}
+            qualityRating={wine.qualityRating}
             vivinoUrl={wine.vivinoUrl}
             valueScore={wine.valueScore}
             mutedColor={infoMuted}

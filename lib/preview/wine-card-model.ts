@@ -1,6 +1,7 @@
 import type { WineRow } from '@/components/wine-table'
 import { calculateValueScore, minWinePriceKES } from '@/lib/calculate-value-score'
 import { formatGrapeVarieties } from '@/lib/grape-varieties'
+import { effectiveQualityRating } from '@/lib/ratings/quality-rating'
 import { sanitizeHttpUrl } from '@/lib/safe-http-url'
 import { resolveWineDisplayImage } from '@/lib/wine-images'
 
@@ -23,6 +24,7 @@ export type PreviewWineCardData = {
   style: string | null
   grapes: string[]
   vivinoRating: number | null
+  qualityRating: number | null
   vivinoUrl: string | null
   valueScore: number | null
   prices: Array<{ shop: string; price: number; url: string | null }>
@@ -121,6 +123,7 @@ export function toPreviewWineCard(wine: WineRow): PreviewWineCardData {
     style,
     grapes: parseGrapes(wine.grape_varieties),
     vivinoRating,
+    qualityRating: effectiveQualityRating(wine),
     vivinoUrl: sanitizeHttpUrl(wine.vivino_url),
     valueScore: calculateValueScore(vivinoRating, priceKES),
     prices,

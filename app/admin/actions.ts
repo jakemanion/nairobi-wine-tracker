@@ -15,6 +15,13 @@ import {
   type StoreListingImportRecord,
   type StoreListingRecord,
 } from '@/lib/store-listings'
+import {
+  isValidQualityOverride,
+  loadLookupTable,
+  parseRatingNumber,
+  vivinoToQualityRating,
+  type VivinoStarLookupTable,
+} from '@/lib/ratings/quality-rating'
 import type { WineField, WineRecord } from '@/lib/wines'
 
 const wineSelect = `
@@ -30,6 +37,8 @@ const wineSelect = `
   vivino_rating,
   vivino_match_confidence,
   vivino_enrichment_status,
+  quality_rating,
+  quality_rating_override,
   hosted_image_path,
   image_migration_status,
   image_source_listing_id,
@@ -115,7 +124,42 @@ function getAdminClient() {
 
 function revalidateWinePages() {
   revalidatePath('/admin')
+  revalidatePath('/admin/ratings')
   revalidatePath('/')
+}
+
+async function recomputeAllQualityRatings(
+  client: NonNullable<ReturnType<typeof getAdminClient>['client']>,
+  table: VivinoStarLookupTable,
+): Promise<{ updated: number; error?: string }> {
+  const { data, error } = await client.from('wines').select('id, vivino_rating')
+  if (error) return { updated: 0, error: error.message }
+
+  const rows = data ?? []
+  let updated = 0
+  const chunkSize = 100
+
+  for (let i = 0; i < rows.length; i += chunkSize) {
+    const chunk = rows.slice(i, i + chunkSize)
+    const results = await Promise.all(
+      chunk.map((row) => {
+        const quality = vivinoToQualityRating(
+          parseRatingNumber(row.vivino_rating),
+          table,
+        )
+        return client
+          .from('wines')
+          .update({ quality_rating: quality })
+          .eq('id', row.id)
+      }),
+    )
+    for (const result of results) {
+      if (result.error) return { updated, error: result.error.message }
+      updated += 1
+    }
+  }
+
+  return { updated }
 }
 
 export async function adminUpdateWineField({
@@ -140,9 +184,25 @@ export async function adminUpdateWineField({
     nextValue = normalized.value
   }
 
+  const updatePayload: Record<string, string | number | null> = {
+    [field]: nextValue,
+  }
+
+  if (field === 'vivino_rating') {
+    try {
+      const table = await loadLookupTable(client)
+      updatePayload.quality_rating = vivinoToQualityRating(
+        parseRatingNumber(nextValue),
+        table,
+      )
+    } catch (error) {
+      return { error: adminErrorMessage(error, 'Failed to recompute quality rating.') }
+    }
+  }
+
   const { data, error } = await client
     .from('wines')
-    .update({ [field]: nextValue })
+    .update(updatePayload)
     .eq('id', wineId)
     .select(wineSelect)
     .maybeSingle()
@@ -152,6 +212,139 @@ export async function adminUpdateWineField({
 
   revalidateWinePages()
   return { wine: data as WineRecord }
+}
+
+export async function adminSetWineQualityOverride({
+  wineId,
+  override,
+}: {
+  wineId: string
+  override: number | null
+}): Promise<WineMutationResult> {
+  const access = await requireAdminAccess()
+  if (!access.ok) return { error: access.error }
+
+  if (!isValidQualityOverride(override)) {
+    return { error: 'Override must be between 0 and 5 in 0.25 steps, or empty to clear.' }
+  }
+
+  const { client, configError } = getAdminClient()
+  if (!client) return { error: configError! }
+
+  const { data, error } = await client
+    .from('wines')
+    .update({ quality_rating_override: override })
+    .eq('id', wineId)
+    .select(wineSelect)
+    .maybeSingle()
+
+  if (error) return { error: error.message }
+  if (!data) return { error: 'Update failed — no row returned.' }
+
+  revalidateWinePages()
+  return { wine: data as WineRecord }
+}
+
+export type VivinoStarLookupEntry = {
+  vivino_key: string
+  star_rating: number
+}
+
+export async function adminLoadVivinoStarLookup(): Promise<
+  { entries: VivinoStarLookupEntry[]; error?: undefined } | { entries?: undefined; error: string }
+> {
+  const access = await requireAdminAccess()
+  if (!access.ok) return { error: access.error }
+
+  const { client, configError } = getAdminClient()
+  if (!client) return { error: configError! }
+
+  const { data, error } = await client
+    .from('vivino_star_lookup')
+    .select('vivino_key, star_rating')
+    .order('vivino_key', { ascending: true })
+
+  if (error) return { error: error.message }
+
+  const entries: VivinoStarLookupEntry[] = (data ?? []).map((row) => ({
+    vivino_key: String(row.vivino_key),
+    star_rating: parseRatingNumber(row.star_rating) ?? 0,
+  }))
+
+  return { entries }
+}
+
+export async function adminSaveVivinoStarLookup(
+  entries: VivinoStarLookupEntry[],
+): Promise<{ updatedWines: number; error?: string }> {
+  const access = await requireAdminAccess()
+  if (!access.ok) return { updatedWines: 0, error: access.error }
+
+  const { client, configError } = getAdminClient()
+  if (!client) return { updatedWines: 0, error: configError! }
+
+  if (!Array.isArray(entries) || entries.length === 0) {
+    return { updatedWines: 0, error: 'Lookup table cannot be empty.' }
+  }
+
+  const seen = new Set<string>()
+  const normalized: VivinoStarLookupEntry[] = []
+  for (const entry of entries) {
+    const key = String(entry.vivino_key ?? '').trim()
+    if (!/^\d+\.\d$/.test(key)) {
+      return { updatedWines: 0, error: `Invalid Vivino key "${key}" (expected one decimal, e.g. 3.5).` }
+    }
+    if (seen.has(key)) {
+      return { updatedWines: 0, error: `Duplicate Vivino key "${key}".` }
+    }
+    seen.add(key)
+    if (!isValidQualityOverride(entry.star_rating)) {
+      return {
+        updatedWines: 0,
+        error: `Invalid star rating for ${key} (need 0–5 in 0.25 steps).`,
+      }
+    }
+    normalized.push({ vivino_key: key, star_rating: entry.star_rating })
+  }
+
+  const now = new Date().toISOString()
+  const { error: upsertError } = await client.from('vivino_star_lookup').upsert(
+    normalized.map((row) => ({
+      vivino_key: row.vivino_key,
+      star_rating: row.star_rating,
+      updated_at: now,
+    })),
+    { onConflict: 'vivino_key' },
+  )
+  if (upsertError) return { updatedWines: 0, error: upsertError.message }
+
+  const keepKeys = normalized.map((row) => row.vivino_key)
+  const { data: existing, error: existingError } = await client
+    .from('vivino_star_lookup')
+    .select('vivino_key')
+  if (existingError) return { updatedWines: 0, error: existingError.message }
+
+  const toDelete = (existing ?? [])
+    .map((row) => String(row.vivino_key))
+    .filter((key) => !keepKeys.includes(key))
+  if (toDelete.length > 0) {
+    const { error: deleteError } = await client
+      .from('vivino_star_lookup')
+      .delete()
+      .in('vivino_key', toDelete)
+    if (deleteError) return { updatedWines: 0, error: deleteError.message }
+  }
+
+  const table: VivinoStarLookupTable = Object.fromEntries(
+    normalized.map((row) => [row.vivino_key, row.star_rating]),
+  )
+  const recompute = await recomputeAllQualityRatings(client, table)
+  if (recompute.error) {
+    return { updatedWines: recompute.updated, error: recompute.error }
+  }
+
+  revalidateWinePages()
+  return { updatedWines: recompute.updated }
 }
 
 export async function adminCreateWine(

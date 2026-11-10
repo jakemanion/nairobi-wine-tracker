@@ -1,3 +1,4 @@
+import type { VivinoStarLookupTable } from '@/lib/ratings/quality-rating'
 import type { EnrichmentConfig } from '../config'
 import type { WineEnrichmentRecord, WineRepository } from '../db/wineRepository'
 import { scoreWineMatch } from '../services/matcher'
@@ -38,11 +39,13 @@ export class EnrichBatchPipeline {
       failed: 0,
     }
 
+    const lookupTable = await this.repository.getLookupTable()
+
     for (const wine of wines) {
       summary.processed += 1
 
       try {
-        const outcome = await this.enrichWine(wine)
+        const outcome = await this.enrichWine(wine, lookupTable)
         if (outcome === 'matched') summary.matched += 1
         else if (outcome === 'review_required') summary.reviewRequired += 1
         else summary.failed += 1
@@ -151,6 +154,7 @@ export class EnrichBatchPipeline {
 
   private async enrichWine(
     wine: WineEnrichmentRecord,
+    lookupTable: VivinoStarLookupTable,
   ): Promise<'matched' | 'review_required' | 'failed'> {
     let vivinoUrl = wine.vivino_url
     let serpResult: SerpApiResult | null = null
@@ -213,6 +217,7 @@ export class EnrichBatchPipeline {
         { url: vivinoUrl },
         0,
         'review_required',
+        lookupTable,
       )
       await this.repository.updateWine(wine.id, update)
       this.logger.result({
@@ -242,6 +247,7 @@ export class EnrichBatchPipeline {
       },
       match.confidence,
       match.status,
+      lookupTable,
     )
 
     await this.repository.updateWine(wine.id, update)
