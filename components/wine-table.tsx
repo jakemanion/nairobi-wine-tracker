@@ -137,7 +137,17 @@ function compareWineField(a: DisplayWineRow, b: DisplayWineRow, key: SortFieldKe
     case 'vivino_rating': {
       const an = effectiveQualityRating(a)
       const bn = effectiveQualityRating(b)
-      return compareEmptyLast(an == null, bn == null, () => (an as number) - (bn as number))
+      const qualityCmp = compareEmptyLast(
+        an == null,
+        bn == null,
+        () => (an as number) - (bn as number),
+      )
+      if (qualityCmp !== 0) return qualityCmp
+
+      // Same quality stars: order by raw Vivino so ties stay consistent.
+      const av = ratingNum(a.vivino_rating)
+      const bv = ratingNum(b.vivino_rating)
+      return compareEmptyLast(av == null, bv == null, () => (av as number) - (bv as number))
     }
     case 'value_score': {
       const an = a.valueScore
