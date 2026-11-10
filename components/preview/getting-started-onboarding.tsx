@@ -42,7 +42,7 @@ function isEligibleForOnboarding(): boolean {
 function isBestUnderActive(filters: WineFilters, primarySort: SortCriterion, price: number): boolean {
   return (
     filters.priceMax.trim() === String(price) &&
-    primarySort.key === 'quality_rating' &&
+    primarySort.key === 'vivino_rating' &&
     primarySort.dir === 'desc'
   )
 }
@@ -100,7 +100,7 @@ export function GettingStartedOnboarding({
     }
 
     onFiltersChange({ ...filters, priceMax: String(price) })
-    onPrimarySortChange({ key: 'quality_rating', dir: 'desc' })
+    onPrimarySortChange({ key: 'vivino_rating', dir: 'desc' })
     onSecondarySortChange({ key: 'none', dir: 'asc' })
   }
 

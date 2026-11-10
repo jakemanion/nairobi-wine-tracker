@@ -9,9 +9,9 @@ export type TriedStatusFilterValue = 'unset' | 1 | 2
 export type WineFilters = {
   priceMin: string
   priceMax: string
-  /** Site quality star thresholds (0–5). */
-  qualityMin: string
-  qualityMax: string
+  /** Site star-rating thresholds (0–5), not raw Vivino scores. */
+  vivinoMin: string
+  vivinoMax: string
   wishlist: WishlistFilterValue[]
   triedStatus: TriedStatusFilterValue[]
   stores: string[]
@@ -36,8 +36,8 @@ export type WineFilters = {
 export const EMPTY_WINE_FILTERS: WineFilters = {
   priceMin: '',
   priceMax: '',
-  qualityMin: '',
-  qualityMax: '',
+  vivinoMin: '',
+  vivinoMax: '',
   wishlist: [],
   triedStatus: [],
   stores: [],
@@ -379,8 +379,8 @@ export function countActiveFilters(filters: WineFilters): number {
   let count = 0
   if (filters.priceMin.trim()) count += 1
   if (filters.priceMax.trim()) count += 1
-  if (filters.qualityMin.trim()) count += 1
-  if (filters.qualityMax.trim()) count += 1
+  if (filters.vivinoMin.trim()) count += 1
+  if (filters.vivinoMax.trim()) count += 1
   if (filters.wishlist.length > 0) count += 1
   if (filters.triedStatus.length > 0) count += 1
   if (filters.stores.length > 0) count += 1
@@ -401,8 +401,8 @@ export function countActiveFilters(filters: WineFilters): number {
 export function filterWines<T extends WineRow>(wines: T[], filters: WineFilters): T[] {
   const priceMin = parseBound(filters.priceMin)
   const priceMax = parseBound(filters.priceMax)
-  const qualityMin = parseBound(filters.qualityMin)
-  const qualityMax = parseBound(filters.qualityMax)
+  const vivinoMin = parseBound(filters.vivinoMin)
+  const vivinoMax = parseBound(filters.vivinoMax)
   const producerFilter = filters.producer.trim()
   const countryFilter = filters.country.trim()
   const selectedGrapes = filters.grapes.map((grape) => grape.toLowerCase())
@@ -415,9 +415,10 @@ export function filterWines<T extends WineRow>(wines: T[], filters: WineFilters)
     if (priceMin != null && (price == null || price < priceMin)) return false
     if (priceMax != null && (price == null || price > priceMax)) return false
 
+    // vivinoMin/Max store site quality-star thresholds (stored effective rating)
     const starRating = effectiveQualityRating(wine)
-    if (qualityMin != null && (starRating == null || starRating < qualityMin)) return false
-    if (qualityMax != null && (starRating == null || starRating > qualityMax)) return false
+    if (vivinoMin != null && (starRating == null || starRating < vivinoMin)) return false
+    if (vivinoMax != null && (starRating == null || starRating > vivinoMax)) return false
 
     if (filters.wishlist.length > 0) {
       const wishlist = normalizeWishlist(wine.review?.wishlist)

@@ -19,7 +19,7 @@ export type SortFieldKey =
   | 'region'
   | 'grapes'
   | 'style'
-  | 'quality_rating'
+  | 'vivino_rating'
   | 'value_score'
   | 'store_prices'
   | 'my_rating'
@@ -43,7 +43,7 @@ const SORT_FIELD_OPTIONS: Array<{ value: SortFieldKey; label: string }> = [
   { value: 'region', label: 'Region' },
   { value: 'grapes', label: 'Grapes' },
   { value: 'style', label: 'Style' },
-  { value: 'quality_rating', label: 'Quality' },
+  { value: 'vivino_rating', label: 'Quality' },
   { value: 'value_score', label: 'Value score' },
   { value: 'store_prices', label: 'Store price' },
   { value: 'my_rating', label: 'My quality' },
@@ -233,7 +233,7 @@ const checkboxGroupStyle: CSSProperties = {
 function defaultSortDir(key: SortFieldKey): SortDir {
   switch (key) {
     case 'value_score':
-    case 'quality_rating':
+    case 'vivino_rating':
     case 'my_rating':
     case 'wishlist':
     case 'tried_status':
@@ -338,9 +338,9 @@ export function WineFilterPanel({
                   max={5}
                   step={0.25}
                   placeholder="Any"
-                  value={filters.qualityMin}
+                  value={filters.vivinoMin}
                   style={controlStyle}
-                  onChange={(event) => updateFilters({ qualityMin: event.target.value })}
+                  onChange={(event) => updateFilters({ vivinoMin: event.target.value })}
                 />
               </label>
               <label style={fieldLabelStyle}>
@@ -352,9 +352,9 @@ export function WineFilterPanel({
                   max={5}
                   step={0.25}
                   placeholder="Any"
-                  value={filters.qualityMax}
+                  value={filters.vivinoMax}
                   style={controlStyle}
-                  onChange={(event) => updateFilters({ qualityMax: event.target.value })}
+                  onChange={(event) => updateFilters({ vivinoMax: event.target.value })}
                 />
               </label>
               <label style={fieldLabelStyle}>

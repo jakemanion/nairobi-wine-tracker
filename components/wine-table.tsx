@@ -134,7 +134,7 @@ function compareWineField(a: DisplayWineRow, b: DisplayWineRow, key: SortFieldKe
       const bs = str(b.style).toLowerCase()
       return compareEmptyLast(!as, !bs, () => as.localeCompare(bs, undefined, { sensitivity: 'base' }))
     }
-    case 'quality_rating': {
+    case 'vivino_rating': {
       const an = effectiveQualityRating(a)
       const bn = effectiveQualityRating(b)
       return compareEmptyLast(an == null, bn == null, () => (an as number) - (bn as number))
@@ -190,7 +190,7 @@ function isSortFieldEmpty(wine: DisplayWineRow, key: SortFieldKey): boolean {
       return !formatGrapeVarieties(wine.grape_varieties)
     case 'style':
       return !str(wine.style)
-    case 'quality_rating':
+    case 'vivino_rating':
       return effectiveQualityRating(wine) == null
     case 'value_score':
       return wine.valueScore == null
