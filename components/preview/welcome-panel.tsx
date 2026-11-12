@@ -70,12 +70,47 @@ export function WelcomePanel() {
           Welcome to WineDiviner: Nairobi!
         </h2>
         <ul
-          className="m-0 mt-4 list-disc space-y-2.5 pl-5 text-[13px] leading-relaxed"
+          className="m-0 mt-4 list-none space-y-2.5 p-0 text-[13px] leading-relaxed"
           style={{ color: '#111120', fontFamily: 'var(--font-dm-sans), sans-serif' }}
         >
-          <li>We list over 1000 bottles available in Nairobi</li>
-          <li>Every bottle is rated for quality and value</li>
-          <li>All to take the guesswork out of just buying some wine</li>
+          <li className="flex gap-2.5">
+            <span
+              aria-hidden="true"
+              className="shrink-0 text-[17px] leading-[1.35]"
+              style={{ color: BRAND_GREEN }}
+            >
+              ★
+            </span>
+            <span>
+              We list over{' '}
+              <strong style={{ color: BRAND_GREEN }}>1000 bottles of wine</strong> available in
+              Nairobi
+            </span>
+          </li>
+          <li className="flex gap-2.5">
+            <span
+              aria-hidden="true"
+              className="shrink-0 text-[17px] leading-[1.35]"
+              style={{ color: BRAND_GREEN }}
+            >
+              ★
+            </span>
+            <span>
+              Every bottle is rated for{' '}
+              <strong style={{ color: BRAND_GREEN }}>quality</strong> and{' '}
+              <strong style={{ color: BRAND_GREEN }}>value</strong>
+            </span>
+          </li>
+          <li className="flex gap-2.5">
+            <span
+              aria-hidden="true"
+              className="shrink-0 text-[17px] leading-[1.35]"
+              style={{ color: BRAND_GREEN }}
+            >
+              ★
+            </span>
+            <span>So you can find good wine without all the guesswork</span>
+          </li>
         </ul>
         <p
           className="m-0 mt-5 text-center text-[13px] leading-relaxed"
@@ -102,7 +137,7 @@ export function WelcomePanel() {
             }}
             onClick={dismiss}
           >
-            Start exploring!
+            Start Exploring!
           </button>
         </div>
       </div>

@@ -225,7 +225,7 @@ export function GettingStartedOnboarding({
             }}
             onClick={dismissForever}
           >
-            Done! (It&apos;s simple as that)
+            Done! (It&apos;s as simple as that)
           </button>
         </div>
       </div>
