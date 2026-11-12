@@ -93,7 +93,7 @@ export function AgeGate() {
           className="m-0 text-lg font-semibold"
           style={{ color: BRAND_GREEN, fontFamily: 'var(--font-dm-sans), sans-serif' }}
         >
-          Welcome to WineDiviner: Nairobi
+          Age verification
         </h2>
         <p
           className="m-0 mt-4 text-[13px] font-semibold leading-relaxed"

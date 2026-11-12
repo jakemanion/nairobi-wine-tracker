@@ -189,15 +189,18 @@ export function GettingStartedOnboarding({
           className="m-0 mt-3 text-[13px] leading-relaxed"
           style={{ color: '#111120', fontFamily: 'var(--font-dm-sans), sans-serif' }}
         >
-          WineDiviner is a database of almost every bottle of wine available in Nairobi. Let&apos;s
-          filter that list down to what you&apos;re looking for:
+          <strong>
+            <em>WineDiviner: Nairobi</em>
+          </strong>{' '}
+          is a list of almost every bottle of wine available in Nairobi... and it&apos;s big!
+          Let&apos;s filter that list down to what you&apos;re looking for:
         </p>
         <div className="mt-5 flex flex-col gap-4">
           <ColourStyleToggles
             colors={colors}
             styles={styles}
             filters={filters}
-            label="What type of wine are you looking for?"
+            label="What types of wine are you looking for?"
             labelAbove
             onChange={(next) => onFiltersChange({ ...filters, styles: next })}
           />
@@ -222,7 +225,7 @@ export function GettingStartedOnboarding({
             }}
             onClick={dismissForever}
           >
-            Done!
+            Done! (It&apos;s simple as that)
           </button>
         </div>
       </div>

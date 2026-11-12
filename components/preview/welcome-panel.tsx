@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { AGE_GATE_CONFIRMED_EVENT, AGE_GATE_STORAGE_KEY } from '@/components/preview/age-gate'
 import { BRAND_GREEN } from '@/lib/preview/preview-colors'
@@ -66,44 +67,28 @@ export function WelcomePanel() {
           className="m-0 text-center text-xl font-semibold leading-snug"
           style={{ color: BRAND_GREEN, fontFamily: 'var(--font-dm-sans), sans-serif' }}
         >
-          Find the best bottle for your budget
+          Welcome to WineDiviner: Nairobi!
         </h2>
-        <p
-          className="m-0 mt-3 text-[13px] leading-relaxed"
-          style={{ color: '#111120', fontFamily: 'var(--font-dm-sans), sans-serif' }}
-        >
-          <strong>Don&apos;t waste good money on bad wine.</strong> WineDiviner: Nairobi helps you
-          find the best bottles for your money, whatever you want to spend.
-        </p>
         <ul
           className="m-0 mt-4 list-disc space-y-2.5 pl-5 text-[13px] leading-relaxed"
           style={{ color: '#111120', fontFamily: 'var(--font-dm-sans), sans-serif' }}
         >
-          <li>
-            <strong style={{ color: BRAND_GREEN }}>Know what&apos;s worth buying:</strong> Discover
-            the quality and price of over 1,000 wines sold in Nairobi.
-          </li>
-          <li>
-            <strong style={{ color: BRAND_GREEN }}>Know where to buy:</strong> Find the shops
-            stocking the bottles you want.
-          </li>
-          <li>
-            <strong style={{ color: BRAND_GREEN }}>Find your perfect bottle:</strong> Filter by
-            price, quality, grape, country and more to find exactly what you fancy.
-          </li>
-          <li>
-            <strong style={{ color: BRAND_GREEN }}>Remember your favourites:</strong>
-            {' '}
-            Bookmark bottles to try, track wines you&apos;d buy again, hide the ones you&apos;d
-            rather forget, and share your discoveries.
-          </li>
+          <li>We list over 1000 bottles available in Nairobi</li>
+          <li>Every bottle is rated for quality and value</li>
+          <li>All to take the guesswork out of just buying some wine</li>
         </ul>
-        <h3
-          className="m-0 mt-5 text-center text-[15px] font-semibold"
+        <p
+          className="m-0 mt-5 text-center text-[13px] leading-relaxed"
           style={{ color: '#111120', fontFamily: 'var(--font-dm-sans), sans-serif' }}
         >
-          Ready to find your next favourite?
-        </h3>
+          Already registered?{' '}
+          <Link
+            href="/login"
+            style={{ color: BRAND_GREEN, fontWeight: 600, textDecoration: 'underline' }}
+          >
+            Log in
+          </Link>
+        </p>
         <div className="mt-4 flex justify-center">
           <button
             type="button"
@@ -117,7 +102,7 @@ export function WelcomePanel() {
             }}
             onClick={dismiss}
           >
-            Start Exploring →
+            Start exploring!
           </button>
         </div>
       </div>
