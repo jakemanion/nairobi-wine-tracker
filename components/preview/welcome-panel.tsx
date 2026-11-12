@@ -70,13 +70,13 @@ export function WelcomePanel() {
           Welcome to WineDiviner: Nairobi!
         </h2>
         <ul
-          className="m-0 mt-4 list-none space-y-2.5 p-0 text-[13px] leading-relaxed"
+          className="m-0 mt-4 list-none space-y-2.5 p-0 text-[17px] leading-relaxed"
           style={{ color: '#111120', fontFamily: 'var(--font-dm-sans), sans-serif' }}
         >
-          <li className="flex gap-2.5">
+          <li className="flex items-start justify-center gap-2.5 text-center">
             <span
               aria-hidden="true"
-              className="shrink-0 text-[17px] leading-[1.35]"
+              className="shrink-0 text-[21px] leading-[1.35]"
               style={{ color: BRAND_GREEN }}
             >
               ★
@@ -86,11 +86,18 @@ export function WelcomePanel() {
               <strong style={{ color: BRAND_GREEN }}>1000 bottles of wine</strong> available in
               Nairobi
             </span>
-          </li>
-          <li className="flex gap-2.5">
             <span
               aria-hidden="true"
-              className="shrink-0 text-[17px] leading-[1.35]"
+              className="shrink-0 text-[21px] leading-[1.35]"
+              style={{ color: BRAND_GREEN }}
+            >
+              ★
+            </span>
+          </li>
+          <li className="flex items-start justify-center gap-2.5 text-center">
+            <span
+              aria-hidden="true"
+              className="shrink-0 text-[21px] leading-[1.35]"
               style={{ color: BRAND_GREEN }}
             >
               ★
@@ -100,31 +107,36 @@ export function WelcomePanel() {
               <strong style={{ color: BRAND_GREEN }}>quality</strong> and{' '}
               <strong style={{ color: BRAND_GREEN }}>value</strong>
             </span>
-          </li>
-          <li className="flex gap-2.5">
             <span
               aria-hidden="true"
-              className="shrink-0 text-[17px] leading-[1.35]"
+              className="shrink-0 text-[21px] leading-[1.35]"
               style={{ color: BRAND_GREEN }}
             >
               ★
             </span>
-            <span>So you can find good wine without all the guesswork</span>
+          </li>
+          <li className="flex items-start justify-center gap-2.5 text-center">
+            <span
+              aria-hidden="true"
+              className="shrink-0 text-[21px] leading-[1.35]"
+              style={{ color: BRAND_GREEN }}
+            >
+              ★
+            </span>
+            <span>
+              So you can find{' '}
+              <strong style={{ color: BRAND_GREEN }}>good wine without the guesswork</strong>
+            </span>
+            <span
+              aria-hidden="true"
+              className="shrink-0 text-[21px] leading-[1.35]"
+              style={{ color: BRAND_GREEN }}
+            >
+              ★
+            </span>
           </li>
         </ul>
-        <p
-          className="m-0 mt-5 text-center text-[13px] leading-relaxed"
-          style={{ color: '#111120', fontFamily: 'var(--font-dm-sans), sans-serif' }}
-        >
-          Already registered?{' '}
-          <Link
-            href="/login"
-            style={{ color: BRAND_GREEN, fontWeight: 600, textDecoration: 'underline' }}
-          >
-            Log in
-          </Link>
-        </p>
-        <div className="mt-4 flex justify-center">
+        <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
           <button
             type="button"
             className="rounded-lg px-5 py-2.5 text-[13px] font-semibold"
@@ -139,6 +151,18 @@ export function WelcomePanel() {
           >
             Start Exploring!
           </button>
+          <p
+            className="m-0 text-[13px] leading-relaxed"
+            style={{ color: '#111120', fontFamily: 'var(--font-dm-sans), sans-serif' }}
+          >
+            Already registered?{' '}
+            <Link
+              href="/login"
+              style={{ color: BRAND_GREEN, fontWeight: 600, textDecoration: 'underline' }}
+            >
+              Log in
+            </Link>
+          </p>
         </div>
       </div>
     </div>
