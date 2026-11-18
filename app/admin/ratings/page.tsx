@@ -1,8 +1,13 @@
 import Link from 'next/link'
-import { adminLoadVivinoStarLookup } from '@/app/admin/actions'
+import {
+  adminLoadValueScoreAnchors,
+  adminLoadVivinoStarLookup,
+} from '@/app/admin/actions'
 import { getOpenReportCounts } from '@/app/admin/report-actions'
 import { AdminRatingsPanel } from '@/components/admin-ratings-panel'
+import { AdminValueCalibrationPanel } from '@/components/admin-value-calibration-panel'
 import { ADMIN_UNAUTHORIZED_MESSAGE, getSessionUserId, isActorAdmin } from '@/lib/auth/admin'
+import { DEFAULT_VALUE_SCORE_ANCHORS } from '@/lib/ratings/value-anchors'
 
 export const dynamic = 'force-dynamic'
 
@@ -31,14 +36,17 @@ export default async function AdminRatingsPage() {
     )
   }
 
-  const [lookupResult, openReportCounts] = await Promise.all([
+  const [lookupResult, anchorsResult, openReportCounts] = await Promise.all([
     adminLoadVivinoStarLookup(),
+    adminLoadValueScoreAnchors(),
     getOpenReportCounts(),
   ])
 
   const hasServiceRoleKey = Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY)
   const entries = lookupResult.entries ?? []
   const loadError = lookupResult.error
+  const anchors = anchorsResult.anchors ?? [...DEFAULT_VALUE_SCORE_ANCHORS]
+  const anchorsError = anchorsResult.error
 
   return (
     <main
@@ -55,7 +63,7 @@ export default async function AdminRatingsPage() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
           <h1 style={{ margin: 0, fontSize: 18 }}>Admin</h1>
-          <span style={{ color: '#666', fontSize: 12 }}>Vivino → quality stars</span>
+          <span style={{ color: '#666', fontSize: 12 }}>Ratings & value</span>
           <nav style={{ display: 'flex', gap: 10, marginLeft: 8, fontSize: 13 }}>
             <Link href="/admin" style={{ color: '#0a7', textDecoration: 'none' }}>
               Matcher
@@ -98,11 +106,49 @@ export default async function AdminRatingsPage() {
         </p>
       )}
 
-      {loadError ? (
-        <p style={{ color: '#c05050', margin: 0 }}>{loadError}</p>
-      ) : (
-        <AdminRatingsPanel initialEntries={entries} />
-      )}
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 20,
+          minHeight: 0,
+          flex: 1,
+          overflow: 'auto',
+        }}
+      >
+        <section style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <h2 style={{ margin: 0, fontSize: 15 }}>Vivino → quality</h2>
+          {loadError ? (
+            <p style={{ color: '#c05050', margin: 0 }}>{loadError}</p>
+          ) : (
+            <AdminRatingsPanel initialEntries={entries} />
+          )}
+        </section>
+
+        <section
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 8,
+            minHeight: 280,
+            flex: 1,
+          }}
+        >
+          <h2 style={{ margin: 0, fontSize: 15 }}>Value calibration</h2>
+          {anchorsError ? (
+            <p style={{ color: '#c05050', margin: 0 }}>{anchorsError}</p>
+          ) : loadError ? (
+            <p style={{ color: '#c05050', margin: 0 }}>
+              Value Vivino labels need the saved lookup above.
+            </p>
+          ) : (
+            <AdminValueCalibrationPanel
+              initialAnchors={anchors}
+              savedLookupEntries={entries}
+            />
+          )}
+        </section>
+      </div>
     </main>
   )
 }

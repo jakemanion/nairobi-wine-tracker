@@ -3,6 +3,7 @@ import { PreviewWineList } from '@/components/preview/preview-wine-list'
 import { PreviewThemeProvider } from '@/components/preview/preview-theme-context'
 import type { WineReview, WineRow } from '@/components/wine-table'
 import { getPreviewSession } from '@/lib/auth/preview-session'
+import { loadValueScoreAnchorsOrDefault } from '@/lib/ratings/value-anchors'
 import { isAdminUserId } from '@/lib/user'
 import { getMyOpenReportedWineIds } from '@/lib/reports/report-actions'
 import { createServerReadClient, fetchAllPaged } from '@/lib/supabase-server'
@@ -111,11 +112,13 @@ export default async function Home() {
       )
     : null
 
-  const [{ data: wines, error: winesError }, reviewsResult, reportedResult] = await Promise.all([
-    winesQuery,
-    reviewsQuery ?? Promise.resolve({ data: [] as UserReview[], error: null }),
-    getMyOpenReportedWineIds(),
-  ])
+  const [{ data: wines, error: winesError }, reviewsResult, reportedResult, valueAnchors] =
+    await Promise.all([
+      winesQuery,
+      reviewsQuery ?? Promise.resolve({ data: [] as UserReview[], error: null }),
+      getMyOpenReportedWineIds(),
+      loadValueScoreAnchorsOrDefault(supabase),
+    ])
 
   const error = winesError ?? reviewsResult.error
   const reviews = (reviewsResult.data ?? []) as UserReview[]
@@ -147,6 +150,7 @@ export default async function Home() {
         userEmail={session.userEmail ?? ''}
         wines={wineRows}
         reportedWineIds={reportedWineIds}
+        valueAnchors={valueAnchors}
       />
     </PreviewThemeProvider>
   )

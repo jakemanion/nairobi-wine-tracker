@@ -1,68 +1,69 @@
 import { effectiveQualityRating } from '@/lib/ratings/quality-rating'
+import {
+  DEFAULT_VALUE_SCORE_ANCHOR_TABLES,
+  anchorsToTables,
+  maxPriceForFiveStarValue,
+  priceForOneStarValue,
+  type ValueScoreAnchor,
+  type ValueScoreAnchorTables,
+} from '@/lib/ratings/value-anchors'
 
 /**
  * Value score from site quality stars (override ?? calculated) and min price.
  *
- * Calibration: at each anchor quality, price ≤ maxPrice still maps to 5 value
- * stars (raw score ≥ 1.5). Between anchors, maxPrice is linearly interpolated.
+ * Dual calibration per quality (linear between anchors):
+ * - price ≤ fiveStarMax  → raw ≥ 1.5 → 5 value stars
+ * - price = oneStarAt     → raw = 0.2 → 1 value star
  *
- *   value = 1.5 × √(maxPrice(quality) / priceKES)
+ * Between those prices, a quality-specific power curve connects the anchors:
+ *   value = 1.5 × (fiveStarMax / price) ^ α
+ *   α = log(0.2 / 1.5) / log(fiveStarMax / oneStarAt)
  */
 export const VALUE_FIVE_STAR_THRESHOLD = 1.5
+export const VALUE_ONE_STAR_THRESHOLD = 0.2
 
-/** Quality → max KES price that still earns 5 value stars. */
-export const VALUE_FIVE_STAR_PRICE_ANCHORS: ReadonlyArray<readonly [number, number]> = [
-  [3.25, 1500],
-  [3.5, 2000],
-  [3.75, 2250],
-  [4, 2500],
-  [4.25, 3000],
-  [4.5, 4000],
-  [4.75, 4500],
-  [5, 10000],
-]
+/** @deprecated Prefer DEFAULT_VALUE_SCORE_ANCHORS / loaded DB anchors. */
+export const VALUE_FIVE_STAR_PRICE_ANCHORS = DEFAULT_VALUE_SCORE_ANCHOR_TABLES.fiveStar
+/** @deprecated Prefer DEFAULT_VALUE_SCORE_ANCHORS / loaded DB anchors. */
+export const VALUE_ONE_STAR_PRICE_ANCHORS = DEFAULT_VALUE_SCORE_ANCHOR_TABLES.oneStar
 
-/** Max price (KES) for 5★ value at this quality; linear between anchors. */
-export function maxPriceForFiveStarValue(quality: number): number {
-  const anchors = VALUE_FIVE_STAR_PRICE_ANCHORS
-  const first = anchors[0]
-  const last = anchors[anchors.length - 1]
+export {
+  maxPriceForFiveStarValue,
+  priceForOneStarValue,
+} from '@/lib/ratings/value-anchors'
 
-  if (quality <= first[0]) {
-    const [q0, p0] = first
-    const [q1, p1] = anchors[1]
-    const slope = (p1 - p0) / (q1 - q0)
-    return p0 + (quality - q0) * slope
+export function resolveValueAnchorTables(
+  anchors?: readonly ValueScoreAnchor[] | ValueScoreAnchorTables | null,
+): ValueScoreAnchorTables {
+  if (!anchors) return DEFAULT_VALUE_SCORE_ANCHOR_TABLES
+  if (Array.isArray(anchors)) {
+    if (anchors.length === 0) return DEFAULT_VALUE_SCORE_ANCHOR_TABLES
+    return anchorsToTables(anchors as ValueScoreAnchor[])
   }
-
-  if (quality >= last[0]) {
-    return last[1]
-  }
-
-  for (let i = 0; i < anchors.length - 1; i++) {
-    const [q0, p0] = anchors[i]
-    const [q1, p1] = anchors[i + 1]
-    if (quality >= q0 && quality <= q1) {
-      const t = (quality - q0) / (q1 - q0)
-      return p0 + t * (p1 - p0)
-    }
-  }
-
-  return last[1]
+  return anchors as ValueScoreAnchorTables
 }
 
 export function calculateValueScore(
   rating: number | null | undefined,
   priceKES: number | null | undefined,
+  anchors?: readonly ValueScoreAnchor[] | ValueScoreAnchorTables | null,
 ): number | null {
   if (rating == null || !Number.isFinite(rating) || !priceKES || priceKES <= 0) {
     return null
   }
 
-  const maxPrice = maxPriceForFiveStarValue(rating)
-  // Non-positive ceiling → never reaches 5★; keep a tiny positive floor for ranking.
-  const ceiling = Math.max(maxPrice, 1)
-  return VALUE_FIVE_STAR_THRESHOLD * Math.sqrt(ceiling / priceKES)
+  const tables = resolveValueAnchorTables(anchors)
+  const fiveStarMax = Math.max(maxPriceForFiveStarValue(rating, tables), 1)
+  const oneStarAt = Math.max(priceForOneStarValue(rating, tables), fiveStarMax * 1.01)
+
+  if (Math.abs(priceKES - fiveStarMax) <= 1e-6) return VALUE_FIVE_STAR_THRESHOLD
+  if (Math.abs(priceKES - oneStarAt) <= 1e-6) return VALUE_ONE_STAR_THRESHOLD
+
+  const alpha =
+    Math.log(VALUE_ONE_STAR_THRESHOLD / VALUE_FIVE_STAR_THRESHOLD) /
+    Math.log(fiveStarMax / oneStarAt)
+
+  return VALUE_FIVE_STAR_THRESHOLD * Math.pow(fiveStarMax / priceKES, alpha)
 }
 
 export function parseWineRating(value: unknown): number | null {
@@ -99,12 +100,15 @@ export function withComputedValueScore<
     quality_rating_override?: string | number | null
     store_listings?: PriceListing[] | null
   },
->(wine: T): T & { valueScore: number | null } {
+>(
+  wine: T,
+  anchors?: readonly ValueScoreAnchor[] | ValueScoreAnchorTables | null,
+): T & { valueScore: number | null } {
   const rating = effectiveQualityRating(wine)
   const priceKES = minWinePriceKES(wine.store_listings)
 
   return {
     ...wine,
-    valueScore: calculateValueScore(rating, priceKES),
+    valueScore: calculateValueScore(rating, priceKES, anchors),
   }
 }

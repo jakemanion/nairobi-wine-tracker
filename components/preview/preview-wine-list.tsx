@@ -30,6 +30,7 @@ import type { SortCriterion } from '@/components/wine-filter-panel'
 import type { WineReview, WineRow } from '@/components/wine-table'
 import { sortWines } from '@/components/wine-table'
 import { withComputedValueScore } from '@/lib/calculate-value-score'
+import type { ValueScoreAnchor } from '@/lib/ratings/value-anchors'
 import { trackEvent } from '@/lib/analytics'
 import {
   collectFilterOptions,
@@ -60,6 +61,7 @@ type PreviewWineListProps = {
   userName: string
   userEmail: string
   reportedWineIds?: string[]
+  valueAnchors?: ValueScoreAnchor[]
 }
 
 function updateWineReview(
@@ -82,10 +84,11 @@ export function PreviewWineList({
   userName,
   userEmail,
   reportedWineIds = [],
+  valueAnchors,
 }: PreviewWineListProps) {
   const { colors, visualStyle } = usePreviewTheme()
   const [wines, setWines] = useState<DisplayWineRow[]>(() =>
-    initialWines.map(withComputedValueScore),
+    initialWines.map((wine) => withComputedValueScore(wine, valueAnchors)),
   )
   const reportedWineIdSet = useMemo(() => new Set(reportedWineIds), [reportedWineIds])
   const [filters, setFilters] = useState<WineFilters>(EMPTY_WINE_FILTERS)
@@ -126,7 +129,10 @@ export function PreviewWineList({
     return sortWines(filtered, primarySort, secondarySort)
   }, [appliedSearchQuery, filtered, primarySort, secondarySort])
 
-  const previewWines = useMemo(() => sorted.map(toPreviewWineCard), [sorted])
+  const previewWines = useMemo(
+    () => sorted.map((wine) => toPreviewWineCard(wine, valueAnchors)),
+    [sorted, valueAnchors],
+  )
 
   useEffect(() => {
     if (!hasActiveWineSearch(appliedSearchQuery)) return

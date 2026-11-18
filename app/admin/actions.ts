@@ -22,6 +22,11 @@ import {
   vivinoToQualityRating,
   type VivinoStarLookupTable,
 } from '@/lib/ratings/quality-rating'
+import {
+  DEFAULT_VALUE_SCORE_ANCHORS,
+  validateValueScoreAnchor,
+  type ValueScoreAnchor,
+} from '@/lib/ratings/value-anchors'
 import type { WineField, WineRecord } from '@/lib/wines'
 
 const wineSelect = `
@@ -345,6 +350,109 @@ export async function adminSaveVivinoStarLookup(
 
   revalidateWinePages()
   return { updatedWines: recompute.updated }
+}
+
+export async function adminLoadValueScoreAnchors(): Promise<
+  { anchors: ValueScoreAnchor[]; error?: undefined } | { anchors?: undefined; error: string }
+> {
+  const access = await requireAdminAccess()
+  if (!access.ok) return { error: access.error }
+
+  const { client, configError } = getAdminClient()
+  if (!client) return { error: configError! }
+
+  const { data, error } = await client
+    .from('value_score_anchors')
+    .select('quality_rating, five_star_max_price, one_star_price')
+    .order('quality_rating', { ascending: true })
+
+  if (error) return { error: error.message }
+
+  const anchors: ValueScoreAnchor[] = []
+  for (const row of data ?? []) {
+    const quality = parseRatingNumber(row.quality_rating)
+    const five = parseRatingNumber(row.five_star_max_price)
+    const one = parseRatingNumber(row.one_star_price)
+    if (quality == null || five == null || one == null) continue
+    anchors.push({
+      quality_rating: quality,
+      five_star_max_price: Math.round(five),
+      one_star_price: Math.round(one),
+    })
+  }
+
+  return {
+    anchors: anchors.length > 0 ? anchors : [...DEFAULT_VALUE_SCORE_ANCHORS],
+  }
+}
+
+export async function adminSaveValueScoreAnchors(
+  anchors: ValueScoreAnchor[],
+): Promise<{ saved: number; error?: string }> {
+  const access = await requireAdminAccess()
+  if (!access.ok) return { saved: 0, error: access.error }
+
+  const { client, configError } = getAdminClient()
+  if (!client) return { saved: 0, error: configError! }
+
+  if (!Array.isArray(anchors) || anchors.length === 0) {
+    return { saved: 0, error: 'Value calibration cannot be empty.' }
+  }
+
+  const seen = new Set<number>()
+  const normalized: ValueScoreAnchor[] = []
+  for (const entry of anchors) {
+    const quality = parseRatingNumber(entry.quality_rating)
+    const five = parseRatingNumber(entry.five_star_max_price)
+    const one = parseRatingNumber(entry.one_star_price)
+    if (quality == null || five == null || one == null) {
+      return { saved: 0, error: 'Each anchor needs quality, 5★ max price, and 1★ price.' }
+    }
+    if (seen.has(quality)) {
+      return { saved: 0, error: `Duplicate quality rating ${quality}.` }
+    }
+    seen.add(quality)
+    const row: ValueScoreAnchor = {
+      quality_rating: quality,
+      five_star_max_price: Math.round(five),
+      one_star_price: Math.round(one),
+    }
+    const invalid = validateValueScoreAnchor(row)
+    if (invalid) return { saved: 0, error: invalid }
+    normalized.push(row)
+  }
+
+  const now = new Date().toISOString()
+  const { error: upsertError } = await client.from('value_score_anchors').upsert(
+    normalized.map((row) => ({
+      quality_rating: row.quality_rating,
+      five_star_max_price: row.five_star_max_price,
+      one_star_price: row.one_star_price,
+      updated_at: now,
+    })),
+    { onConflict: 'quality_rating' },
+  )
+  if (upsertError) return { saved: 0, error: upsertError.message }
+
+  const keepQualities = normalized.map((row) => row.quality_rating)
+  const { data: existing, error: existingError } = await client
+    .from('value_score_anchors')
+    .select('quality_rating')
+  if (existingError) return { saved: 0, error: existingError.message }
+
+  const toDelete = (existing ?? [])
+    .map((row) => parseRatingNumber(row.quality_rating))
+    .filter((q): q is number => q != null && !keepQualities.includes(q))
+  if (toDelete.length > 0) {
+    const { error: deleteError } = await client
+      .from('value_score_anchors')
+      .delete()
+      .in('quality_rating', toDelete)
+    if (deleteError) return { saved: 0, error: deleteError.message }
+  }
+
+  revalidateWinePages()
+  return { saved: normalized.length }
 }
 
 export async function adminCreateWine(

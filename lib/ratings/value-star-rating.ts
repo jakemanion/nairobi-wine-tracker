@@ -1,21 +1,32 @@
 /**
  * Map raw value score → 0–5 site stars (0.25 steps).
  *
- * Tuned for quality-star value scores (see calculate-value-score):
- * below 0.1 → 0, 0.5 → 4, 1.5 or above → 5; linear between.
- * Raw 1.5 is the 5★ threshold — price ceilings per quality are calibrated
- * in VALUE_FIVE_STAR_PRICE_ANCHORS.
+ * Anchors (see calculate-value-score dual calibration):
+ * - < 0.1 → 0
+ * - 0.2 → 1 (one-star price ceiling)
+ * - ≥ 1.5 → 5 (five-star price ceiling)
+ * Linear between those points; never round across a threshold.
  */
+export const VALUE_ZERO_STAR_THRESHOLD = 0.1
+export const VALUE_ONE_STAR_RAW = 0.2
+export const VALUE_FIVE_STAR_RAW = 1.5
+
 export function valueScoreToStarRating(value: number | null | undefined): number | null {
   if (value == null || !Number.isFinite(value)) return null
-  if (value < 0.1) return 0
-  if (value >= 1.5) return 5
+  if (value < VALUE_ZERO_STAR_THRESHOLD) return 0
+  if (value >= VALUE_FIVE_STAR_RAW - 1e-9) return 5
+
+  if (value < VALUE_ONE_STAR_RAW - 1e-9) {
+    const stars =
+      ((value - VALUE_ZERO_STAR_THRESHOLD) /
+        (VALUE_ONE_STAR_RAW - VALUE_ZERO_STAR_THRESHOLD)) *
+      1
+    return Math.min(0.75, Math.round(stars * 4) / 4)
+  }
 
   const stars =
-    value <= 0.5
-      ? ((value - 0.1) / (0.5 - 0.1)) * 4
-      : 4 + ((value - 0.5) / (1.5 - 0.5)) * 1
+    1 +
+    ((value - VALUE_ONE_STAR_RAW) / (VALUE_FIVE_STAR_RAW - VALUE_ONE_STAR_RAW)) * 4
 
-  // Don't round up to 5 when raw score is still below the 5★ threshold.
   return Math.min(4.75, Math.round(stars * 4) / 4)
 }

@@ -2,6 +2,7 @@ import type { WineRow } from '@/components/wine-table'
 import { calculateValueScore, minWinePriceKES } from '@/lib/calculate-value-score'
 import { formatGrapeVarieties } from '@/lib/grape-varieties'
 import { effectiveQualityRating } from '@/lib/ratings/quality-rating'
+import type { ValueScoreAnchor, ValueScoreAnchorTables } from '@/lib/ratings/value-anchors'
 import { sanitizeHttpUrl } from '@/lib/safe-http-url'
 import { resolveWineDisplayImage } from '@/lib/wine-images'
 
@@ -93,7 +94,10 @@ function parseListingPrice(value: string | number | null | undefined): number | 
   return Number.isFinite(n) ? n : null
 }
 
-export function toPreviewWineCard(wine: WineRow): PreviewWineCardData {
+export function toPreviewWineCard(
+  wine: WineRow,
+  anchors?: readonly ValueScoreAnchor[] | ValueScoreAnchorTables | null,
+): PreviewWineCardData {
   const prices = (wine.store_listings ?? [])
     .map((listing) => {
       const price = parseListingPrice(listing.current_price_ksh)
@@ -126,7 +130,7 @@ export function toPreviewWineCard(wine: WineRow): PreviewWineCardData {
     vivinoRating,
     qualityRating,
     vivinoUrl: sanitizeHttpUrl(wine.vivino_url),
-    valueScore: calculateValueScore(qualityRating, priceKES),
+    valueScore: calculateValueScore(qualityRating, priceKES, anchors),
     prices,
     image: resolveWineDisplayImage(wine) || null,
   }

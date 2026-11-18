@@ -20,6 +20,7 @@ import { usePreviewTheme } from '@/components/preview/preview-theme-context'
 import { SiteFooter } from '@/components/site-footer'
 import type { WineReview, WineRow } from '@/components/wine-table'
 import { toPreviewWineCard } from '@/lib/preview/wine-card-model'
+import type { ValueScoreAnchor } from '@/lib/ratings/value-anchors'
 import { createWineSearchIndex, hasActiveWineSearch, searchWinesFromIndex } from '@/lib/wine-search'
 
 const PREVIEW_CONTENT_MAX_WIDTH = '54.625rem'
@@ -36,6 +37,7 @@ type SharedWineListProps = {
   userName: string
   userEmail: string
   reportedWineIds?: string[]
+  valueAnchors?: ValueScoreAnchor[]
 }
 
 function updateWineReview(
@@ -60,6 +62,7 @@ export function SharedWineList({
   userName,
   userEmail,
   reportedWineIds = [],
+  valueAnchors,
 }: SharedWineListProps) {
   const { colors, visualStyle } = usePreviewTheme()
   const [wines, setWines] = useState<DisplayWineRow[]>(initialWines)
@@ -72,7 +75,10 @@ export function SharedWineList({
     return searchWinesFromIndex(searchIndex, searchQuery)
   }, [wines, searchIndex, searchQuery])
 
-  const previewWines = useMemo(() => searched.map(toPreviewWineCard), [searched])
+  const previewWines = useMemo(
+    () => searched.map((wine) => toPreviewWineCard(wine, valueAnchors)),
+    [searched, valueAnchors],
+  )
 
   const winesById = useMemo(() => {
     const map = new Map<string, WineRow>()

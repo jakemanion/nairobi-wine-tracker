@@ -1,24 +1,15 @@
 import { describe, expect, it } from 'vitest'
 import {
-  VALUE_FIVE_STAR_PRICE_ANCHORS,
   VALUE_FIVE_STAR_THRESHOLD,
+  VALUE_ONE_STAR_THRESHOLD,
   calculateValueScore,
-  maxPriceForFiveStarValue,
   withComputedValueScore,
 } from '@/lib/calculate-value-score'
+import {
+  DEFAULT_VALUE_SCORE_ANCHORS,
+  type ValueScoreAnchor,
+} from '@/lib/ratings/value-anchors'
 import { valueScoreToStarRating } from '@/lib/ratings/value-star-rating'
-
-describe('maxPriceForFiveStarValue', () => {
-  it('returns anchor prices exactly', () => {
-    for (const [quality, price] of VALUE_FIVE_STAR_PRICE_ANCHORS) {
-      expect(maxPriceForFiveStarValue(quality)).toBe(price)
-    }
-  })
-
-  it('interpolates between anchors', () => {
-    expect(maxPriceForFiveStarValue(3.625)).toBeCloseTo(2125, 5)
-  })
-})
 
 describe('calculateValueScore', () => {
   it('returns null when rating or price is missing/invalid', () => {
@@ -28,19 +19,36 @@ describe('calculateValueScore', () => {
     expect(calculateValueScore(4, -100)).toBeNull()
   })
 
-  it('hits 5★ value at each calibrated quality/price ceiling', () => {
-    for (const [quality, price] of VALUE_FIVE_STAR_PRICE_ANCHORS) {
-      const score = calculateValueScore(quality, price)!
-      expect(score).toBeCloseTo(VALUE_FIVE_STAR_THRESHOLD, 5)
-      expect(valueScoreToStarRating(score)).toBe(5)
-      expect(valueScoreToStarRating(calculateValueScore(quality, price * 0.9))).toBe(5)
+  it('hits 5★ and 1★ at default calibrated ceilings', () => {
+    for (const row of DEFAULT_VALUE_SCORE_ANCHORS) {
+      expect(calculateValueScore(row.quality_rating, row.five_star_max_price)).toBeCloseTo(
+        VALUE_FIVE_STAR_THRESHOLD,
+        5,
+      )
+      expect(
+        valueScoreToStarRating(
+          calculateValueScore(row.quality_rating, row.five_star_max_price),
+        ),
+      ).toBe(5)
+
+      expect(calculateValueScore(row.quality_rating, row.one_star_price)).toBeCloseTo(
+        VALUE_ONE_STAR_THRESHOLD,
+        5,
+      )
+      expect(
+        valueScoreToStarRating(calculateValueScore(row.quality_rating, row.one_star_price)),
+      ).toBe(1)
     }
   })
 
-  it('drops below 5★ just above the ceiling', () => {
-    const score = calculateValueScore(4, 2501)!
-    expect(score).toBeLessThan(VALUE_FIVE_STAR_THRESHOLD)
-    expect(valueScoreToStarRating(score)).toBeLessThan(5)
+  it('uses injectable anchors', () => {
+    const custom: ValueScoreAnchor[] = [
+      { quality_rating: 4, five_star_max_price: 2000, one_star_price: 4000 },
+    ]
+    expect(calculateValueScore(4, 2000, custom)).toBeCloseTo(VALUE_FIVE_STAR_THRESHOLD, 5)
+    expect(calculateValueScore(4, 4000, custom)).toBeCloseTo(VALUE_ONE_STAR_THRESHOLD, 5)
+    expect(valueScoreToStarRating(calculateValueScore(4, 2000, custom))).toBe(5)
+    expect(valueScoreToStarRating(calculateValueScore(4, 4000, custom))).toBe(1)
   })
 
   it('allows quality 0 (does not treat it as missing)', () => {
@@ -84,5 +92,20 @@ describe('withComputedValueScore', () => {
     expect(withOverride.valueScore).not.toBeNull()
     expect(withOverride.valueScore!).toBeLessThan(without.valueScore!)
     expect(withOverride.valueScore).toBeCloseTo(calculateValueScore(3.25, 2500)!, 5)
+  })
+
+  it('passes injectable anchors through', () => {
+    const custom: ValueScoreAnchor[] = [
+      { quality_rating: 4, five_star_max_price: 2500, one_star_price: 8000 },
+    ]
+    const result = withComputedValueScore(
+      {
+        quality_rating: 4,
+        quality_rating_override: null,
+        store_listings: [{ current_price_ksh: 8000 }],
+      },
+      custom,
+    )
+    expect(result.valueScore).toBeCloseTo(VALUE_ONE_STAR_THRESHOLD, 5)
   })
 })
