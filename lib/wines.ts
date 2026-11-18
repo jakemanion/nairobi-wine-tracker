@@ -29,6 +29,7 @@ export type WineRecord = {
   image_migration_status?: string | null
   image_source_listing_id?: string | null
   show_on_site?: boolean | null
+  editors_pick?: boolean | null
 }
 
 export type WineField =
@@ -61,7 +62,8 @@ const wineSelect = `
   hosted_image_path,
   image_migration_status,
   image_source_listing_id,
-  show_on_site
+  show_on_site,
+  editors_pick
 `
 
 type UpdateWineFieldArgs = {

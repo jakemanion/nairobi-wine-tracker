@@ -740,6 +740,25 @@ export function PreviewWineCard({
         boxShadow: isDimmed ? 'none' : colors.cardShadow,
       }}
     >
+      {wine.editorsPick ? (
+        <div
+          className="absolute top-0 right-0 z-10 pointer-events-none"
+          style={{
+            background: infoOnDark ? 'rgba(245, 242, 236, 0.95)' : '#1F1A17',
+            color: infoOnDark ? '#1F1A17' : '#F5F2EC',
+            fontSize: 9,
+            fontWeight: 600,
+            lineHeight: 1.2,
+            padding: '3px 7px',
+            borderBottomLeftRadius: 8,
+            fontFamily: 'var(--font-dm-sans), sans-serif',
+            letterSpacing: '0.02em',
+            boxShadow: '0 1px 4px rgba(0,0,0,0.35)',
+          }}
+        >
+          Editor&apos;s pick
+        </div>
+      ) : null}
       {ribbon ? (
         <div
           className="absolute top-0 left-0 z-10 pointer-events-none"

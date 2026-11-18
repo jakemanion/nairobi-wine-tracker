@@ -47,7 +47,8 @@ const wineSelect = `
   hosted_image_path,
   image_migration_status,
   image_source_listing_id,
-  show_on_site
+  show_on_site,
+  editors_pick
 `
 
 const listingSelect = `
@@ -1024,6 +1025,33 @@ export async function adminSetWineShowOnSite({
   const { data, error } = await client
     .from('wines')
     .update({ show_on_site: showOnSite })
+    .eq('id', wineId)
+    .select(wineSelect)
+    .maybeSingle()
+
+  if (error) return { error: error.message }
+  if (!data) return { error: 'Update failed — no row returned.' }
+
+  revalidateWinePages()
+  return { wine: data as WineRecord }
+}
+
+export async function adminSetWineEditorsPick({
+  wineId,
+  editorsPick,
+}: {
+  wineId: string
+  editorsPick: boolean
+}): Promise<WineMutationResult> {
+  const access = await requireAdminAccess()
+  if (!access.ok) return { error: access.error }
+
+  const { client, configError } = getAdminClient()
+  if (!client) return { error: configError! }
+
+  const { data, error } = await client
+    .from('wines')
+    .update({ editors_pick: editorsPick })
     .eq('id', wineId)
     .select(wineSelect)
     .maybeSingle()

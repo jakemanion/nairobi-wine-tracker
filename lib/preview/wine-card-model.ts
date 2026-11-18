@@ -30,6 +30,7 @@ export type PreviewWineCardData = {
   valueScore: number | null
   prices: Array<{ shop: string; price: number; url: string | null }>
   image: string | null
+  editorsPick: boolean
 }
 
 const RED_RIBBON = {
@@ -133,6 +134,7 @@ export function toPreviewWineCard(
     valueScore: calculateValueScore(qualityRating, priceKES, anchors),
     prices,
     image: resolveWineDisplayImage(wine) || null,
+    editorsPick: Boolean(wine.editors_pick),
   }
 }
 

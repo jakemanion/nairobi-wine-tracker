@@ -71,6 +71,7 @@ export default async function Home() {
       quality_rating_override,
       hosted_image_path,
       image_migration_status,
+      editors_pick,
       store_listings!wine_id (
         id,
         current_price_ksh,

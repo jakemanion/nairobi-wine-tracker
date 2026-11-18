@@ -30,6 +30,7 @@ import {
   adminMatchStoreListingToWine,
   adminMarkImportsDone,
   adminPromoteListingToCanonicalWine,
+  adminSetWineEditorsPick,
   adminSetWineQualityOverride,
   adminSetWineShowOnSite,
   adminUpdateImportStatus,
@@ -1562,6 +1563,17 @@ export function AdminMatcher({
     return { error: result.error }
   }
 
+  async function setWineEditorsPick(wine: WineRecord, editorsPick: boolean) {
+    const result = await adminSetWineEditorsPick({
+      wineId: wine.id,
+      editorsPick,
+    })
+    if (result.wine) {
+      setWines((current) => updateWineInState(current, result.wine!))
+    }
+    return { error: result.error }
+  }
+
   async function setWineQualityOverride(wine: WineRecord, value: string | null) {
     const trimmed = value?.trim() ?? ''
     let override: number | null = null
@@ -2790,6 +2802,7 @@ export function AdminMatcher({
                         onSave={saveWineField}
                         onSetQualityOverride={setWineQualityOverride}
                         onSetShowOnSite={setWineShowOnSite}
+                        onSetEditorsPick={setWineEditorsPick}
                         onUploadImage={uploadWineImage}
                       />
                     </div>
@@ -2827,6 +2840,7 @@ export function AdminMatcher({
                     onSave={saveWineField}
                     onSetQualityOverride={setWineQualityOverride}
                     onSetShowOnSite={setWineShowOnSite}
+                    onSetEditorsPick={setWineEditorsPick}
                     onUploadImage={uploadWineImage}
                   />
                 ))}
@@ -3161,6 +3175,7 @@ function CanonicalWineImageControls({
   matchedListings,
   busy,
   onSetShowOnSite,
+  onSetEditorsPick,
   onUploadImage,
 }: {
   wine: WineRecord
@@ -3170,12 +3185,17 @@ function CanonicalWineImageControls({
     wine: WineRecord,
     showOnSite: boolean,
   ) => Promise<{ error?: string }>
+  onSetEditorsPick: (
+    wine: WineRecord,
+    editorsPick: boolean,
+  ) => Promise<{ error?: string }>
   onUploadImage: (wine: WineRecord, file: File) => Promise<{ error?: string }>
 }) {
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const [imageBusy, setImageBusy] = useState(false)
   const [imageError, setImageError] = useState<string | null>(null)
   const showOnSite = Boolean(wine.show_on_site)
+  const editorsPick = Boolean(wine.editors_pick)
   const disabled = busy || imageBusy
   const displayImage = resolveWineDisplayImageInfo({
     ...wine,
@@ -3188,6 +3208,15 @@ function CanonicalWineImageControls({
     setImageError(null)
     setImageBusy(true)
     const result = await onSetShowOnSite(wine, event.target.checked)
+    if (result.error) setImageError(result.error)
+    setImageBusy(false)
+  }
+
+  async function handleEditorsPickToggle(event: ChangeEvent<HTMLInputElement>) {
+    event.stopPropagation()
+    setImageError(null)
+    setImageBusy(true)
+    const result = await onSetEditorsPick(wine, event.target.checked)
     if (result.error) setImageError(result.error)
     setImageBusy(false)
   }
@@ -3267,6 +3296,31 @@ function CanonicalWineImageControls({
           />
           Show
         </label>
+        <label
+          title={
+            editorsPick
+              ? "Marked as Editor's pick on the public site"
+              : "Not marked as Editor's pick"
+          }
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 3,
+            fontSize: 10,
+            color: '#333',
+            cursor: disabled ? 'default' : 'pointer',
+            userSelect: 'none',
+          }}
+        >
+          <input
+            type="checkbox"
+            checked={editorsPick}
+            disabled={disabled}
+            onChange={(event) => void handleEditorsPickToggle(event)}
+            style={{ margin: 0 }}
+          />
+          Pick
+        </label>
         <button
           type="button"
           disabled={disabled}
@@ -3329,6 +3383,7 @@ function CanonicalWineRow({
   onSave,
   onSetQualityOverride,
   onSetShowOnSite,
+  onSetEditorsPick,
   onUploadImage,
 }: {
   wine: WineRecord
@@ -3354,6 +3409,10 @@ function CanonicalWineRow({
   onSetShowOnSite: (
     wine: WineRecord,
     showOnSite: boolean,
+  ) => Promise<{ error?: string }>
+  onSetEditorsPick: (
+    wine: WineRecord,
+    editorsPick: boolean,
   ) => Promise<{ error?: string }>
   onUploadImage: (wine: WineRecord, file: File) => Promise<{ error?: string }>
 }) {
@@ -3398,6 +3457,7 @@ function CanonicalWineRow({
       matchedListings={matchedListings}
       busy={busy}
       onSetShowOnSite={onSetShowOnSite}
+      onSetEditorsPick={onSetEditorsPick}
       onUploadImage={onUploadImage}
     />
   )

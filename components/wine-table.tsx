@@ -33,6 +33,7 @@ export type WineRow = {
   hosted_image_path?: string | null
   image_migration_status?: string | null
   show_on_site?: boolean | null
+  editors_pick?: boolean | null
   valueScore?: number | null
   review?: WineReview | null
   store_listings?: Array<{

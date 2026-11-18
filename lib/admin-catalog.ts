@@ -68,7 +68,8 @@ const WINE_SELECT = `
   hosted_image_path,
   image_migration_status,
   image_source_listing_id,
-  show_on_site
+  show_on_site,
+  editors_pick
 `
 
 /**
