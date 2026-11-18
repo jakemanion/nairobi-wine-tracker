@@ -311,7 +311,13 @@ function WineStarRating({
           }}
           aria-label="Our pick"
         >
-          <ThumbsUp size={11} strokeWidth={2.5} aria-hidden />
+          <ThumbsUp
+            size={11}
+            strokeWidth={2}
+            fill="currentColor"
+            className="fill-current -translate-y-px"
+            aria-hidden
+          />
           OUR PICK
         </div>
       ) : null}
