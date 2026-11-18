@@ -31,65 +31,54 @@ const sectionStyle: CSSProperties = {
   display: 'flex',
   flexDirection: 'column',
   gap: 10,
-  minHeight: 0,
-  flex: 1,
 }
 
 const tableWrapStyle: CSSProperties = {
-  overflow: 'auto',
   border: '1px solid #e2e2e8',
   borderRadius: 4,
   background: '#fff',
+  width: '100%',
 }
 
 const tableStyle: CSSProperties = {
   borderCollapse: 'collapse',
-  fontSize: 12,
-  minWidth: '100%',
+  fontSize: 11,
+  width: '100%',
+  tableLayout: 'fixed',
 }
 
 const thStyle: CSSProperties = {
-  position: 'sticky',
-  top: 0,
-  zIndex: 2,
   textAlign: 'center',
-  padding: '6px 4px',
+  padding: '4px 2px',
   borderBottom: '1px solid #ddd',
   background: '#f7f7f9',
   color: '#555',
   fontWeight: 600,
   whiteSpace: 'nowrap',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
 }
 
-const stickyColStyle: CSSProperties = {
-  position: 'sticky',
-  left: 0,
-  zIndex: 1,
-  background: '#fafafa',
+const labelColStyle: CSSProperties = {
   textAlign: 'left',
-  padding: '4px 8px',
+  padding: '3px 6px',
   borderBottom: '1px solid #eee',
   borderRight: '1px solid #eee',
+  background: '#fafafa',
   whiteSpace: 'nowrap',
-}
-
-const stickyColHeaderStyle: CSSProperties = {
-  ...thStyle,
-  ...stickyColStyle,
-  zIndex: 3,
-  textAlign: 'left',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
 }
 
 const cellButtonStyle: CSSProperties = {
   width: '100%',
-  minWidth: 36,
   margin: 0,
-  padding: '4px 2px',
+  padding: '2px 0',
   border: '1px solid transparent',
   borderRadius: 3,
   background: 'transparent',
   font: 'inherit',
-  fontSize: 12,
+  fontSize: 11,
   cursor: 'pointer',
   color: '#333',
 }
@@ -268,7 +257,7 @@ export function AdminValueCalibrationPanel({
       <p style={{ margin: 0, fontSize: 13, color: '#555', maxWidth: 720 }}>
         Click cells to set the <strong>5★ max price</strong> or <strong>1★ price</strong> for
         each quality. The matrix shows live value stars from the current draft. Vivino labels
-        come from the <em>saved</em> lookup above.
+        come from the <em>saved</em> lookup below.
       </p>
 
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
@@ -307,12 +296,19 @@ export function AdminValueCalibrationPanel({
 
       <div style={tableWrapStyle}>
         <table style={tableStyle}>
+          <colgroup>
+            <col style={{ width: 52 }} />
+            <col style={{ width: 64 }} />
+            {VALUE_MATRIX_PRICE_COLUMNS.map((price) => (
+              <col key={price} />
+            ))}
+          </colgroup>
           <thead>
             <tr>
-              <th style={{ ...stickyColHeaderStyle, left: 0, minWidth: 56 }}>Quality</th>
-              <th style={{ ...stickyColHeaderStyle, left: 56, minWidth: 72 }}>Vivino</th>
+              <th style={{ ...thStyle, ...labelColStyle }}>Quality</th>
+              <th style={{ ...thStyle, ...labelColStyle }}>Vivino</th>
               {VALUE_MATRIX_PRICE_COLUMNS.map((price) => (
-                <th key={price} style={thStyle}>
+                <th key={price} style={thStyle} title={`${price} KES`}>
                   {formatPriceHeader(price)}
                 </th>
               ))}
@@ -324,10 +320,8 @@ export function AdminValueCalibrationPanel({
               const vivino = vivinoLabelForQuality(quality, savedLookupEntries)
               return (
                 <tr key={quality}>
-                  <td style={{ ...stickyColStyle, left: 0, minWidth: 56, fontWeight: 600 }}>
-                    {quality}
-                  </td>
-                  <td style={{ ...stickyColStyle, left: 56, minWidth: 72, color: '#666' }}>
+                  <td style={{ ...labelColStyle, fontWeight: 600 }}>{quality}</td>
+                  <td style={{ ...labelColStyle, color: '#666' }} title={vivino}>
                     {vivino}
                   </td>
                   {VALUE_MATRIX_PRICE_COLUMNS.map((price) => {
@@ -351,7 +345,7 @@ export function AdminValueCalibrationPanel({
                       <td
                         key={price}
                         style={{
-                          padding: 2,
+                          padding: 1,
                           borderBottom: '1px solid #eee',
                           textAlign: 'center',
                         }}

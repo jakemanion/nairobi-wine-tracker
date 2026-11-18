@@ -51,13 +51,11 @@ export default async function AdminRatingsPage() {
   return (
     <main
       style={{
-        padding: '10px 12px',
+        padding: '10px 12px 24px',
         display: 'flex',
         flexDirection: 'column',
         gap: 8,
-        height: '100vh',
         boxSizing: 'border-box',
-        overflow: 'hidden',
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
@@ -106,46 +104,29 @@ export default async function AdminRatingsPage() {
         </p>
       )}
 
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 20,
-          minHeight: 0,
-          flex: 1,
-          overflow: 'auto',
-        }}
-      >
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
         <section style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <h2 style={{ margin: 0, fontSize: 15 }}>Vivino → quality</h2>
-          {loadError ? (
-            <p style={{ color: '#c05050', margin: 0 }}>{loadError}</p>
-          ) : (
-            <AdminRatingsPanel initialEntries={entries} />
-          )}
-        </section>
-
-        <section
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 8,
-            minHeight: 280,
-            flex: 1,
-          }}
-        >
           <h2 style={{ margin: 0, fontSize: 15 }}>Value calibration</h2>
           {anchorsError ? (
             <p style={{ color: '#c05050', margin: 0 }}>{anchorsError}</p>
           ) : loadError ? (
             <p style={{ color: '#c05050', margin: 0 }}>
-              Value Vivino labels need the saved lookup above.
+              Value Vivino labels need the saved lookup below.
             </p>
           ) : (
             <AdminValueCalibrationPanel
               initialAnchors={anchors}
               savedLookupEntries={entries}
             />
+          )}
+        </section>
+
+        <section style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <h2 style={{ margin: 0, fontSize: 15 }}>Vivino → quality</h2>
+          {loadError ? (
+            <p style={{ color: '#c05050', margin: 0 }}>{loadError}</p>
+          ) : (
+            <AdminRatingsPanel initialEntries={entries} />
           )}
         </section>
       </div>
