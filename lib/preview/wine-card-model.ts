@@ -109,6 +109,7 @@ export function toPreviewWineCard(wine: WineRow): PreviewWineCardData {
 
   const style = wine.style?.trim() || null
   const vivinoRating = ratingNum(wine.vivino_rating)
+  const qualityRating = effectiveQualityRating(wine)
   const priceKES = minWinePriceKES(
     prices.map((p) => ({ current_price_ksh: p.price })),
   )
@@ -123,9 +124,9 @@ export function toPreviewWineCard(wine: WineRow): PreviewWineCardData {
     style,
     grapes: parseGrapes(wine.grape_varieties),
     vivinoRating,
-    qualityRating: effectiveQualityRating(wine),
+    qualityRating,
     vivinoUrl: sanitizeHttpUrl(wine.vivino_url),
-    valueScore: calculateValueScore(vivinoRating, priceKES),
+    valueScore: calculateValueScore(qualityRating, priceKES),
     prices,
     image: resolveWineDisplayImage(wine) || null,
   }
