@@ -11,11 +11,21 @@ export type ValueScoreAnchorTables = {
   oneStar: ReadonlyArray<readonly [number, number]>
 }
 
+function buildValueMatrixPriceColumns(): number[] {
+  const prices: number[] = []
+  // 0 → 1k in 200s (finer low ceilings)
+  for (let p = 0; p <= 1000; p += 200) prices.push(p)
+  // Mid band (unchanged useful steps between 1k and 10k)
+  for (const p of [1500, 2000, 2250, 2500, 3000, 4000, 4500, 5000, 5500, 7000, 8000]) {
+    prices.push(p)
+  }
+  // 10k → 100k in 2k steps (finer high floors)
+  for (let p = 10000; p <= 100000; p += 2000) prices.push(p)
+  return prices
+}
+
 /** Fixed matrix columns for the admin click calibrator (KES). */
-export const VALUE_MATRIX_PRICE_COLUMNS: readonly number[] = [
-  1000, 1500, 2000, 2250, 2500, 3000, 4000, 4500, 5000, 5500, 7000, 8000, 10000,
-  12000, 20000, 100000,
-]
+export const VALUE_MATRIX_PRICE_COLUMNS: readonly number[] = buildValueMatrixPriceColumns()
 
 /** Seed / fallback anchors (matches migration 021). */
 export const DEFAULT_VALUE_SCORE_ANCHORS: readonly ValueScoreAnchor[] = [
@@ -140,6 +150,10 @@ export function applyValueAnchorDraftClick(args: {
   const five =
     mode === 'five_star' ? price : (current?.five_star_max_price ?? null)
   const one = mode === 'one_star' ? price : (current?.one_star_price ?? null)
+
+  if (mode === 'five_star' && price <= 0) {
+    return { error: '5★ max price must be greater than 0.' }
+  }
 
   if (five != null && one != null && one <= five) {
     return {

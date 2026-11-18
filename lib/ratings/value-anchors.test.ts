@@ -1,9 +1,22 @@
 import { describe, expect, it } from 'vitest'
 import {
+  VALUE_MATRIX_PRICE_COLUMNS,
   applyValueAnchorDraftClick,
   isValidValueAnchorPair,
   vivinoLabelForQuality,
 } from '@/lib/ratings/value-anchors'
+
+describe('VALUE_MATRIX_PRICE_COLUMNS', () => {
+  it('starts at 0 in 200s through 1k and steps 2k from 10k to 100k', () => {
+    expect(VALUE_MATRIX_PRICE_COLUMNS[0]).toBe(0)
+    expect(VALUE_MATRIX_PRICE_COLUMNS).toContain(200)
+    expect(VALUE_MATRIX_PRICE_COLUMNS).toContain(1000)
+    expect(VALUE_MATRIX_PRICE_COLUMNS).toContain(10000)
+    expect(VALUE_MATRIX_PRICE_COLUMNS).toContain(12000)
+    expect(VALUE_MATRIX_PRICE_COLUMNS).toContain(98000)
+    expect(VALUE_MATRIX_PRICE_COLUMNS.at(-1)).toBe(100000)
+  })
+})
 
 describe('isValidValueAnchorPair', () => {
   it('requires one-star price above five-star max', () => {

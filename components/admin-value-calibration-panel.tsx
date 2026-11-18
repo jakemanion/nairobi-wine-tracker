@@ -38,13 +38,14 @@ const tableWrapStyle: CSSProperties = {
   borderRadius: 4,
   background: '#fff',
   width: '100%',
+  overflowX: 'auto',
 }
 
 const tableStyle: CSSProperties = {
   borderCollapse: 'collapse',
   fontSize: 11,
-  width: '100%',
-  tableLayout: 'fixed',
+  width: 'max-content',
+  minWidth: '100%',
 }
 
 const thStyle: CSSProperties = {
@@ -84,9 +85,10 @@ const cellButtonStyle: CSSProperties = {
 }
 
 function formatPriceHeader(price: number): string {
+  if (price === 0) return '0'
   if (price >= 1000) {
     const k = price / 1000
-    return Number.isInteger(k) ? `${k}k` : `${k}k`
+    return Number.isInteger(k) ? `${k}k` : `${parseFloat(k.toFixed(2))}k`
   }
   return String(price)
 }
@@ -296,17 +298,10 @@ export function AdminValueCalibrationPanel({
 
       <div style={tableWrapStyle}>
         <table style={tableStyle}>
-          <colgroup>
-            <col style={{ width: 52 }} />
-            <col style={{ width: 64 }} />
-            {VALUE_MATRIX_PRICE_COLUMNS.map((price) => (
-              <col key={price} />
-            ))}
-          </colgroup>
           <thead>
             <tr>
-              <th style={{ ...thStyle, ...labelColStyle }}>Quality</th>
-              <th style={{ ...thStyle, ...labelColStyle }}>Vivino</th>
+              <th style={{ ...thStyle, ...labelColStyle, minWidth: 52 }}>Quality</th>
+              <th style={{ ...thStyle, ...labelColStyle, minWidth: 64 }}>Vivino</th>
               {VALUE_MATRIX_PRICE_COLUMNS.map((price) => (
                 <th key={price} style={thStyle} title={`${price} KES`}>
                   {formatPriceHeader(price)}
@@ -348,6 +343,7 @@ export function AdminValueCalibrationPanel({
                           padding: 1,
                           borderBottom: '1px solid #eee',
                           textAlign: 'center',
+                          minWidth: 36,
                         }}
                       >
                         <button
