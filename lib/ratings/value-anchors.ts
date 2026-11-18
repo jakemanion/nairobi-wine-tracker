@@ -13,14 +13,12 @@ export type ValueScoreAnchorTables = {
 
 function buildValueMatrixPriceColumns(): number[] {
   const prices: number[] = []
-  // 0 → 1k in 200s (finer low ceilings)
-  for (let p = 0; p <= 1000; p += 200) prices.push(p)
-  // Mid band (unchanged useful steps between 1k and 10k)
-  for (const p of [1500, 2000, 2250, 2500, 3000, 4000, 4500, 5000, 5500, 7000, 8000]) {
-    prices.push(p)
-  }
-  // 10k → 100k in 2k steps (finer high floors)
-  for (let p = 10000; p <= 100000; p += 2000) prices.push(p)
+  // 0 → 1k in 200s
+  for (let p = 0; p < 1000; p += 200) prices.push(p)
+  // 1k → 10k in 500s
+  for (let p = 1000; p <= 10000; p += 500) prices.push(p)
+  // Above 10k → 100k in 2k steps
+  for (let p = 12000; p <= 100000; p += 2000) prices.push(p)
   return prices
 }
 
@@ -31,7 +29,7 @@ export const VALUE_MATRIX_PRICE_COLUMNS: readonly number[] = buildValueMatrixPri
 export const DEFAULT_VALUE_SCORE_ANCHORS: readonly ValueScoreAnchor[] = [
   { quality_rating: 3.25, five_star_max_price: 1500, one_star_price: 3000 },
   { quality_rating: 3.5, five_star_max_price: 2000, one_star_price: 3000 },
-  { quality_rating: 3.75, five_star_max_price: 2250, one_star_price: 5000 },
+  { quality_rating: 3.75, five_star_max_price: 2500, one_star_price: 5000 },
   { quality_rating: 4, five_star_max_price: 2500, one_star_price: 5500 },
   { quality_rating: 4.25, five_star_max_price: 3000, one_star_price: 7000 },
   { quality_rating: 4.5, five_star_max_price: 4000, one_star_price: 8000 },

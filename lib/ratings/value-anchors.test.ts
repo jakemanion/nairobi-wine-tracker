@@ -7,11 +7,14 @@ import {
 } from '@/lib/ratings/value-anchors'
 
 describe('VALUE_MATRIX_PRICE_COLUMNS', () => {
-  it('starts at 0 in 200s through 1k and steps 2k from 10k to 100k', () => {
+  it('uses 200s to 1k, 500s to 10k, then 2k steps to 100k', () => {
     expect(VALUE_MATRIX_PRICE_COLUMNS[0]).toBe(0)
     expect(VALUE_MATRIX_PRICE_COLUMNS).toContain(200)
     expect(VALUE_MATRIX_PRICE_COLUMNS).toContain(1000)
+    expect(VALUE_MATRIX_PRICE_COLUMNS).toContain(1500)
+    expect(VALUE_MATRIX_PRICE_COLUMNS).toContain(9500)
     expect(VALUE_MATRIX_PRICE_COLUMNS).toContain(10000)
+    expect(VALUE_MATRIX_PRICE_COLUMNS).not.toContain(2250)
     expect(VALUE_MATRIX_PRICE_COLUMNS).toContain(12000)
     expect(VALUE_MATRIX_PRICE_COLUMNS).toContain(98000)
     expect(VALUE_MATRIX_PRICE_COLUMNS.at(-1)).toBe(100000)
