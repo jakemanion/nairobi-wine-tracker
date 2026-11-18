@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { ExternalLink, EyeOff, Grape, MapPin, NotebookPen, Pencil, Star } from 'lucide-react'
+import { ExternalLink, EyeOff, Grape, MapPin, NotebookPen, Pencil, Star, ThumbsUp } from 'lucide-react'
 import type { WineReview } from '@/components/wine-table'
 import { LoggedOutLoginPromptOverlay } from '@/components/preview/logged-out-login-prompt'
 import { PreviewBottleImage } from '@/components/preview/preview-bottle-image'
@@ -27,6 +27,7 @@ import {
   type PreviewWineCardData,
 } from '@/lib/preview/wine-card-model'
 import {
+  BRAND_GREEN,
   getReviewPanelTextColors,
   REVIEW_PANEL_WIDTH,
   type PanelTint,
@@ -257,12 +258,14 @@ function WineStarRating({
   vivinoUrl,
   valueScore,
   mutedColor,
+  editorsPick = false,
 }: {
   vivinoRating: number | null
   qualityRating: number | null
   vivinoUrl: string | null
   valueScore: number | null
   mutedColor: string
+  editorsPick?: boolean
 }) {
   const qualityStars = qualityRating
   const valueStars = valueScoreToStarRating(valueScore)
@@ -293,42 +296,62 @@ function WineStarRating({
   )
 
   return (
-    <div className="flex w-full flex-row flex-nowrap items-center justify-center gap-1 flex-shrink-0 sm:w-auto sm:flex-col sm:items-center sm:justify-start sm:gap-0 sm:pt-0.5">
-      <InstantTooltip label="This wine's value based on its quality and price">
-        <div className="sm:mb-1.5">
-          <StarRatingMeter
-            starRating={valueStars}
-            label="Value"
-            emptyLabel="No value score"
-            showTitle={false}
-          />
-        </div>
-      </InstantTooltip>
-      <InstantTooltip label="Quality ratings are derived from trusted external data and reviews">
-        <div>
-          <StarRatingMeter
-            starRating={qualityStars}
-            label="Quality"
-            emptyLabel="No rating"
-            showTitle={false}
-          />
-        </div>
-      </InstantTooltip>
-
-      {vivinoUrl ? (
-        <a
-          href={vivinoUrl}
-          target="_blank"
-          rel="noreferrer"
-          className="no-underline text-inherit hover:underline sm:mt-1.5"
-          title="View on Vivino"
-          aria-label={hasVivino ? `${vivinoRating!.toFixed(1)} on Vivino` : 'View on Vivino'}
+    <div className="flex w-full flex-col items-stretch gap-1 flex-shrink-0 sm:w-auto sm:pt-0.5">
+      {editorsPick ? (
+        <div
+          className="flex w-full items-center justify-center gap-1 rounded-md px-1.5 py-1"
+          style={{
+            background: BRAND_GREEN,
+            color: '#FFFFFF',
+            fontFamily: 'var(--font-dm-sans), sans-serif',
+            fontSize: 9,
+            fontWeight: 700,
+            letterSpacing: '0.06em',
+            lineHeight: 1,
+          }}
+          aria-label="Our pick"
         >
-          {vivinoLine}
-        </a>
-      ) : hasVivino ? (
-        <div className="sm:mt-1.5">{vivinoLine}</div>
+          <ThumbsUp size={11} strokeWidth={2.5} aria-hidden />
+          OUR PICK
+        </div>
       ) : null}
+      <div className="flex w-full flex-row flex-nowrap items-center justify-center gap-1 sm:flex-col sm:items-center sm:justify-start sm:gap-0">
+        <InstantTooltip label="This wine's value based on its quality and price">
+          <div className="sm:mb-1.5">
+            <StarRatingMeter
+              starRating={valueStars}
+              label="Value"
+              emptyLabel="No value score"
+              showTitle={false}
+            />
+          </div>
+        </InstantTooltip>
+        <InstantTooltip label="Quality ratings are derived from trusted external data and reviews">
+          <div>
+            <StarRatingMeter
+              starRating={qualityStars}
+              label="Quality"
+              emptyLabel="No rating"
+              showTitle={false}
+            />
+          </div>
+        </InstantTooltip>
+
+        {vivinoUrl ? (
+          <a
+            href={vivinoUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="no-underline text-inherit hover:underline sm:mt-1.5"
+            title="View on Vivino"
+            aria-label={hasVivino ? `${vivinoRating!.toFixed(1)} on Vivino` : 'View on Vivino'}
+          >
+            {vivinoLine}
+          </a>
+        ) : hasVivino ? (
+          <div className="sm:mt-1.5">{vivinoLine}</div>
+        ) : null}
+      </div>
     </div>
   )
 }
@@ -740,25 +763,6 @@ export function PreviewWineCard({
         boxShadow: isDimmed ? 'none' : colors.cardShadow,
       }}
     >
-      {wine.editorsPick ? (
-        <div
-          className="absolute top-0 right-0 z-10 pointer-events-none"
-          style={{
-            background: infoOnDark ? 'rgba(245, 242, 236, 0.95)' : '#1F1A17',
-            color: infoOnDark ? '#1F1A17' : '#F5F2EC',
-            fontSize: 9,
-            fontWeight: 600,
-            lineHeight: 1.2,
-            padding: '3px 7px',
-            borderBottomLeftRadius: 8,
-            fontFamily: 'var(--font-dm-sans), sans-serif',
-            letterSpacing: '0.02em',
-            boxShadow: '0 1px 4px rgba(0,0,0,0.35)',
-          }}
-        >
-          Editor&apos;s pick
-        </div>
-      ) : null}
       {ribbon ? (
         <div
           className="absolute top-0 left-0 z-10 pointer-events-none"
@@ -844,6 +848,7 @@ export function PreviewWineCard({
             vivinoUrl={wine.vivinoUrl}
             valueScore={wine.valueScore}
             mutedColor={infoMuted}
+            editorsPick={wine.editorsPick}
           />
 
           {/* Row 2 on mobile: wine info. Report/edit float top-right without reserving layout space. */}
